@@ -198,4 +198,100 @@ describe("validate", () => {
       assert.match(result.stderr, /Invalid anchor file: src\/\.\.\/safe\.ts/);
     });
   });
+
+  it("reports docs directory symlinked outside the project root", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-docs-"));
+      try {
+        runCli(["init"], dir);
+        const brief = readFileSync(join(dir, "docs/project/brief.md"), "utf8");
+        rmSync(join(dir, "docs"), { recursive: true, force: true });
+        mkdirSync(join(outsideDir, "project"), { recursive: true });
+        writeFileSync(join(outsideDir, "project/brief.md"), brief, "utf8");
+        symlinkSync(outsideDir, join(dir, "docs"), "dir");
+        writeFileSync(join(dir, ".agent-docs/manifest.json"), JSON.stringify({ version: 1, docs: [] }, null, 2), "utf8");
+        writeFileSync(join(dir, ".agent-docs/scopes.json"), JSON.stringify({ version: 1, scopes: [] }, null, 2), "utf8");
+
+        const result = runCliResult(["validate"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /docs\/ must remain inside project root/);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it("reports scope paths symlinked outside the project root", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-scope-"));
+      try {
+        runCli(["init"], dir);
+        symlinkSync(outsideDir, join(dir, "external-scope"), "dir");
+        writeFileSync(
+          join(dir, ".agent-docs/scopes.json"),
+          JSON.stringify(
+            {
+              version: 1,
+              scopes: [
+                {
+                  id: "external",
+                  kind: "feature",
+                  title: "External",
+                  path: "external-scope",
+                  status: "draft",
+                },
+              ],
+            },
+            null,
+            2,
+          ),
+          "utf8",
+        );
+
+        const result = runCliResult(["validate"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Scope external path must remain inside project root: external-scope/);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it("reports anchor docs symlinked outside the project root", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-anchor-doc-"));
+      try {
+        runCli(["init"], dir);
+        writeFileSync(join(dir, "safe.ts"), "export const safe = true;\n", "utf8");
+        writeFileSync(join(outsideDir, "outside.md"), "# Outside\n", "utf8");
+        symlinkSync(join(outsideDir, "outside.md"), join(dir, "anchor-doc.md"), "file");
+        writeFileSync(
+          join(dir, ".agent-docs/anchors.json"),
+          JSON.stringify(
+            {
+              version: 1,
+              anchors: {
+                "linked-doc": {
+                  file: "safe.ts",
+                  docs: ["anchor-doc.md"],
+                },
+              },
+            },
+            null,
+            2,
+          ),
+          "utf8",
+        );
+
+        const result = runCliResult(["validate"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Anchor linked-doc doc must remain inside project root: anchor-doc\.md/);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
 });

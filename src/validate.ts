@@ -25,9 +25,10 @@ export function validateProject(root: string): ValidationResult {
 
   if (config) validateConfig(config, errors);
   if (manifest) validateManifest(resolvedRoot, realRoot, manifest, errors);
-  if (scopes) validateScopes(resolvedRoot, scopes, errors);
+  if (scopes) validateScopes(resolvedRoot, realRoot, scopes, errors);
 
-  const docs = findMarkdownFiles(resolvedRoot, join(resolvedRoot, DOCS_DIR), errors);
+  const docsRoot = resolveProjectPath(resolvedRoot, DOCS_DIR, "docs/", errors);
+  const docs = docsRoot && validateDocsRoot(realRoot, docsRoot, errors) ? findMarkdownFiles(resolvedRoot, realRoot, docsRoot, errors) : [];
   if (docs.length === 0) warnings.push("No Markdown docs found under docs/");
 
   for (const doc of docs) {
@@ -110,7 +111,7 @@ function validateManifest(root: string, realRoot: string, manifest: ManifestFile
   });
 }
 
-function validateScopes(root: string, scopes: ScopesFile, errors: string[]): void {
+function validateScopes(root: string, realRoot: string, scopes: ScopesFile, errors: string[]): void {
   if (!isRecord(scopes)) {
     errors.push(`${CONFIG_DIR}/${SCOPES_FILE}: expected an object`);
     return;
@@ -145,7 +146,10 @@ function validateScopes(root: string, scopes: ScopesFile, errors: string[]): voi
 
     if (!existsSync(fullPath)) {
       errors.push(`Scope path is missing: ${scope.path}`);
+      return;
     }
+
+    validatePathInsideRoot(realRoot, fullPath, `Scope ${scope.id} path`, scope.path, errors);
   });
 }
 
@@ -249,7 +253,7 @@ function validateAnchors(root: string, realRoot: string, anchors: AnchorsFile, e
     }
 
     validateAnchorFile(root, realRoot, id, anchor.file, errors);
-    for (const doc of anchor.docs) validateAnchorDoc(root, id, doc, errors);
+    for (const doc of anchor.docs) validateAnchorDoc(root, realRoot, id, doc, errors);
   }
 }
 
@@ -288,7 +292,7 @@ function validateAnchorFile(root: string, realRoot: string, id: string, file: st
   }
 }
 
-function validateAnchorDoc(root: string, id: string, doc: string, errors: string[]): void {
+function validateAnchorDoc(root: string, realRoot: string, id: string, doc: string, errors: string[]): void {
   const fullPath = resolveAnchorPath(root, doc, "anchor docs path", errors);
   if (!fullPath) return;
 
@@ -299,7 +303,10 @@ function validateAnchorDoc(root: string, id: string, doc: string, errors: string
 
   if (!safeStatIsFile(fullPath)) {
     errors.push(`Anchor ${id} doc is not a file: ${doc}`);
+    return;
   }
+
+  validatePathInsideRoot(realRoot, fullPath, `Anchor ${id} doc`, doc, errors);
 }
 
 function resolveAnchorPath(root: string, path: string, label: string, errors: string[]): string | undefined {
@@ -309,6 +316,18 @@ function resolveAnchorPath(root: string, path: string, label: string, errors: st
   }
 
   return resolveProjectPath(root, path, label, errors);
+}
+
+function validatePathInsideRoot(realRoot: string, fullPath: string, label: string, displayPath: string, errors: string[]): boolean {
+  const realTarget = resolveRealPath(fullPath, `${label} target`, displayPath, errors);
+  if (!realTarget) return false;
+
+  if (!isInsideRoot(realRoot, realTarget)) {
+    errors.push(`${label} must remain inside project root: ${displayPath}`);
+    return false;
+  }
+
+  return true;
 }
 
 function resolveProjectPath(root: string, path: string, label: string, errors: string[]): string | undefined {
@@ -325,7 +344,38 @@ function resolveProjectPath(root: string, path: string, label: string, errors: s
   }
 }
 
-function findMarkdownFiles(root: string, dir: string, errors: string[]): string[] {
+function validateDocsRoot(realRoot: string, docsRoot: string, errors: string[]): boolean {
+  let stat;
+  try {
+    stat = lstatSync(docsRoot);
+  } catch (error) {
+    if (isNotFoundError(error)) return true;
+    errors.push(`docs/: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+
+  const realDocsRoot = resolveRealPath(docsRoot, "docs/", "docs/", errors);
+  if (!realDocsRoot) return false;
+
+  if (!isInsideRoot(realRoot, realDocsRoot)) {
+    errors.push("docs/ must remain inside project root");
+    return false;
+  }
+
+  if (stat.isSymbolicLink() && !safeStatIsDirectory(realDocsRoot)) {
+    errors.push("docs/ symlink target must be a directory");
+    return false;
+  }
+
+  if (!stat.isSymbolicLink() && !stat.isDirectory()) {
+    errors.push("docs/ must be a directory");
+    return false;
+  }
+
+  return true;
+}
+
+function findMarkdownFiles(root: string, realRoot: string, dir: string, errors: string[]): string[] {
   if (!existsSync(dir)) return [];
 
   const files: string[] = [];
@@ -349,14 +399,25 @@ function findMarkdownFiles(root: string, dir: string, errors: string[]): string[
 
     if (stat.isSymbolicLink()) {
       if (fullPath.endsWith(".md")) files.push(fullPath);
+      else validateSymlinkDirectory(root, realRoot, fullPath, errors);
       continue;
     }
 
-    if (stat.isDirectory()) files.push(...findMarkdownFiles(root, fullPath, errors));
+    if (stat.isDirectory()) files.push(...findMarkdownFiles(root, realRoot, fullPath, errors));
     if (stat.isFile() && fullPath.endsWith(".md")) files.push(fullPath);
   }
 
   return files.sort();
+}
+
+function validateSymlinkDirectory(root: string, realRoot: string, fullPath: string, errors: string[]): void {
+  const relativePath = toProjectPath(root, fullPath);
+  const realTarget = resolveRealPath(fullPath, `${relativePath}: symlink target`, relativePath, errors);
+  if (!realTarget) return;
+
+  if (!isInsideRoot(realRoot, realTarget)) {
+    errors.push(`${relativePath}: symlink target must remain inside project root`);
+  }
 }
 
 function extractLinkTarget(rawTarget: string): string {
@@ -394,6 +455,14 @@ function safeStatIsFile(path: string): boolean {
   }
 }
 
+function safeStatIsDirectory(path: string): boolean {
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 function resolveRealPath(fullPath: string, label: string, displayPath: string, errors: string[]): string | undefined {
   try {
     return realpathSync(fullPath);
@@ -407,6 +476,10 @@ function resolveRealPath(fullPath: string, label: string, displayPath: string, e
     errors.push(`${label} could not be resolved: ${displayPath}: ${message}`);
     return undefined;
   }
+}
+
+function isNotFoundError(error: unknown): boolean {
+  return isRecord(error) && error.code === "ENOENT";
 }
 
 function toProjectPath(root: string, fullPath: string): string {
