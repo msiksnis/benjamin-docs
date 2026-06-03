@@ -79,3 +79,48 @@ export const starterDocs: Array<{ path: string; content: string }> = [
     ),
   },
 ];
+
+export function featureDocs(slug: string): Array<{ path: string; content: string }> {
+  return [
+    {
+      path: `docs/features/${slug}/brief.md`,
+      content: doc(
+        `${slug} Brief`,
+        "feature",
+        slug,
+        ["developer", "designer", "agent"],
+        `# ${slug} Brief\n\nCapture what this feature is meant to accomplish.\n`,
+      ),
+    },
+    {
+      path: `docs/features/${slug}/plan.md`,
+      content: doc(
+        `${slug} Plan`,
+        "feature",
+        slug,
+        ["developer", "agent"],
+        `# ${slug} Plan\n\nCapture the implementation or execution plan.\n`,
+      ),
+    },
+    {
+      path: `docs/features/${slug}/decisions.md`,
+      content: doc(
+        `${slug} Decisions`,
+        "feature",
+        slug,
+        ["developer", "agent"],
+        `# ${slug} Decisions\n\nCapture durable decisions, rejected options, and reasoning.\n`,
+      ),
+    },
+    {
+      path: `docs/features/${slug}/handoff.md`,
+      content: doc(
+        `${slug} Handoff`,
+        "feature",
+        slug,
+        ["developer", "agent"],
+        `# ${slug} Handoff\n\nCapture status, open questions, and next actions for this feature.\n`,
+      ),
+    },
+  ];
+}
