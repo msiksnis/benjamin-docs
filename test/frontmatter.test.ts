@@ -12,6 +12,42 @@ describe("frontmatter", () => {
     assert.equal(parsed.body.trim(), "# Test Doc");
   });
 
+  it("parses markdown with CRLF frontmatter", () => {
+    const parsed = parseMarkdown("---\r\ntitle: Test Doc\r\nscope: project\r\nscope_id: project\r\naudience: [developer]\r\nstatus: draft\r\nvisibility: private\r\nupdated: 2026-06-03\r\nsource: manual\r\n---\r\n\r\n# Test Doc\r\n");
+
+    assert.equal(parsed.frontmatter.scope, "project");
+    assert.deepEqual(parsed.frontmatter.audience, ["developer"]);
+    assert.equal(parsed.body.trim(), "# Test Doc");
+  });
+
+  it("throws when a required frontmatter field is missing", () => {
+    assert.throws(
+      () => parseMarkdown(`---\ntitle: Missing Scope\nscope_id: missing-scope\naudience: [developer]\nstatus: draft\nvisibility: private\nupdated: 2026-06-03\nsource: manual\n---\n\n# Missing Scope\n`),
+      /Missing required frontmatter field: scope/,
+    );
+  });
+
+  it("throws when audience is scalar", () => {
+    assert.throws(
+      () => parseMarkdown(`---\ntitle: Scalar Audience\nscope: project\nscope_id: project\naudience: developer\nstatus: draft\nvisibility: private\nupdated: 2026-06-03\nsource: manual\n---\n\n# Scalar Audience\n`),
+      /Frontmatter field audience must be an array/,
+    );
+  });
+
+  it("throws when scope is unknown", () => {
+    assert.throws(
+      () => parseMarkdown(`---\ntitle: Unknown Scope\nscope: workspace\nscope_id: unknown-scope\naudience: [developer]\nstatus: draft\nvisibility: private\nupdated: 2026-06-03\nsource: manual\n---\n\n# Unknown Scope\n`),
+      /Unknown frontmatter scope: workspace/,
+    );
+  });
+
+  it("throws when audience contains an unknown value", () => {
+    assert.throws(
+      () => parseMarkdown(`---\ntitle: Unknown Audience\nscope: project\nscope_id: project\naudience: [developer, investor]\nstatus: draft\nvisibility: private\nupdated: 2026-06-03\nsource: manual\n---\n\n# Unknown Audience\n`),
+      /Unknown frontmatter audience: investor/,
+    );
+  });
+
   it("serializes markdown frontmatter deterministically", () => {
     const output = serializeMarkdown(
       {

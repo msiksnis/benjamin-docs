@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 export function pathExists(path: string): boolean {
   return existsSync(path);
@@ -24,5 +24,20 @@ export function writeText(path: string, value: string): void {
 }
 
 export function rootPath(root: string, ...parts: string[]): string {
-  return join(root, ...parts);
+  const resolvedRoot = resolve(root);
+
+  for (const part of parts) {
+    if (isAbsolute(part)) {
+      throw new Error(`Refusing absolute path segment outside root: ${part}`);
+    }
+  }
+
+  const resolvedPath = resolve(resolvedRoot, ...parts);
+  const relativePath = relative(resolvedRoot, resolvedPath);
+
+  if (relativePath === ".." || relativePath.startsWith(`..${sep}`) || isAbsolute(relativePath)) {
+    throw new Error(`Resolved path is outside root: ${resolvedPath}`);
+  }
+
+  return resolvedPath;
 }

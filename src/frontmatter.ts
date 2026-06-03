@@ -1,3 +1,4 @@
+import { KNOWN_AUDIENCES, KNOWN_SCOPES, KNOWN_SOURCES, KNOWN_STATUSES, KNOWN_VISIBILITIES } from "./constants.js";
 import type { DocFrontmatter, ParsedMarkdown } from "./types.js";
 
 const ORDER: Array<keyof DocFrontmatter> = [
@@ -12,17 +13,19 @@ const ORDER: Array<keyof DocFrontmatter> = [
 ];
 
 export function parseMarkdown(markdown: string): ParsedMarkdown {
-  if (!markdown.startsWith("---\n")) {
+  const normalized = normalizeMarkdown(markdown);
+
+  if (!normalized.startsWith("---\n")) {
     throw new Error("Markdown file is missing frontmatter");
   }
 
-  const end = markdown.indexOf("\n---\n", 4);
+  const end = normalized.indexOf("\n---\n", 4);
   if (end === -1) {
     throw new Error("Markdown frontmatter is not closed");
   }
 
-  const raw = markdown.slice(4, end);
-  const body = markdown.slice(end + 5);
+  const raw = normalized.slice(4, end);
+  const body = normalized.slice(end + 5);
   const frontmatter: Record<string, unknown> = {};
 
   for (const line of raw.split("\n")) {
@@ -35,7 +38,7 @@ export function parseMarkdown(markdown: string): ParsedMarkdown {
     frontmatter[key] = parseValue(value);
   }
 
-  return { frontmatter: frontmatter as unknown as DocFrontmatter, body };
+  return { frontmatter: validateFrontmatter(frontmatter), body };
 }
 
 export function serializeMarkdown(frontmatter: DocFrontmatter, body: string): string {
@@ -55,4 +58,73 @@ function parseValue(value: string): string | string[] {
 function serializeValue(value: string | string[]): string {
   if (Array.isArray(value)) return `[${value.join(", ")}]`;
   return value;
+}
+
+function normalizeMarkdown(markdown: string): string {
+  return markdown.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+}
+
+function validateFrontmatter(frontmatter: Record<string, unknown>): DocFrontmatter {
+  const scope = knownValue("scope", requiredString(frontmatter, "scope"), KNOWN_SCOPES);
+  const status = knownValue("status", requiredString(frontmatter, "status"), KNOWN_STATUSES);
+  const visibility = knownValue("visibility", requiredString(frontmatter, "visibility"), KNOWN_VISIBILITIES);
+  const source = knownValue("source", requiredString(frontmatter, "source"), KNOWN_SOURCES);
+  const audience = requiredAudience(frontmatter);
+
+  return {
+    title: requiredString(frontmatter, "title"),
+    scope,
+    scope_id: requiredString(frontmatter, "scope_id"),
+    audience,
+    status,
+    visibility,
+    updated: requiredString(frontmatter, "updated"),
+    source,
+  };
+}
+
+function requiredString(frontmatter: Record<string, unknown>, key: keyof DocFrontmatter): string {
+  const value = frontmatter[key];
+
+  if (value === undefined) {
+    throw new Error(`Missing required frontmatter field: ${key}`);
+  }
+
+  if (typeof value !== "string") {
+    throw new Error(`Frontmatter field ${key} must be a string`);
+  }
+
+  return value;
+}
+
+function requiredAudience(frontmatter: Record<string, unknown>): DocFrontmatter["audience"] {
+  const value = frontmatter.audience;
+
+  if (value === undefined) {
+    throw new Error("Missing required frontmatter field: audience");
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error("Frontmatter field audience must be an array");
+  }
+
+  const audiences: DocFrontmatter["audience"] = [];
+
+  for (const audience of value) {
+    if (typeof audience !== "string") {
+      throw new Error("Frontmatter field audience must contain only strings");
+    }
+
+    audiences.push(knownValue("audience", audience, KNOWN_AUDIENCES));
+  }
+
+  return audiences;
+}
+
+function knownValue<const T extends readonly string[]>(field: string, value: string, knownValues: T): T[number] {
+  if (!knownValues.includes(value)) {
+    throw new Error(`Unknown frontmatter ${field}: ${value}`);
+  }
+
+  return value as T[number];
 }
