@@ -1,4 +1,5 @@
-import { win32 } from "node:path";
+import { realpathSync, statSync } from "node:fs";
+import { isAbsolute, relative, sep, win32 } from "node:path";
 import { ANCHORS_FILE, CONFIG_DIR } from "./constants.js";
 import { pathExists, readJson, rootPath, writeJson } from "./fsx.js";
 import type { AnchorsFile } from "./types.js";
@@ -16,6 +17,7 @@ export function addAnchor(root: string, id: string, file: string, docs: string[]
   if (!pathExists(filePath.full)) {
     throw new Error(`Anchor file does not exist: ${file}`);
   }
+  assertRegularFileInsideRoot(root, filePath.full, file);
 
   const anchorsPath = rootPath(root, CONFIG_DIR, ANCHORS_FILE);
   const anchors = readJson<AnchorsFile>(anchorsPath);
@@ -42,4 +44,21 @@ function validateRelativePath(root: string, path: string, label: string): SafePa
 
 function hasDotSegment(path: string): boolean {
   return path.split("/").some((part) => part === "." || part === ".." || part === "");
+}
+
+function assertRegularFileInsideRoot(root: string, fullPath: string, originalPath: string): void {
+  if (!statSync(fullPath).isFile()) {
+    throw new Error(`Anchor target must be a regular file: ${originalPath}`);
+  }
+
+  const realRoot = realpathSync(root);
+  const realTarget = realpathSync(fullPath);
+  if (!isInsideRoot(realRoot, realTarget)) {
+    throw new Error(`Anchor target must remain inside project root: ${originalPath}`);
+  }
+}
+
+function isInsideRoot(root: string, target: string): boolean {
+  const relativePath = relative(root, target);
+  return relativePath === "" || (!relativePath.startsWith(`..${sep}`) && relativePath !== ".." && !isAbsolute(relativePath));
 }

@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runCli, runCliResult, withTempDir } from "./helpers.js";
 
@@ -122,6 +123,36 @@ describe("scopes and anchors", () => {
 
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Anchor file does not exist: src\/missing\.ts/);
+    });
+  });
+
+  it("rejects directory anchor targets", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      mkdirSync(join(dir, "src/features/booking"), { recursive: true });
+
+      const result = runCliResult(["anchor", "add", "booking-capacity-rules", "src/features/booking"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Anchor target must be a regular file: src\/features\/booking/);
+    });
+  });
+
+  it("rejects symlink anchor targets that resolve outside the root", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      try {
+        runCli(["init"], dir);
+        writeFileSync(join(outsideDir, "secret.ts"), "export const secret = true;\n");
+        symlinkSync(join(outsideDir, "secret.ts"), join(dir, "secret-link.ts"), "file");
+
+        const result = runCliResult(["anchor", "add", "secret-link", "secret-link.ts"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Anchor target must remain inside project root: secret-link\.ts/);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
     });
   });
 });
