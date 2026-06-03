@@ -3,6 +3,7 @@ import { addAnchor } from "./anchors.js";
 import { initProject } from "./init.js";
 import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
 import { createScope } from "./scopes.js";
+import { validateProject } from "./validate.js";
 
 export async function main(argv: string[] = process.argv.slice(2), cwd: string = process.cwd()): Promise<number> {
   const [command] = argv;
@@ -57,6 +58,18 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
     addAnchor(cwd, id, file);
     console.log(`Added anchor ${id}.`);
+    return 0;
+  }
+
+  if (command === "validate") {
+    const result = validateProject(cwd);
+    for (const warning of result.warnings) console.warn(`Warning: ${warning}`);
+    if (result.errors.length > 0) {
+      for (const error of result.errors) console.error(`Error: ${error}`);
+      return 1;
+    }
+
+    console.log("Validation passed.");
     return 0;
   }
 
