@@ -42,6 +42,19 @@ describe("validate", () => {
     });
   });
 
+  it("ignores unmanaged legacy markdown docs without frontmatter", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      writeFileSync(join(dir, "docs/legacy-notes.md"), "# Legacy Notes\n\nAlready existed before benjamin-docs.\n", "utf8");
+
+      const result = runCliResult(["validate"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /Validation passed/);
+      assert.equal(result.stderr, "");
+    });
+  });
+
   it("reports broken relative markdown links", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);

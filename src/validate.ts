@@ -39,10 +39,16 @@ export function validateProject(root: string): ValidationResult {
 
   const docsRoot = resolveProjectPath(resolvedRoot, DOCS_DIR, "docs/", errors);
   const docs = docsRoot && validateDocsRoot(realRoot, docsRoot, errors) ? findMarkdownFiles(resolvedRoot, realRoot, docsRoot, errors) : [];
+  const managedDocs = manifest ? new Set(manifest.docs.map(normalizeProjectPath)) : undefined;
   if (docs.length === 0) warnings.push("No Markdown docs found under docs/");
 
   for (const doc of docs) {
-    validateMarkdownDoc(resolvedRoot, realRoot, doc, errors);
+    const relativeDoc = toProjectPath(resolvedRoot, doc);
+    if (!managedDocs || managedDocs.has(relativeDoc)) {
+      validateMarkdownDoc(resolvedRoot, realRoot, doc, errors);
+    } else {
+      validateMarkdownPath(resolvedRoot, realRoot, doc, errors);
+    }
   }
 
   if (anchors) validateAnchors(resolvedRoot, realRoot, anchors, errors);
@@ -211,31 +217,7 @@ function validateScopes(root: string, realRoot: string, scopes: ScopesFile, erro
 function validateMarkdownDoc(root: string, realRoot: string, fullPath: string, errors: string[]): void {
   const relativePath = toProjectPath(root, fullPath);
 
-  let stat;
-  try {
-    stat = lstatSync(fullPath);
-  } catch (error) {
-    errors.push(`${relativePath}: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
-    return;
-  }
-
-  if (stat.isSymbolicLink()) {
-    const realTarget = resolveRealPath(fullPath, `${relativePath}: symlink target`, relativePath, errors);
-    if (!realTarget) return;
-
-    if (!isInsideRoot(realRoot, realTarget)) {
-      errors.push(`${relativePath}: symlink target must remain inside project root`);
-      return;
-    }
-
-    if (!safeStatIsFile(realTarget)) {
-      errors.push(`${relativePath}: symlink target is not a file`);
-      return;
-    }
-  } else if (!stat.isFile()) {
-    errors.push(`${relativePath}: Markdown path is not a file`);
-    return;
-  }
+  if (!validateMarkdownPath(root, realRoot, fullPath, errors)) return;
 
   let content: string;
   try {
@@ -251,6 +233,38 @@ function validateMarkdownDoc(root: string, realRoot: string, fullPath: string, e
   } catch (error) {
     errors.push(`${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+function validateMarkdownPath(root: string, realRoot: string, fullPath: string, errors: string[]): boolean {
+  const relativePath = toProjectPath(root, fullPath);
+
+  let stat;
+  try {
+    stat = lstatSync(fullPath);
+  } catch (error) {
+    errors.push(`${relativePath}: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+
+  if (stat.isSymbolicLink()) {
+    const realTarget = resolveRealPath(fullPath, `${relativePath}: symlink target`, relativePath, errors);
+    if (!realTarget) return false;
+
+    if (!isInsideRoot(realRoot, realTarget)) {
+      errors.push(`${relativePath}: symlink target must remain inside project root`);
+      return false;
+    }
+
+    if (!safeStatIsFile(realTarget)) {
+      errors.push(`${relativePath}: symlink target is not a file`);
+      return false;
+    }
+  } else if (!stat.isFile()) {
+    errors.push(`${relativePath}: Markdown path is not a file`);
+    return false;
+  }
+
+  return true;
 }
 
 function validateLinks(root: string, realRoot: string, docPath: string, body: string, errors: string[]): void {
@@ -539,6 +553,10 @@ function isNotFoundError(error: unknown): boolean {
 
 function toProjectPath(root: string, fullPath: string): string {
   return normalize(relative(root, fullPath)).split(sep).join("/");
+}
+
+function normalizeProjectPath(path: string): string {
+  return normalize(path).split(sep).join("/");
 }
 
 function isInsideRoot(root: string, target: string): boolean {
