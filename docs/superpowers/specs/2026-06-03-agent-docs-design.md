@@ -184,6 +184,9 @@ The CLI owns deterministic structure and integrity.
 Initial command surface:
 
 ```bash
+npx agent-docs --version
+npx agent-docs help
+npx agent-docs introduce
 npx agent-docs init
 npx agent-docs status
 npx agent-docs validate
@@ -197,6 +200,8 @@ npx agent-docs anchor add booking-capacity-rules src/...
 
 The CLI should:
 
+- Provide basic discoverability through version, help, and introductory
+  commands.
 - Create folders, starter docs, and metadata files.
 - Create project, feature, release, and handoff scopes.
 - Rebuild indexes and manifests.
@@ -204,6 +209,25 @@ The CLI should:
   stale anchors.
 - Export audience-specific local Markdown bundles.
 - Avoid doing judgment-heavy project synthesis.
+
+### CLI Discoverability
+
+`agent-docs --version` should print the installed package version.
+
+`agent-docs help` should list available commands, common workflows, and short
+examples in plain language.
+
+`agent-docs introduce` should explain what `agent-docs` is in simple,
+non-technical language. It should be suitable for a founder, designer, advisor,
+or other non-code user who has opened a terminal or agent workspace but does not
+yet understand the tool. It should explain:
+
+- `agent-docs` turns planning and build conversations into durable project
+  memory.
+- Docs live inside the project so they stay close to the work.
+- The same docs can help humans, developers, designers, and future AI agents.
+- Publishing and collaboration can come later, but the repo-local docs are the
+  source of truth.
 
 ## Skill Responsibilities
 
@@ -219,6 +243,28 @@ The skill should:
 - Produce audience-specific briefs.
 - Run `agent-docs validate` after edits.
 - Report what changed and what remains unresolved.
+- Challenge weak plans, missing context, risky assumptions, and likely dead ends
+  with clear reasoning and constructive alternatives.
+
+### Skill Stance
+
+The skill should not behave like a passive note taker. It should help the user
+create better projects and better documentation.
+
+When capturing or updating docs, the skill should preserve the user's intent
+while also pointing out:
+
+- Missing decisions.
+- Contradictory goals.
+- Overbuilt V1 scope.
+- Weak audience or positioning assumptions.
+- Technical or product risks that may matter later.
+- Places where a designer, developer, advisor, or future agent would likely be
+  confused.
+
+This pushback should be direct but useful. The goal is not to argue with the
+user or block progress. The goal is to improve the project record so it can be
+trusted by future humans and agents.
 
 Initial capture intents:
 
