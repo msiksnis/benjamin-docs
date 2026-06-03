@@ -294,4 +294,52 @@ describe("validate", () => {
       }
     });
   });
+
+  it("reports .agent-docs directory symlinked outside the project root", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-metadata-"));
+      try {
+        runCli(["init"], dir);
+        for (const file of ["config.json", "manifest.json", "scopes.json", "anchors.json"]) {
+          writeFileSync(
+            join(outsideDir, file),
+            readFileSync(join(dir, ".agent-docs", file), "utf8"),
+            "utf8",
+          );
+        }
+        rmSync(join(dir, ".agent-docs"), { recursive: true, force: true });
+        symlinkSync(outsideDir, join(dir, ".agent-docs"), "dir");
+
+        const result = runCliResult(["validate"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /\.agent-docs\/ must remain inside project root/);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it("reports metadata files symlinked outside the project root", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-manifest-"));
+      try {
+        runCli(["init"], dir);
+        writeFileSync(
+          join(outsideDir, "manifest.json"),
+          readFileSync(join(dir, ".agent-docs/manifest.json"), "utf8"),
+          "utf8",
+        );
+        rmSync(join(dir, ".agent-docs/manifest.json"));
+        symlinkSync(join(outsideDir, "manifest.json"), join(dir, ".agent-docs/manifest.json"), "file");
+
+        const result = runCliResult(["validate"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /\.agent-docs\/manifest\.json must remain inside project root/);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
 });

@@ -17,11 +17,21 @@ export function validateProject(root: string): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   const realRoot = resolveRealPath(resolvedRoot, "Project root", resolvedRoot, errors) ?? resolvedRoot;
+  const metadataRoot = rootPath(resolvedRoot, CONFIG_DIR);
+  const metadataRootIsSafe = validateMetadataRoot(realRoot, metadataRoot, errors);
 
-  const config = readMetadataFile<AgentDocsConfig>(resolvedRoot, join(CONFIG_DIR, CONFIG_FILE), errors);
-  const manifest = readMetadataFile<ManifestFile>(resolvedRoot, join(CONFIG_DIR, MANIFEST_FILE), errors);
-  const scopes = readMetadataFile<ScopesFile>(resolvedRoot, join(CONFIG_DIR, SCOPES_FILE), errors);
-  const anchors = readMetadataFile<AnchorsFile>(resolvedRoot, join(CONFIG_DIR, ANCHORS_FILE), errors);
+  const config = metadataRootIsSafe
+    ? readMetadataFile<AgentDocsConfig>(resolvedRoot, realRoot, join(CONFIG_DIR, CONFIG_FILE), errors)
+    : undefined;
+  const manifest = metadataRootIsSafe
+    ? readMetadataFile<ManifestFile>(resolvedRoot, realRoot, join(CONFIG_DIR, MANIFEST_FILE), errors)
+    : undefined;
+  const scopes = metadataRootIsSafe
+    ? readMetadataFile<ScopesFile>(resolvedRoot, realRoot, join(CONFIG_DIR, SCOPES_FILE), errors)
+    : undefined;
+  const anchors = metadataRootIsSafe
+    ? readMetadataFile<AnchorsFile>(resolvedRoot, realRoot, join(CONFIG_DIR, ANCHORS_FILE), errors)
+    : undefined;
 
   if (config) validateConfig(config, errors);
   if (manifest) validateManifest(resolvedRoot, realRoot, manifest, errors);
@@ -40,15 +50,29 @@ export function validateProject(root: string): ValidationResult {
   return { errors, warnings };
 }
 
-function readMetadataFile<T>(root: string, relativePath: string, errors: string[]): T | undefined {
-  const fullPath = join(root, relativePath);
+function readMetadataFile<T>(root: string, realRoot: string, relativePath: string, errors: string[]): T | undefined {
+  const fullPath = rootPath(root, relativePath);
 
-  if (!existsSync(fullPath)) {
-    errors.push(`Missing required file: ${relativePath}`);
+  try {
+    lstatSync(fullPath);
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      errors.push(`Missing required file: ${relativePath}`);
+    } else {
+      errors.push(`${relativePath}: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
+    }
     return undefined;
   }
 
-  if (!safeStatIsFile(fullPath)) {
+  const realTarget = resolveRealPath(fullPath, `${relativePath} target`, relativePath, errors);
+  if (!realTarget) return undefined;
+
+  if (!isInsideRoot(realRoot, realTarget)) {
+    errors.push(`${relativePath} must remain inside project root`);
+    return undefined;
+  }
+
+  if (!safeStatIsFile(realTarget)) {
     errors.push(`Required metadata path is not a file: ${relativePath}`);
     return undefined;
   }
@@ -59,6 +83,37 @@ function readMetadataFile<T>(root: string, relativePath: string, errors: string[
     errors.push(`${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
     return undefined;
   }
+}
+
+function validateMetadataRoot(realRoot: string, metadataRoot: string, errors: string[]): boolean {
+  let stat;
+  try {
+    stat = lstatSync(metadataRoot);
+  } catch (error) {
+    if (isNotFoundError(error)) return true;
+    errors.push(`${CONFIG_DIR}/: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
+
+  const realMetadataRoot = resolveRealPath(metadataRoot, `${CONFIG_DIR}/`, `${CONFIG_DIR}/`, errors);
+  if (!realMetadataRoot) return false;
+
+  if (!isInsideRoot(realRoot, realMetadataRoot)) {
+    errors.push(`${CONFIG_DIR}/ must remain inside project root`);
+    return false;
+  }
+
+  if (stat.isSymbolicLink() && !safeStatIsDirectory(realMetadataRoot)) {
+    errors.push(`${CONFIG_DIR}/ symlink target must be a directory`);
+    return false;
+  }
+
+  if (!stat.isSymbolicLink() && !stat.isDirectory()) {
+    errors.push(`${CONFIG_DIR}/ must be a directory`);
+    return false;
+  }
+
+  return true;
 }
 
 function validateConfig(config: AgentDocsConfig, errors: string[]): void {
