@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 import { addAnchor } from "./anchors.js";
-import { initProject } from "./init.js";
+import { exportAudience } from "./export.js";
+import { initProject, promoteToCodebase } from "./init.js";
 import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
 import { createScope } from "./scopes.js";
+import { getStatus } from "./status.js";
 import { validateProject } from "./validate.js";
 
 export async function main(argv: string[] = process.argv.slice(2), cwd: string = process.cwd()): Promise<number> {
@@ -26,6 +28,11 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   if (command === "init") {
     const written = initProject(cwd);
     console.log(`Initialized agent-docs. ${written.length} files created.`);
+    return 0;
+  }
+
+  if (command === "status") {
+    console.log(getStatus(cwd));
     return 0;
   }
 
@@ -70,6 +77,28 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
     }
 
     console.log("Validation passed.");
+    return 0;
+  }
+
+  if (command === "export") {
+    const audienceIndex = argv.indexOf("--audience");
+    const audience = audienceIndex === -1 ? undefined : argv[audienceIndex + 1];
+    if (!audience) {
+      throw new Error("Usage: agent-docs export --audience <audience>");
+    }
+
+    const written = exportAudience(cwd, audience);
+    console.log(`Exported ${audience} bundle. ${written.length} files written.`);
+    return 0;
+  }
+
+  if (command === "promote") {
+    if (argv[1] !== "--to" || argv[2] !== "codebase") {
+      throw new Error("Usage: agent-docs promote --to codebase");
+    }
+
+    const written = promoteToCodebase(cwd);
+    console.log(`Promoted agent-docs to codebase mode. ${written.length} files created.`);
     return 0;
   }
 

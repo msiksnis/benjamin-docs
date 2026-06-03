@@ -80,6 +80,39 @@ export const starterDocs: Array<{ path: string; content: string }> = [
   },
 ];
 
+export const codebaseDocs: Array<{ path: string; content: string }> = [
+  {
+    path: "docs/engineering/architecture.md",
+    content: doc(
+      "Architecture",
+      "project",
+      "project",
+      ["developer", "agent"],
+      "# Architecture\n\nCapture the current system shape, major boundaries, and important constraints.\n",
+    ),
+  },
+  {
+    path: "docs/engineering/code-map.md",
+    content: doc(
+      "Code Map",
+      "project",
+      "project",
+      ["developer", "agent"],
+      "# Code Map\n\nCapture important files, modules, routes, schemas, and tests.\n",
+    ),
+  },
+  {
+    path: "docs/releases/changelog.md",
+    content: doc(
+      "Changelog",
+      "release",
+      "release",
+      ["developer", "business", "public"],
+      "# Changelog\n\nTrack notable changes.\n",
+    ),
+  },
+];
+
 export function featureDocs(slug: string): Array<{ path: string; content: string }> {
   return [
     {

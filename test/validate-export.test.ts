@@ -343,3 +343,98 @@ describe("validate", () => {
     });
   });
 });
+
+describe("status and export", () => {
+  it("prints project status", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      const output = runCli(["status"], dir);
+
+      assert.match(output, /agent-docs status/);
+      assert.match(output, /mode: planning/);
+      assert.match(output, /docs: 5/);
+      assert.match(output, /scopes: 3/);
+    });
+  });
+
+  it("exports docs for an audience while preserving docs-relative structure", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      const output = runCli(["export", "--audience", "agent"], dir);
+
+      assert.match(output, /Exported agent bundle/);
+      assert.equal(existsSync(join(dir, "exports/agent/handoff/agent-brief.md")), true);
+      assert.equal(existsSync(join(dir, "exports/agent/project/brief.md")), true);
+      assert.equal(existsSync(join(dir, "exports/agent/handoff/human-brief.md")), false);
+    });
+  });
+
+  it("rejects unknown or unsafe export audiences", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+
+      for (const audience of ["internal", "../agent"]) {
+        const result = runCliResult(["export", "--audience", audience], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Unknown audience/);
+      }
+    });
+  });
+
+  it("does not export docs when validation has errors", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      writeFileSync(join(dir, "docs/project/brief.md"), "# Project Brief\n\nMissing metadata.\n", "utf8");
+
+      const result = runCliResult(["export", "--audience", "agent"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Cannot export while validation has errors/);
+      assert.equal(existsSync(join(dir, "exports/agent/project/brief.md")), false);
+    });
+  });
+
+  it("promotes config to codebase mode and creates codebase docs", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["promote", "--to", "codebase"], dir);
+      const config = readFileSync(join(dir, ".agent-docs/config.json"), "utf8");
+
+      assert.match(config, /"mode": "codebase"/);
+      assert.equal(existsSync(join(dir, "docs/engineering/architecture.md")), true);
+      assert.equal(existsSync(join(dir, "docs/engineering/code-map.md")), true);
+      assert.equal(existsSync(join(dir, "docs/releases/changelog.md")), true);
+    });
+  });
+
+  it("does not overwrite existing codebase docs during promote", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      mkdirSync(join(dir, "docs/engineering"), { recursive: true });
+      const architecturePath = join(dir, "docs/engineering/architecture.md");
+      const existing = [
+        "---",
+        "title: Existing Architecture",
+        "scope: project",
+        "scope_id: project",
+        "audience: [developer, agent]",
+        "status: draft",
+        "visibility: private",
+        "updated: 2026-06-03",
+        "source: manual",
+        "---",
+        "",
+        "# Existing Architecture",
+        "",
+        "Keep this content.",
+        "",
+      ].join("\n");
+      writeFileSync(architecturePath, existing, "utf8");
+
+      runCli(["promote", "--to", "codebase"], dir);
+
+      assert.equal(readFileSync(architecturePath, "utf8"), existing);
+    });
+  });
+});

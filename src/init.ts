@@ -1,7 +1,7 @@
 import { ANCHORS_FILE, CONFIG_DIR, CONFIG_FILE, DOCS_DIR, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
-import { ensureDir, pathExists, rootPath, writeJson, writeText } from "./fsx.js";
-import { starterDocs } from "./templates.js";
-import type { AgentDocsConfig, AnchorsFile, ManifestFile, ScopesFile } from "./types.js";
+import { ensureDir, pathExists, readJson, rootPath, writeJson, writeText } from "./fsx.js";
+import { codebaseDocs, starterDocs } from "./templates.js";
+import type { AgentDocsConfig, AnchorsFile, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
 
 export function initProject(root: string): string[] {
   const written: string[] = [];
@@ -47,10 +47,61 @@ export function initProject(root: string): string[] {
   return written;
 }
 
+export function promoteToCodebase(root: string): string[] {
+  const written: string[] = [];
+
+  for (const codebaseDoc of codebaseDocs) {
+    const fullPath = rootPath(root, codebaseDoc.path);
+    if (!pathExists(fullPath)) {
+      writeText(fullPath, codebaseDoc.content);
+      written.push(codebaseDoc.path);
+    }
+  }
+
+  const configPath = rootPath(root, CONFIG_DIR, CONFIG_FILE);
+  const config = readJson<AgentDocsConfig>(configPath);
+  config.mode = "codebase";
+  writeJson(configPath, config);
+
+  updateManifest(root);
+  updateScopes(root);
+
+  return written;
+}
+
 function writeJsonIfMissing(root: string, parts: string[], value: unknown, written: string[]): void {
   const path = rootPath(root, ...parts);
   if (pathExists(path)) return;
 
   writeJson(path, value);
   written.push(parts.join("/"));
+}
+
+function updateManifest(root: string): void {
+  const manifestPath = rootPath(root, CONFIG_DIR, MANIFEST_FILE);
+  const manifest = readJson<ManifestFile>(manifestPath);
+
+  for (const codebaseDoc of codebaseDocs) {
+    if (!manifest.docs.includes(codebaseDoc.path)) manifest.docs.push(codebaseDoc.path);
+  }
+
+  writeJson(manifestPath, manifest);
+}
+
+function updateScopes(root: string): void {
+  const scopesPath = rootPath(root, CONFIG_DIR, SCOPES_FILE);
+  const scopes = readJson<ScopesFile>(scopesPath);
+  if (scopes.scopes.some((scope) => scope.id === "release")) {
+    return;
+  }
+
+  const releaseScope: ScopeRecord = {
+    id: "release",
+    kind: "release",
+    title: "Release",
+    path: "docs/releases/changelog.md",
+    status: "draft",
+  };
+  scopes.scopes.push(releaseScope);
+  writeJson(scopesPath, scopes);
 }
