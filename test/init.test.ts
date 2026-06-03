@@ -10,13 +10,13 @@ describe("init", () => {
     withTempDir((dir) => {
       const output = runCli(["init"], dir);
 
-      assert.match(output, /Initialized agent-docs/);
+      assert.match(output, /Initialized benjamin-docs/);
       assert.equal(existsSync(join(dir, "docs/project/brief.md")), true);
       assert.equal(existsSync(join(dir, "docs/handoff/agent-brief.md")), true);
-      assert.equal(existsSync(join(dir, ".agent-docs/config.json")), true);
-      assert.equal(existsSync(join(dir, ".agent-docs/manifest.json")), true);
-      assert.equal(existsSync(join(dir, ".agent-docs/scopes.json")), true);
-      assert.equal(existsSync(join(dir, ".agent-docs/anchors.json")), true);
+      assert.equal(existsSync(join(dir, ".benjamin-docs/config.json")), true);
+      assert.equal(existsSync(join(dir, ".benjamin-docs/manifest.json")), true);
+      assert.equal(existsSync(join(dir, ".benjamin-docs/scopes.json")), true);
+      assert.equal(existsSync(join(dir, ".benjamin-docs/anchors.json")), true);
     });
   });
 
@@ -35,7 +35,7 @@ describe("init", () => {
 
   it("rejects a symlinked docs directory during init", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
         symlinkSync(outsideDir, join(dir, "docs"), "dir");
 
@@ -52,14 +52,14 @@ describe("init", () => {
 
   it("rejects a symlinked metadata directory during init", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
-        symlinkSync(outsideDir, join(dir, ".agent-docs"), "dir");
+        symlinkSync(outsideDir, join(dir, ".benjamin-docs"), "dir");
 
         const result = runCliResult(["init"], dir);
 
         assert.equal(result.status, 1);
-        assert.match(result.stderr, /Metadata path must not be a symlink: \.agent-docs/);
+        assert.match(result.stderr, /Metadata path must not be a symlink: \.benjamin-docs/);
         assert.equal(existsSync(join(outsideDir, "config.json")), false);
       } finally {
         rmSync(outsideDir, { recursive: true, force: true });

@@ -7,7 +7,7 @@ import {
   writeGeneratedTextIfMissing,
 } from "./fsx.js";
 import { codebaseDocs, starterDocs } from "./templates.js";
-import type { AgentDocsConfig, AnchorsFile, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
+import type { BenjaminDocsConfig, AnchorsFile, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
 
 const METADATA_LABEL = "Metadata path";
 
@@ -26,7 +26,7 @@ export function initProject(root: string): string[] {
   writeJsonIfMissing(
     root,
     [CONFIG_DIR, CONFIG_FILE],
-    { version: 1, mode: "planning" } satisfies AgentDocsConfig,
+    { version: 1, mode: "planning" } satisfies BenjaminDocsConfig,
     written,
   );
   writeJsonIfMissing(
@@ -62,7 +62,7 @@ export function promoteToCodebase(root: string): string[] {
     }
   }
 
-  const config = readGeneratedJson<AgentDocsConfig>(root, `${CONFIG_DIR}/${CONFIG_FILE}`, METADATA_LABEL);
+  const config = readGeneratedJson<BenjaminDocsConfig>(root, `${CONFIG_DIR}/${CONFIG_FILE}`, METADATA_LABEL);
   config.mode = "codebase";
   writeGeneratedJson(root, `${CONFIG_DIR}/${CONFIG_FILE}`, config, METADATA_LABEL);
 

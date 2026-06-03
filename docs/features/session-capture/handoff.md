@@ -17,4 +17,4 @@ Next actions:
 
 - Use the seeded project docs as the baseline memory for future sessions.
 - Keep generated exports uncommitted unless a later plan explicitly requires them.
-- Re-run `agent-docs validate` after documentation changes.
+- Re-run `benjamin-docs validate` after documentation changes.

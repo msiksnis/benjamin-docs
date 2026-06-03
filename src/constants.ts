@@ -1,5 +1,5 @@
 export const DOCS_DIR = "docs";
-export const CONFIG_DIR = ".agent-docs";
+export const CONFIG_DIR = ".benjamin-docs";
 export const MANIFEST_FILE = "manifest.json";
 export const SCOPES_FILE = "scopes.json";
 export const ANCHORS_FILE = "anchors.json";

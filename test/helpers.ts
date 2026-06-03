@@ -10,7 +10,7 @@ export interface CliResult {
 }
 
 export function withTempDir<T>(fn: (dir: string) => T): T {
-  const dir = mkdtempSync(join(tmpdir(), "agent-docs-"));
+  const dir = mkdtempSync(join(tmpdir(), "benjamin-docs-"));
   try {
     return fn(dir);
   } finally {

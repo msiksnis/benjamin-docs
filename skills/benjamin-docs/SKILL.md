@@ -1,23 +1,22 @@
 ---
-name: agent-docs
+name: benjamin-docs
 description: Capture planning and build conversations into repo-local project memory for humans and AI agents.
 ---
 
-# agent-docs
+# benjamin-docs
 
-Use this skill when the user asks to capture, document, summarize, hand off, export, or preserve a planning or development conversation with `agent-docs`.
+Use this skill when the user asks to capture, document, summarize, hand off, export, or preserve a planning or development conversation with `benjamin-docs`.
 
 ## Purpose
 
-`agent-docs` turns long-running project conversations into durable Markdown docs inside the project repo. It is useful before code exists, inside existing codebases, and for individual feature scopes.
+`benjamin-docs` turns long-running project conversations into durable Markdown docs inside the project repo. It is useful before code exists, inside existing codebases, and for individual feature scopes.
 
 ## Workflow
 
 1. Choose the local CLI command:
    - In this repo, run `pnpm build` when needed and use `node dist/src/cli.js`.
-   - In another repo, use `pnpm exec agent-docs` only when this repo's package has been installed or linked locally.
-   - Do not run the public npm package via `npx`; the public npm name currently points to an unrelated package.
-2. Check whether `.agent-docs/config.json` exists.
+   - In another repo, use `pnpm exec benjamin-docs` only when this repo's package has been installed or linked locally.
+2. Check whether `.benjamin-docs/config.json` exists.
 3. If it does not exist, run the local CLI command with `init`.
 4. Decide the capture scope:
    - project: whole project, product, app, or business

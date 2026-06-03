@@ -1,5 +1,5 @@
 ---
-title: Agent Docs V1 Design
+title: Benjamin Docs V1 Design
 scope: project
 scope_id: project
 audience: [developer, agent]
@@ -9,12 +9,12 @@ updated: 2026-06-03
 source: manual
 ---
 
-# Agent Docs V1 Design
+# Benjamin Docs V1 Design
 
 ## Metadata
 
 - Date: 2026-06-03
-- Project: agent-docs
+- Project: benjamin-docs
 - Status: Approved design draft
 - Scope: New standalone repo
 
@@ -32,7 +32,7 @@ contract for turning planning and build sessions into structured project memory.
 
 ## Product Shape
 
-`agent-docs` is an open-source repo-local documentation system for humans and
+`benjamin-docs` is an open-source repo-local documentation system for humans and
 AI agents. V1 is a small npm CLI package plus Codex/Claude skills.
 
 The product should work in three situations:
@@ -64,7 +64,7 @@ portals, comments, non-technical editing, and cross-project dashboards.
 
 ## V1 Goals
 
-- Create a repo-local `docs/` and `.agent-docs/` structure.
+- Create a repo-local `docs/` and `.benjamin-docs/` structure.
 - Support project, feature, release, and handoff scopes.
 - Support planning-only projects and existing codebases.
 - Capture current agent sessions into structured Markdown docs.
@@ -131,10 +131,10 @@ npm tokens, but npm publishing automation is outside V1 implementation scope.
 
 ## Repo Structure
 
-For the `agent-docs` project repo itself:
+For the `benjamin-docs` project repo itself:
 
 ```text
-agent-docs/
+benjamin-docs/
   docs/
     project/
       brief.md
@@ -165,7 +165,7 @@ agent-docs/
     releases/
       changelog.md
 
-  .agent-docs/
+  .benjamin-docs/
     config.json
     manifest.json
     anchors.json
@@ -176,10 +176,10 @@ When initialized inside another project, the CLI creates only:
 
 ```text
 docs/
-.agent-docs/
+.benjamin-docs/
 ```
 
-It does not nest an `agent-docs/` folder inside the target project.
+It does not nest a `benjamin-docs/` folder inside the target project.
 
 ## Markdown Frontmatter
 
@@ -211,11 +211,11 @@ Core fields:
 
 ## Machine Metadata
 
-`.agent-docs/manifest.json` tracks generated docs and known scopes.
+`.benjamin-docs/manifest.json` tracks generated docs and known scopes.
 
-`.agent-docs/scopes.json` tracks project-level and feature-level scope records.
+`.benjamin-docs/scopes.json` tracks project-level and feature-level scope records.
 
-`.agent-docs/anchors.json` tracks optional links between docs and code:
+`.benjamin-docs/anchors.json` tracks optional links between docs and code:
 
 ```json
 {
@@ -251,9 +251,8 @@ node dist/src/cli.js anchor add booking-capacity-rules src/...
 ```
 
 After this repo's package is installed or linked locally into another project,
-the equivalent command form is `pnpm exec agent-docs ...`. Do not use `npx`
-for this package name while the name is unresolved because the public npm
-package name may resolve to unrelated code.
+the equivalent command form is `pnpm exec benjamin-docs ...`. During MVP, keep
+the package private until publishing is intentional.
 
 The CLI should:
 
@@ -269,17 +268,17 @@ The CLI should:
 
 ### CLI Discoverability
 
-`agent-docs --version` should print the installed package version.
+`benjamin-docs --version` should print the installed package version.
 
-`agent-docs help` should list available commands, common workflows, and short
+`benjamin-docs help` should list available commands, common workflows, and short
 examples in plain language.
 
-`agent-docs introduce` should explain what `agent-docs` is in simple,
+`benjamin-docs introduce` should explain what `benjamin-docs` is in simple,
 non-technical language. It should be suitable for a founder, designer, advisor,
 or other non-code user who has opened a terminal or agent workspace but does not
 yet understand the tool. It should explain:
 
-- `agent-docs` turns planning and build conversations into durable project
+- `benjamin-docs` turns planning and build conversations into durable project
   memory.
 - Docs live inside the project so they stay close to the work.
 - The same docs can help humans, developers, designers, and future AI agents.
@@ -298,7 +297,7 @@ The skill should:
 - Write or update the correct Markdown files.
 - Preserve rejected options and open questions when they matter.
 - Produce audience-specific briefs.
-- Run `agent-docs validate` after edits.
+- Run `benjamin-docs validate` after edits.
 - Report what changed and what remains unresolved.
 - Challenge weak plans, missing context, risky assumptions, and likely dead ends
   with clear reasoning and constructive alternatives.
@@ -352,7 +351,7 @@ sync to SaaS
 
 1. User starts with an idea in Codex or Claude.
 2. User asks the skill to capture the conversation.
-3. Skill initializes `agent-docs` if needed.
+3. Skill initializes `benjamin-docs` if needed.
 4. Skill writes project brief, MVP plan, open questions, human handoff, and
    agent handoff.
 5. CLI validates structure.
@@ -361,7 +360,7 @@ sync to SaaS
 ### Existing Codebase
 
 1. User runs `node dist/src/cli.js init` in this repo, or `pnpm exec
-   agent-docs init` after a local install/link into another project.
+   benjamin-docs init` after a local install/link into another project.
 2. Skill captures current project state or a current feature conversation.
 3. CLI creates or updates scopes and validates docs.
 4. Optional code anchors link docs to files.
@@ -470,10 +469,10 @@ The goal is to improve the format through real use before building the SaaS.
 
 V1 is successful when:
 
-- A user can initialize `agent-docs` in an empty planning repo.
-- A user can initialize `agent-docs` inside an existing code repo without
+- A user can initialize `benjamin-docs` in an empty planning repo.
+- A user can initialize `benjamin-docs` inside an existing code repo without
   nesting the project or disturbing existing files outside `docs/` and
-  `.agent-docs/`.
+  `.benjamin-docs/`.
 - A feature scope can be created and documented independently of the whole
   project.
 - An agent skill can capture the current conversation into project, feature,
@@ -490,8 +489,7 @@ V1 is successful when:
 
 ## Open Questions
 
-- Should the package name be `agent-docs`, `project-memory`, or something more
-  distinctive?
+- The package and CLI name is `benjamin-docs`.
 - Should generated export bundles be committed by default, or treated as build
   artifacts?
 - Should planning projects require Git from the start, or allow a plain folder?

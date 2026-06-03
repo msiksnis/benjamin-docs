@@ -18,18 +18,18 @@ describe("info commands", () => {
     withTempDir((dir) => {
       const output = runCli(["help"], dir);
 
-      assert.match(output, /agent-docs --version/);
-      assert.match(output, /agent-docs init/);
-      assert.match(output, /agent-docs validate/);
-      assert.match(output, /agent-docs export --audience developer/);
-      assert.match(output, /agent-docs promote --to codebase/);
+      assert.match(output, /benjamin-docs --version/);
+      assert.match(output, /benjamin-docs init/);
+      assert.match(output, /benjamin-docs validate/);
+      assert.match(output, /benjamin-docs export --audience developer/);
+      assert.match(output, /benjamin-docs promote --to codebase/);
     });
   });
 
   it("prints help for help flags", () => {
     withTempDir((dir) => {
-      assert.match(runCli(["--help"], dir), /agent-docs introduce/);
-      assert.match(runCli(["-h"], dir), /agent-docs introduce/);
+      assert.match(runCli(["--help"], dir), /benjamin-docs introduce/);
+      assert.match(runCli(["-h"], dir), /benjamin-docs introduce/);
     });
   });
 
@@ -50,8 +50,8 @@ describe("info commands", () => {
 
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Unknown command: unknown/);
-      assert.match(result.stderr, /agent-docs init/);
-      assert.match(result.stderr, /agent-docs validate/);
+      assert.match(result.stderr, /benjamin-docs init/);
+      assert.match(result.stderr, /benjamin-docs validate/);
     });
   });
 });

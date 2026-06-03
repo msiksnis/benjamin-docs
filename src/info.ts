@@ -11,33 +11,33 @@ export function getPackageVersion(): string {
 
 export function getHelpText(): string {
   return [
-    "agent-docs",
+    "benjamin-docs",
     "",
     "Repo-local project memory for humans and AI agents.",
     "",
     "Common commands:",
-    "  agent-docs --version",
-    "  agent-docs introduce",
-    "  agent-docs init",
-    "  agent-docs status",
-    "  agent-docs validate",
-    "  agent-docs scope create feature booking-capacity",
-    "  agent-docs anchor add booking-capacity-rules src/features/booking/capacity.ts",
-    "  agent-docs export --audience developer",
-    "  agent-docs promote --to codebase",
+    "  benjamin-docs --version",
+    "  benjamin-docs introduce",
+    "  benjamin-docs init",
+    "  benjamin-docs status",
+    "  benjamin-docs validate",
+    "  benjamin-docs scope create feature booking-capacity",
+    "  benjamin-docs anchor add booking-capacity-rules src/features/booking/capacity.ts",
+    "  benjamin-docs export --audience developer",
+    "  benjamin-docs promote --to codebase",
     "",
     "With an AI agent:",
-    "  Ask: Capture this conversation with agent-docs.",
+    "  Ask: Capture this conversation with benjamin-docs.",
     "",
     "Start here:",
-    "  agent-docs introduce",
-    "  agent-docs init",
+    "  benjamin-docs introduce",
+    "  benjamin-docs init",
   ].join("\n");
 }
 
 export function getIntroductionText(): string {
   return [
-    "agent-docs turns planning and build conversations into durable project memory.",
+    "benjamin-docs turns planning and build conversations into durable project memory.",
     "",
     "The docs live inside your project, close to the work, so they can be versioned, reviewed, and reused by future sessions.",
     "",

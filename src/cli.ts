@@ -27,7 +27,7 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "init") {
     const written = initProject(cwd);
-    console.log(`Initialized agent-docs. ${written.length} files created.`);
+    console.log(`Initialized benjamin-docs. ${written.length} files created.`);
     return 0;
   }
 
@@ -38,13 +38,13 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "scope") {
     if (argv[1] !== "create") {
-      throw new Error("Usage: agent-docs scope create feature <slug>");
+      throw new Error("Usage: benjamin-docs scope create feature <slug>");
     }
 
     const kind = argv[2];
     const id = argv[3];
     if (!kind || !id) {
-      throw new Error("Usage: agent-docs scope create feature <slug>");
+      throw new Error("Usage: benjamin-docs scope create feature <slug>");
     }
 
     const written = createScope(cwd, kind, id);
@@ -54,13 +54,13 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "anchor") {
     if (argv[1] !== "add") {
-      throw new Error("Usage: agent-docs anchor add <id> <file>");
+      throw new Error("Usage: benjamin-docs anchor add <id> <file>");
     }
 
     const id = argv[2];
     const file = argv[3];
     if (!id || !file) {
-      throw new Error("Usage: agent-docs anchor add <id> <file>");
+      throw new Error("Usage: benjamin-docs anchor add <id> <file>");
     }
 
     addAnchor(cwd, id, file);
@@ -84,7 +84,7 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
     const audienceIndex = argv.indexOf("--audience");
     const audience = audienceIndex === -1 ? undefined : argv[audienceIndex + 1];
     if (!audience) {
-      throw new Error("Usage: agent-docs export --audience <audience>");
+      throw new Error("Usage: benjamin-docs export --audience <audience>");
     }
 
     const written = exportAudience(cwd, audience);
@@ -94,11 +94,11 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "promote") {
     if (argv[1] !== "--to" || argv[2] !== "codebase") {
-      throw new Error("Usage: agent-docs promote --to codebase");
+      throw new Error("Usage: benjamin-docs promote --to codebase");
     }
 
     const written = promoteToCodebase(cwd);
-    console.log(`Promoted agent-docs to codebase mode. ${written.length} files created.`);
+    console.log(`Promoted benjamin-docs to codebase mode. ${written.length} files created.`);
     return 0;
   }
 

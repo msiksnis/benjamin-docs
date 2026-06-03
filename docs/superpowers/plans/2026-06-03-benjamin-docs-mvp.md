@@ -1,5 +1,5 @@
 ---
-title: Agent Docs MVP Implementation Plan
+title: Benjamin Docs MVP Implementation Plan
 scope: project
 scope_id: project
 audience: [developer, agent]
@@ -9,13 +9,13 @@ updated: 2026-06-03
 source: manual
 ---
 
-# Agent Docs MVP Implementation Plan
+# Benjamin Docs MVP Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the first repo-local `agent-docs` npm CLI and Codex/Claude skill package described in `docs/superpowers/specs/2026-06-03-agent-docs-design.md`.
+**Goal:** Build the first repo-local `benjamin-docs` npm CLI and Codex/Claude skill package described in `docs/superpowers/specs/2026-06-03-benjamin-docs-design.md`.
 
-**Architecture:** The CLI is a small TypeScript package with no runtime dependencies. It writes human-readable Markdown under `docs/`, writes machine metadata under `.agent-docs/`, validates the structure, exports audience bundles, and exposes approachable help/intro commands. Agent skills perform conversation synthesis and use the CLI for structure and validation. Development uses pnpm with a pinned package manager, committed lockfile, frozen installs, release-age delay, and strict dependency build-script settings.
+**Architecture:** The CLI is a small TypeScript package with no runtime dependencies. It writes human-readable Markdown under `docs/`, writes machine metadata under `.benjamin-docs/`, validates the structure, exports audience bundles, and exposes approachable help/intro commands. Agent skills perform conversation synthesis and use the CLI for structure and validation. Development uses pnpm with a pinned package manager, committed lockfile, frozen installs, release-age delay, and strict dependency build-script settings.
 
 **Tech Stack:** Node.js 22+, TypeScript 6.0.3, Node built-in `node:test`, Node built-in `fs/path/url/child_process`.
 
@@ -32,7 +32,7 @@ source: manual
 - Create: `src/frontmatter.ts` - parse and serialize Markdown frontmatter.
 - Create: `src/info.ts` - help, version, and introduction text.
 - Create: `src/templates.ts` - starter Markdown and metadata templates.
-- Create: `src/init.ts` - initialize `docs/` and `.agent-docs/`.
+- Create: `src/init.ts` - initialize `docs/` and `.benjamin-docs/`.
 - Create: `src/scopes.ts` - create and read project/feature/release/handoff scopes.
 - Create: `src/anchors.ts` - create and read code anchors.
 - Create: `src/validate.ts` - validate docs, metadata, links, scopes, and anchors.
@@ -44,7 +44,7 @@ source: manual
 - Create: `test/init.test.ts` - initialization behavior.
 - Create: `test/scopes-anchors.test.ts` - scope and anchor behavior.
 - Create: `test/validate-export.test.ts` - validation and export behavior.
-- Create: `skills/agent-docs/SKILL.md` - agent workflow instructions.
+- Create: `skills/benjamin-docs/SKILL.md` - agent workflow instructions.
 - Create: `README.md` - quickstart and command reference.
 - Create: `.gitignore` - generated files and dependency folders.
 
@@ -73,7 +73,7 @@ import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 
 export function withTempDir<T>(fn: (dir: string) => T): T {
-  const dir = mkdtempSync(join(tmpdir(), "agent-docs-"));
+  const dir = mkdtempSync(join(tmpdir(), "benjamin-docs-"));
   try {
     return fn(dir);
   } finally {
@@ -113,9 +113,9 @@ describe("info commands", () => {
     withTempDir((dir) => {
       const output = runCli(["help"], dir);
 
-      assert.match(output, /agent-docs init/);
-      assert.match(output, /agent-docs validate/);
-      assert.match(output, /agent-docs export --audience developer/);
+      assert.match(output, /benjamin-docs init/);
+      assert.match(output, /benjamin-docs validate/);
+      assert.match(output, /benjamin-docs export --audience developer/);
     });
   });
 
@@ -138,12 +138,12 @@ Create `package.json`:
 
 ```json
 {
-  "name": "agent-docs",
+  "name": "benjamin-docs",
   "version": "0.1.0",
   "description": "Repo-local project memory for humans and AI agents.",
   "type": "module",
   "bin": {
-    "agent-docs": "./dist/src/cli.js"
+    "benjamin-docs": "./dist/src/cli.js"
   },
   "packageManager": "pnpm@11.5.1",
   "files": [
@@ -230,28 +230,28 @@ export function getPackageVersion(): string {
 
 export function getHelpText(): string {
   return [
-    "agent-docs",
+    "benjamin-docs",
     "",
     "Repo-local project memory for humans and AI agents.",
     "",
     "Common commands:",
-    "  agent-docs introduce",
-    "  agent-docs init",
-    "  agent-docs status",
-    "  agent-docs validate",
-    "  agent-docs scope create feature booking-capacity",
-    "  agent-docs anchor add booking-capacity-rules src/features/booking/capacity.ts",
-    "  agent-docs export --audience developer",
+    "  benjamin-docs introduce",
+    "  benjamin-docs init",
+    "  benjamin-docs status",
+    "  benjamin-docs validate",
+    "  benjamin-docs scope create feature booking-capacity",
+    "  benjamin-docs anchor add booking-capacity-rules src/features/booking/capacity.ts",
+    "  benjamin-docs export --audience developer",
     "",
     "Start here:",
-    "  agent-docs introduce",
-    "  agent-docs init",
+    "  benjamin-docs introduce",
+    "  benjamin-docs init",
   ].join("\n");
 }
 
 export function getIntroductionText(): string {
   return [
-    "agent-docs turns planning and build conversations into durable project memory.",
+    "benjamin-docs turns planning and build conversations into durable project memory.",
     "",
     "The docs live inside your project, close to the work, so they can be versioned, reviewed, and reused by future sessions.",
     "",
@@ -315,7 +315,7 @@ Expected: all three `info commands` tests pass.
 
 ```bash
 git add package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json .gitignore src/info.ts src/cli.ts test/helpers.ts test/info.test.ts
-git commit -m "feat: scaffold agent-docs cli"
+git commit -m "feat: scaffold benjamin-docs cli"
 ```
 
 ### Task 2: Frontmatter And Filesystem Core
@@ -374,7 +374,7 @@ Create `src/constants.ts`:
 
 ```ts
 export const DOCS_DIR = "docs";
-export const CONFIG_DIR = ".agent-docs";
+export const CONFIG_DIR = ".benjamin-docs";
 export const MANIFEST_FILE = "manifest.json";
 export const SCOPES_FILE = "scopes.json";
 export const ANCHORS_FILE = "anchors.json";
@@ -414,7 +414,7 @@ export interface ParsedMarkdown {
   body: string;
 }
 
-export interface AgentDocsConfig {
+export interface BenjaminDocsConfig {
   version: 1;
   mode: "planning" | "codebase";
 }
@@ -590,13 +590,13 @@ describe("init", () => {
     withTempDir((dir) => {
       const output = runCli(["init"], dir);
 
-      assert.match(output, /Initialized agent-docs/);
+      assert.match(output, /Initialized benjamin-docs/);
       assert.equal(existsSync(join(dir, "docs/project/brief.md")), true);
       assert.equal(existsSync(join(dir, "docs/handoff/agent-brief.md")), true);
-      assert.equal(existsSync(join(dir, ".agent-docs/config.json")), true);
-      assert.equal(existsSync(join(dir, ".agent-docs/manifest.json")), true);
-      assert.equal(existsSync(join(dir, ".agent-docs/scopes.json")), true);
-      assert.equal(existsSync(join(dir, ".agent-docs/anchors.json")), true);
+      assert.equal(existsSync(join(dir, ".benjamin-docs/config.json")), true);
+      assert.equal(existsSync(join(dir, ".benjamin-docs/manifest.json")), true);
+      assert.equal(existsSync(join(dir, ".benjamin-docs/scopes.json")), true);
+      assert.equal(existsSync(join(dir, ".benjamin-docs/anchors.json")), true);
     });
   });
 
@@ -676,7 +676,7 @@ import { join } from "node:path";
 import { ANCHORS_FILE, CONFIG_DIR, CONFIG_FILE, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { ensureDir, pathExists, writeJson, writeText } from "./fsx.js";
 import { starterDocs } from "./templates.js";
-import type { AgentDocsConfig, AnchorsFile, ManifestFile, ScopesFile } from "./types.js";
+import type { BenjaminDocsConfig, AnchorsFile, ManifestFile, ScopesFile } from "./types.js";
 
 export function initProject(root: string): string[] {
   const written: string[] = [];
@@ -692,7 +692,7 @@ export function initProject(root: string): string[] {
     }
   }
 
-  writeIfMissing(join(root, CONFIG_DIR, CONFIG_FILE), { version: 1, mode: "planning" } satisfies AgentDocsConfig, written);
+  writeIfMissing(join(root, CONFIG_DIR, CONFIG_FILE), { version: 1, mode: "planning" } satisfies BenjaminDocsConfig, written);
   writeIfMissing(join(root, CONFIG_DIR, MANIFEST_FILE), { version: 1, docs: starterDocs.map((item) => item.path) } satisfies ManifestFile, written);
   writeIfMissing(
     join(root, CONFIG_DIR, SCOPES_FILE),
@@ -747,7 +747,7 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "init") {
     const written = initProject(cwd);
-    console.log(`Initialized agent-docs. ${written.length} files created.`);
+    console.log(`Initialized benjamin-docs. ${written.length} files created.`);
     return 0;
   }
 
@@ -777,7 +777,7 @@ Commit:
 
 ```bash
 git add src/templates.ts src/init.ts src/cli.ts test/init.test.ts
-git commit -m "feat: initialize agent-docs structure"
+git commit -m "feat: initialize benjamin-docs structure"
 ```
 
 ### Task 4: Scopes And Anchors
@@ -937,7 +937,7 @@ Modify `src/cli.ts` by importing `createScope` and `addAnchor`, then add these b
   if (command === "scope" && argv[1] === "create") {
     const kind = argv[2];
     const id = argv[3];
-    if (!kind || !id) throw new Error("Usage: agent-docs scope create feature <slug>");
+    if (!kind || !id) throw new Error("Usage: benjamin-docs scope create feature <slug>");
     const written = createScope(cwd, kind as never, id);
     console.log(`Created ${kind} scope ${id}. ${written.length} files created.`);
     return 0;
@@ -946,7 +946,7 @@ Modify `src/cli.ts` by importing `createScope` and `addAnchor`, then add these b
   if (command === "anchor" && argv[1] === "add") {
     const id = argv[2];
     const file = argv[3];
-    if (!id || !file) throw new Error("Usage: agent-docs anchor add <id> <file>");
+    if (!id || !file) throw new Error("Usage: benjamin-docs anchor add <id> <file>");
     addAnchor(cwd, id, file);
     console.log(`Added anchor ${id}.`);
     return 0;
@@ -1166,7 +1166,7 @@ Commit:
 
 ```bash
 git add src/validate.ts src/cli.ts test/validate-export.test.ts
-git commit -m "feat: validate agent-docs projects"
+git commit -m "feat: validate benjamin-docs projects"
 ```
 
 ### Task 6: Status, Export, And Promote
@@ -1210,7 +1210,7 @@ describe("status and export", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
       runCli(["promote", "--to", "codebase"], dir);
-      const config = readFileSync(join(dir, ".agent-docs/config.json"), "utf8");
+      const config = readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8");
 
       assert.match(config, /"mode": "codebase"/);
       assert.equal(existsSync(join(dir, "docs/engineering/architecture.md")), true);
@@ -1228,15 +1228,15 @@ Create `src/status.ts`:
 import { join } from "node:path";
 import { CONFIG_DIR, CONFIG_FILE, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { readJson } from "./fsx.js";
-import type { AgentDocsConfig, ManifestFile, ScopesFile } from "./types.js";
+import type { BenjaminDocsConfig, ManifestFile, ScopesFile } from "./types.js";
 
 export function getStatus(root: string): string {
-  const config = readJson<AgentDocsConfig>(join(root, CONFIG_DIR, CONFIG_FILE));
+  const config = readJson<BenjaminDocsConfig>(join(root, CONFIG_DIR, CONFIG_FILE));
   const manifest = readJson<ManifestFile>(join(root, CONFIG_DIR, MANIFEST_FILE));
   const scopes = readJson<ScopesFile>(join(root, CONFIG_DIR, SCOPES_FILE));
 
   return [
-    "agent-docs status",
+    "benjamin-docs status",
     `mode: ${config.mode}`,
     `docs: ${manifest.docs.length}`,
     `scopes: ${scopes.scopes.length}`,
@@ -1324,7 +1324,7 @@ export function promoteToCodebase(root: string): string[] {
   }
 
   const configPath = join(root, CONFIG_DIR, CONFIG_FILE);
-  const config = readJson<AgentDocsConfig>(configPath);
+  const config = readJson<BenjaminDocsConfig>(configPath);
   config.mode = "codebase";
   writeJson(configPath, config);
   return written;
@@ -1352,16 +1352,16 @@ Add branches:
   if (command === "export") {
     const audienceIndex = argv.indexOf("--audience");
     const audience = audienceIndex === -1 ? undefined : argv[audienceIndex + 1];
-    if (!audience) throw new Error("Usage: agent-docs export --audience <audience>");
+    if (!audience) throw new Error("Usage: benjamin-docs export --audience <audience>");
     const written = exportAudience(cwd, audience as never);
     console.log(`Exported ${audience} bundle. ${written.length} files written.`);
     return 0;
   }
 
   if (command === "promote") {
-    if (argv[1] !== "--to" || argv[2] !== "codebase") throw new Error("Usage: agent-docs promote --to codebase");
+    if (argv[1] !== "--to" || argv[2] !== "codebase") throw new Error("Usage: benjamin-docs promote --to codebase");
     const written = promoteToCodebase(cwd);
-    console.log(`Promoted agent-docs to codebase mode. ${written.length} files created.`);
+    console.log(`Promoted benjamin-docs to codebase mode. ${written.length} files created.`);
     return 0;
   }
 ```
@@ -1387,33 +1387,33 @@ git commit -m "feat: add status export and promote"
 ### Task 7: Agent Skill And User Documentation
 
 **Files:**
-- Create: `skills/agent-docs/SKILL.md`
+- Create: `skills/benjamin-docs/SKILL.md`
 - Create: `README.md`
 - Modify: `src/info.ts`
 
 - [ ] **Step 1: Create the agent skill**
 
-Create `skills/agent-docs/SKILL.md`:
+Create `skills/benjamin-docs/SKILL.md`:
 
 ```markdown
 ---
-name: agent-docs
+name: benjamin-docs
 description: Capture planning and build conversations into repo-local project memory for humans and AI agents.
 ---
 
-# agent-docs
+# benjamin-docs
 
-Use this skill when the user asks to capture, document, summarize, hand off, export, or preserve a planning or development conversation with `agent-docs`.
+Use this skill when the user asks to capture, document, summarize, hand off, export, or preserve a planning or development conversation with `benjamin-docs`.
 
 ## Purpose
 
-`agent-docs` turns long-running project conversations into durable Markdown docs inside the project repo. It is useful before code exists, inside existing codebases, and for individual feature scopes.
+`benjamin-docs` turns long-running project conversations into durable Markdown docs inside the project repo. It is useful before code exists, inside existing codebases, and for individual feature scopes.
 
 ## Workflow
 
-1. Check whether `.agent-docs/config.json` exists.
+1. Check whether `.benjamin-docs/config.json` exists.
 2. If it does not exist, run `node dist/src/cli.js init` in this repo. In
-   another repo, use `pnpm exec agent-docs init` only after this package has
+   another repo, use `pnpm exec benjamin-docs init` only after this package has
    been installed or linked locally.
 3. Decide the capture scope:
    - project: whole project, product, app, or business
@@ -1422,7 +1422,7 @@ Use this skill when the user asks to capture, document, summarize, hand off, exp
    - release: shipped change notes
 4. Write durable docs under `docs/`.
 5. Update existing docs instead of dumping a transcript.
-6. Run `node dist/src/cli.js validate` in this repo, or `pnpm exec agent-docs
+6. Run `node dist/src/cli.js validate` in this repo, or `pnpm exec benjamin-docs
    validate` after local install/link into another repo.
 7. Report changed files, key decisions captured, and unresolved questions.
 
@@ -1452,17 +1452,17 @@ Pushback should be direct, specific, and useful. Offer a better alternative when
 Create `README.md`:
 
 ```markdown
-# agent-docs
+# benjamin-docs
 
 Repo-local project memory for humans and AI agents.
 
-`agent-docs` turns planning and build conversations into structured Markdown docs that live inside your project. It works before code exists, inside existing codebases, and for individual feature scopes.
+`benjamin-docs` turns planning and build conversations into structured Markdown docs that live inside your project. It works before code exists, inside existing codebases, and for individual feature scopes.
 
 ## Install
 
 ```bash
 # After this repo's package name is resolved and the package is locally installed or linked:
-pnpm exec agent-docs introduce
+pnpm exec benjamin-docs introduce
 ```
 
 For local development in this repo:
@@ -1488,18 +1488,18 @@ node dist/src/cli.js export --audience developer
 node dist/src/cli.js promote --to codebase
 ```
 
-Use `pnpm exec agent-docs ...` only after this repo's package is installed or
-linked locally into the target project. Do not use `npx` for this package name
-while the package name is unresolved.
+Use `pnpm exec benjamin-docs ...` only after this repo's package is installed or
+linked locally into the target project. During MVP, keep the package private
+until publishing is intentional.
 
 ## What It Creates
 
 ```text
 docs/
-.agent-docs/
+.benjamin-docs/
 ```
 
-`docs/` contains human-readable Markdown. `.agent-docs/` contains machine metadata for validation, exports, anchors, and future publishing.
+`docs/` contains human-readable Markdown. `.benjamin-docs/` contains machine metadata for validation, exports, anchors, and future publishing.
 
 ## Agent Workflow
 
@@ -1508,7 +1508,7 @@ The CLI owns structure and validation. Codex or Claude skills own synthesis from
 Ask your agent:
 
 ```text
-Capture this conversation with agent-docs.
+Capture this conversation with benjamin-docs.
 ```
 
 The agent should update the relevant docs, run validation, and report what changed.
@@ -1521,7 +1521,7 @@ Modify `src/info.ts` help text by adding:
 ```ts
     "",
     "With an AI agent:",
-    "  Ask: Capture this conversation with agent-docs.",
+    "  Ask: Capture this conversation with benjamin-docs.",
 ```
 
 - [ ] **Step 4: Run checks and commit**
@@ -1537,7 +1537,7 @@ Expected: typecheck, build, and tests pass.
 Commit:
 
 ```bash
-git add skills/agent-docs/SKILL.md README.md src/info.ts
+git add skills/benjamin-docs/SKILL.md README.md src/info.ts
 git commit -m "docs: add agent skill and quickstart"
 ```
 
@@ -1549,10 +1549,10 @@ git commit -m "docs: add agent skill and quickstart"
 - Create: `docs/features/session-capture/plan.md`
 - Create: `docs/handoff/human-brief.md`
 - Create: `docs/handoff/agent-brief.md`
-- Create: `.agent-docs/config.json`
-- Create: `.agent-docs/manifest.json`
-- Create: `.agent-docs/scopes.json`
-- Create: `.agent-docs/anchors.json`
+- Create: `.benjamin-docs/config.json`
+- Create: `.benjamin-docs/manifest.json`
+- Create: `.benjamin-docs/scopes.json`
+- Create: `.benjamin-docs/anchors.json`
 
 - [ ] **Step 1: Run the CLI against this repo**
 
@@ -1567,7 +1567,7 @@ node dist/src/cli.js validate
 Expected:
 
 ```text
-Initialized agent-docs.
+Initialized benjamin-docs.
 Created feature scope session-capture.
 Validation passed.
 ```
@@ -1579,7 +1579,7 @@ Update `docs/project/brief.md` to summarize:
 ```markdown
 # Project Brief
 
-`agent-docs` is a repo-local project memory system for humans and AI agents. It turns planning and build conversations into structured Markdown docs that live close to the work.
+`benjamin-docs` is a repo-local project memory system for humans and AI agents. It turns planning and build conversations into structured Markdown docs that live close to the work.
 
 V1 is an open-source npm CLI plus Codex/Claude skill. The CLI owns structure, validation, scopes, anchors, exports, and approachable commands. The skill owns synthesis from chat context and should challenge weak plans instead of acting as a passive note taker.
 ```
@@ -1591,7 +1591,7 @@ Update `docs/project/roadmap.md` to summarize:
 
 ## V1
 
-- Initialize repo-local `docs/` and `.agent-docs/`.
+- Initialize repo-local `docs/` and `.benjamin-docs/`.
 - Support project, feature, release, and handoff scopes.
 - Support planning-only and existing-codebase projects.
 - Export audience bundles for developers, designers, agents, business readers, and public summaries.
@@ -1622,7 +1622,7 @@ Update `docs/handoff/human-brief.md` to summarize:
 ```markdown
 # Human Brief
 
-This project is ready for MVP implementation. The approved design spec lives at `docs/superpowers/specs/2026-06-03-agent-docs-design.md`, and the implementation plan lives at `docs/superpowers/plans/2026-06-03-agent-docs-mvp.md`.
+This project is ready for MVP implementation. The approved design spec lives at `docs/superpowers/specs/2026-06-03-benjamin-docs-design.md`, and the implementation plan lives at `docs/superpowers/plans/2026-06-03-benjamin-docs-mvp.md`.
 ```
 
 Update `docs/handoff/agent-brief.md` to summarize:
@@ -1670,8 +1670,8 @@ Expected: typecheck, build, and tests pass.
 Commit:
 
 ```bash
-git add docs .agent-docs
-git commit -m "docs: seed agent-docs project memory"
+git add docs .benjamin-docs
+git commit -m "docs: seed benjamin-docs project memory"
 ```
 
 ### Task 9: Release Readiness Review
@@ -1709,7 +1709,7 @@ Run:
 pnpm pack --dry-run
 ```
 
-Expected: package includes `dist/`, `skills/`, `README.md`, and excludes `src/`, `test/`, `docs/`, `.agent-docs/`, and `exports/`.
+Expected: package includes `dist/`, `skills/`, `README.md`, and excludes `src/`, `test/`, `docs/`, `.benjamin-docs/`, and `exports/`.
 
 If `docs/` appears in the dry run output, update `package.json` `files` to keep only:
 
@@ -1744,7 +1744,7 @@ git commit -m "chore: prepare package for local testing"
 Spec coverage:
 
 - CLI/npm package: Tasks 1-6 and 9.
-- Repo-local `docs/` and `.agent-docs/`: Tasks 3 and 8.
+- Repo-local `docs/` and `.benjamin-docs/`: Tasks 3 and 8.
 - Project and feature scopes: Tasks 3 and 4.
 - Planning-only and existing-codebase usage: Tasks 3 and 6.
 - Markdown templates with frontmatter: Tasks 2 and 3.

@@ -17,7 +17,7 @@ describe("scopes and anchors", () => {
       assert.equal(existsSync(join(dir, "docs/features/booking-capacity/decisions.md")), true);
       assert.equal(existsSync(join(dir, "docs/features/booking-capacity/handoff.md")), true);
 
-      const scopes = JSON.parse(readFileSync(join(dir, ".agent-docs/scopes.json"), "utf8")) as {
+      const scopes = JSON.parse(readFileSync(join(dir, ".benjamin-docs/scopes.json"), "utf8")) as {
         scopes: Array<{ id: string; kind: string; path: string }>;
       };
       assert.deepEqual(
@@ -71,7 +71,7 @@ describe("scopes and anchors", () => {
 
   it("rejects a symlinked feature docs directory during scope creation", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
         runCli(["init"], dir);
         symlinkSync(outsideDir, join(dir, "docs/features"), "dir");
@@ -96,7 +96,7 @@ describe("scopes and anchors", () => {
       const output = runCli(["anchor", "add", "booking-capacity-rules", "src/features/booking/capacity.ts"], dir);
 
       assert.match(output, /Added anchor booking-capacity-rules/);
-      const anchors = JSON.parse(readFileSync(join(dir, ".agent-docs/anchors.json"), "utf8")) as {
+      const anchors = JSON.parse(readFileSync(join(dir, ".benjamin-docs/anchors.json"), "utf8")) as {
         anchors: Record<string, { file: string; docs: string[] }>;
       };
       assert.deepEqual(anchors.anchors["booking-capacity-rules"], {
@@ -108,17 +108,17 @@ describe("scopes and anchors", () => {
 
   it("rejects a symlinked metadata directory during anchor add", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
         runCli(["init"], dir);
         writeFileSync(join(dir, "safe.ts"), "export const safe = true;\n");
-        rmSync(join(dir, ".agent-docs"), { recursive: true, force: true });
-        symlinkSync(outsideDir, join(dir, ".agent-docs"), "dir");
+        rmSync(join(dir, ".benjamin-docs"), { recursive: true, force: true });
+        symlinkSync(outsideDir, join(dir, ".benjamin-docs"), "dir");
 
         const result = runCliResult(["anchor", "add", "safe-anchor", "safe.ts"], dir);
 
         assert.equal(result.status, 1);
-        assert.match(result.stderr, /Metadata path must not be a symlink: \.agent-docs/);
+        assert.match(result.stderr, /Metadata path must not be a symlink: \.benjamin-docs/);
         assert.equal(existsSync(join(outsideDir, "anchors.json")), false);
       } finally {
         rmSync(outsideDir, { recursive: true, force: true });
@@ -178,7 +178,7 @@ describe("scopes and anchors", () => {
 
   it("rejects symlink anchor targets that resolve outside the root", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
         runCli(["init"], dir);
         writeFileSync(join(outsideDir, "secret.ts"), "export const secret = true;\n");

@@ -3,7 +3,7 @@ import { dirname, isAbsolute, join, normalize, relative, resolve, sep, win32 } f
 import { ANCHORS_FILE, CONFIG_DIR, CONFIG_FILE, DOCS_DIR, KNOWN_SCOPES, KNOWN_STATUSES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
 import { readJson, rootPath } from "./fsx.js";
-import type { AgentDocsConfig, AnchorsFile, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
+import type { BenjaminDocsConfig, AnchorsFile, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
 
 export interface ValidationResult {
   errors: string[];
@@ -21,7 +21,7 @@ export function validateProject(root: string): ValidationResult {
   const metadataRootIsSafe = validateMetadataRoot(realRoot, metadataRoot, errors);
 
   const config = metadataRootIsSafe
-    ? readMetadataFile<AgentDocsConfig>(resolvedRoot, realRoot, join(CONFIG_DIR, CONFIG_FILE), errors)
+    ? readMetadataFile<BenjaminDocsConfig>(resolvedRoot, realRoot, join(CONFIG_DIR, CONFIG_FILE), errors)
     : undefined;
   const manifest = metadataRootIsSafe
     ? readMetadataFile<ManifestFile>(resolvedRoot, realRoot, join(CONFIG_DIR, MANIFEST_FILE), errors)
@@ -116,7 +116,7 @@ function validateMetadataRoot(realRoot: string, metadataRoot: string, errors: st
   return true;
 }
 
-function validateConfig(config: AgentDocsConfig, errors: string[]): void {
+function validateConfig(config: BenjaminDocsConfig, errors: string[]): void {
   if (!isRecord(config)) {
     errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: expected an object`);
     return;

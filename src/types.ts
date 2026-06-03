@@ -22,7 +22,7 @@ export interface ParsedMarkdown {
   body: string;
 }
 
-export interface AgentDocsConfig {
+export interface BenjaminDocsConfig {
   version: 1;
   mode: "planning" | "codebase";
 }

@@ -13,7 +13,7 @@ source: manual
 
 ## V1
 
-- Initialize repo-local `docs/` and `.agent-docs/`.
+- Initialize repo-local `docs/` and `.benjamin-docs/`.
 - Support project, feature, release, and handoff scopes.
 - Support planning-only and existing-codebase projects.
 - Export audience bundles for developers, designers, agents, business readers, and public summaries.

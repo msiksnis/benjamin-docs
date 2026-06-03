@@ -61,8 +61,8 @@ describe("validate", () => {
       runCli(["init"], dir);
       rmSync(join(dir, "docs"), { recursive: true, force: true });
       mkdirSync(join(dir, "docs"));
-      writeFileSync(join(dir, ".agent-docs/manifest.json"), JSON.stringify({ version: 1, docs: [] }, null, 2), "utf8");
-      writeFileSync(join(dir, ".agent-docs/scopes.json"), JSON.stringify({ version: 1, scopes: [] }, null, 2), "utf8");
+      writeFileSync(join(dir, ".benjamin-docs/manifest.json"), JSON.stringify({ version: 1, docs: [] }, null, 2), "utf8");
+      writeFileSync(join(dir, ".benjamin-docs/scopes.json"), JSON.stringify({ version: 1, scopes: [] }, null, 2), "utf8");
 
       const result = runCliResult(["validate"], dir);
 
@@ -74,13 +74,13 @@ describe("validate", () => {
 
   it("reports anchor files that resolve outside the project root", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
         runCli(["init"], dir);
         writeFileSync(join(outsideDir, "secret.ts"), "export const secret = true;\n", "utf8");
         symlinkSync(join(outsideDir, "secret.ts"), join(dir, "secret-link.ts"), "file");
         writeFileSync(
-          join(dir, ".agent-docs/anchors.json"),
+          join(dir, ".benjamin-docs/anchors.json"),
           JSON.stringify(
             {
               version: 1,
@@ -109,7 +109,7 @@ describe("validate", () => {
 
   it("reports markdown links to symlinks that resolve outside the project root", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
         runCli(["init"], dir);
         writeFileSync(join(outsideDir, "outside.md"), "# Outside\n", "utf8");
@@ -147,7 +147,7 @@ describe("validate", () => {
       runCli(["init"], dir);
       writeFileSync(join(dir, "safe.ts"), "export const safe = true;\n", "utf8");
       writeFileSync(
-        join(dir, ".agent-docs/anchors.json"),
+        join(dir, ".benjamin-docs/anchors.json"),
         JSON.stringify(
           {
             version: 1,
@@ -175,7 +175,7 @@ describe("validate", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
       writeFileSync(
-        join(dir, ".agent-docs/anchors.json"),
+        join(dir, ".benjamin-docs/anchors.json"),
         JSON.stringify(
           {
             version: 1,
@@ -201,7 +201,7 @@ describe("validate", () => {
 
   it("reports docs directory symlinked outside the project root", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-docs-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-docs-"));
       try {
         runCli(["init"], dir);
         const brief = readFileSync(join(dir, "docs/project/brief.md"), "utf8");
@@ -209,8 +209,8 @@ describe("validate", () => {
         mkdirSync(join(outsideDir, "project"), { recursive: true });
         writeFileSync(join(outsideDir, "project/brief.md"), brief, "utf8");
         symlinkSync(outsideDir, join(dir, "docs"), "dir");
-        writeFileSync(join(dir, ".agent-docs/manifest.json"), JSON.stringify({ version: 1, docs: [] }, null, 2), "utf8");
-        writeFileSync(join(dir, ".agent-docs/scopes.json"), JSON.stringify({ version: 1, scopes: [] }, null, 2), "utf8");
+        writeFileSync(join(dir, ".benjamin-docs/manifest.json"), JSON.stringify({ version: 1, docs: [] }, null, 2), "utf8");
+        writeFileSync(join(dir, ".benjamin-docs/scopes.json"), JSON.stringify({ version: 1, scopes: [] }, null, 2), "utf8");
 
         const result = runCliResult(["validate"], dir);
 
@@ -224,12 +224,12 @@ describe("validate", () => {
 
   it("reports scope paths symlinked outside the project root", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-scope-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-scope-"));
       try {
         runCli(["init"], dir);
         symlinkSync(outsideDir, join(dir, "external-scope"), "dir");
         writeFileSync(
-          join(dir, ".agent-docs/scopes.json"),
+          join(dir, ".benjamin-docs/scopes.json"),
           JSON.stringify(
             {
               version: 1,
@@ -261,14 +261,14 @@ describe("validate", () => {
 
   it("reports anchor docs symlinked outside the project root", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-anchor-doc-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-anchor-doc-"));
       try {
         runCli(["init"], dir);
         writeFileSync(join(dir, "safe.ts"), "export const safe = true;\n", "utf8");
         writeFileSync(join(outsideDir, "outside.md"), "# Outside\n", "utf8");
         symlinkSync(join(outsideDir, "outside.md"), join(dir, "anchor-doc.md"), "file");
         writeFileSync(
-          join(dir, ".agent-docs/anchors.json"),
+          join(dir, ".benjamin-docs/anchors.json"),
           JSON.stringify(
             {
               version: 1,
@@ -295,25 +295,25 @@ describe("validate", () => {
     });
   });
 
-  it("reports .agent-docs directory symlinked outside the project root", () => {
+  it("reports .benjamin-docs directory symlinked outside the project root", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-metadata-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-metadata-"));
       try {
         runCli(["init"], dir);
         for (const file of ["config.json", "manifest.json", "scopes.json", "anchors.json"]) {
           writeFileSync(
             join(outsideDir, file),
-            readFileSync(join(dir, ".agent-docs", file), "utf8"),
+            readFileSync(join(dir, ".benjamin-docs", file), "utf8"),
             "utf8",
           );
         }
-        rmSync(join(dir, ".agent-docs"), { recursive: true, force: true });
-        symlinkSync(outsideDir, join(dir, ".agent-docs"), "dir");
+        rmSync(join(dir, ".benjamin-docs"), { recursive: true, force: true });
+        symlinkSync(outsideDir, join(dir, ".benjamin-docs"), "dir");
 
         const result = runCliResult(["validate"], dir);
 
         assert.equal(result.status, 1);
-        assert.match(result.stderr, /\.agent-docs\/ must remain inside project root/);
+        assert.match(result.stderr, /\.benjamin-docs\/ must remain inside project root/);
       } finally {
         rmSync(outsideDir, { recursive: true, force: true });
       }
@@ -322,21 +322,21 @@ describe("validate", () => {
 
   it("reports metadata files symlinked outside the project root", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-manifest-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-manifest-"));
       try {
         runCli(["init"], dir);
         writeFileSync(
           join(outsideDir, "manifest.json"),
-          readFileSync(join(dir, ".agent-docs/manifest.json"), "utf8"),
+          readFileSync(join(dir, ".benjamin-docs/manifest.json"), "utf8"),
           "utf8",
         );
-        rmSync(join(dir, ".agent-docs/manifest.json"));
-        symlinkSync(join(outsideDir, "manifest.json"), join(dir, ".agent-docs/manifest.json"), "file");
+        rmSync(join(dir, ".benjamin-docs/manifest.json"));
+        symlinkSync(join(outsideDir, "manifest.json"), join(dir, ".benjamin-docs/manifest.json"), "file");
 
         const result = runCliResult(["validate"], dir);
 
         assert.equal(result.status, 1);
-        assert.match(result.stderr, /\.agent-docs\/manifest\.json must remain inside project root/);
+        assert.match(result.stderr, /\.benjamin-docs\/manifest\.json must remain inside project root/);
       } finally {
         rmSync(outsideDir, { recursive: true, force: true });
       }
@@ -350,7 +350,7 @@ describe("status and export", () => {
       runCli(["init"], dir);
       const output = runCli(["status"], dir);
 
-      assert.match(output, /agent-docs status/);
+      assert.match(output, /benjamin-docs status/);
       assert.match(output, /mode: planning/);
       assert.match(output, /docs: 5/);
       assert.match(output, /scopes: 3/);
@@ -362,7 +362,7 @@ describe("status and export", () => {
       const result = runCliResult(["status"], dir);
 
       assert.equal(result.status, 1);
-      assert.match(result.stderr, /agent-docs is not initialized/);
+      assert.match(result.stderr, /benjamin-docs is not initialized/);
     });
   });
 
@@ -380,7 +380,7 @@ describe("status and export", () => {
 
   it("rejects symlinked export bundle directories before writing", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-export-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-export-"));
       try {
         runCli(["init"], dir);
         mkdirSync(join(dir, "exports"), { recursive: true });
@@ -447,7 +447,7 @@ describe("status and export", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
       runCli(["promote", "--to", "codebase"], dir);
-      const config = readFileSync(join(dir, ".agent-docs/config.json"), "utf8");
+      const config = readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8");
 
       assert.match(config, /"mode": "codebase"/);
       assert.equal(existsSync(join(dir, "docs/engineering/architecture.md")), true);
@@ -458,7 +458,7 @@ describe("status and export", () => {
 
   it("rejects symlinked codebase doc parent directories before promoting", () => {
     withTempDir((dir) => {
-      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-promote-"));
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-promote-"));
       try {
         runCli(["init"], dir);
         symlinkSync(outsideDir, join(dir, "docs/engineering"), "dir");
