@@ -4,7 +4,7 @@
 
 **Goal:** Build the first repo-local `agent-docs` npm CLI and Codex/Claude skill package described in `docs/superpowers/specs/2026-06-03-agent-docs-design.md`.
 
-**Architecture:** The CLI is a small TypeScript package with no runtime dependencies. It writes human-readable Markdown under `docs/`, writes machine metadata under `.agent-docs/`, validates the structure, exports audience bundles, and exposes approachable help/intro commands. Agent skills perform conversation synthesis and use the CLI for structure and validation.
+**Architecture:** The CLI is a small TypeScript package with no runtime dependencies. It writes human-readable Markdown under `docs/`, writes machine metadata under `.agent-docs/`, validates the structure, exports audience bundles, and exposes approachable help/intro commands. Agent skills perform conversation synthesis and use the CLI for structure and validation. Development uses pnpm with a pinned package manager, committed lockfile, frozen installs, release-age delay, and strict dependency build-script settings.
 
 **Tech Stack:** Node.js 22+, TypeScript 6.0.3, Node built-in `node:test`, Node built-in `fs/path/url/child_process`.
 
@@ -13,6 +13,7 @@
 ## File Structure
 
 - Create: `package.json` - npm package metadata, bin entry, scripts.
+- Create: `pnpm-workspace.yaml` - pnpm security settings.
 - Create: `tsconfig.json` - TypeScript compiler config for ESM CLI output.
 - Create: `src/constants.ts` - shared paths, enum-like values, defaults.
 - Create: `src/types.ts` - frontmatter, manifest, scope, and anchor types.
@@ -42,6 +43,7 @@
 
 **Files:**
 - Create: `package.json`
+- Create: `pnpm-workspace.yaml`
 - Create: `tsconfig.json`
 - Create: `.gitignore`
 - Create: `src/info.ts`
@@ -119,7 +121,7 @@ describe("info commands", () => {
 });
 ```
 
-- [ ] **Step 2: Add package and TypeScript config**
+- [ ] **Step 2: Add package, pnpm security settings, and TypeScript config**
 
 Create `package.json`:
 
@@ -132,6 +134,7 @@ Create `package.json`:
   "bin": {
     "agent-docs": "./dist/src/cli.js"
   },
+  "packageManager": "pnpm@11.5.1",
   "files": [
     "dist",
     "skills",
@@ -153,6 +156,18 @@ Create `package.json`:
   },
   "license": "MIT"
 }
+```
+
+Create `pnpm-workspace.yaml`:
+
+```yaml
+packages:
+  - "."
+minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
+strictDepBuilds: true
+onlyBuiltDependencies: []
+ignoredBuiltDependencies: []
 ```
 
 Create `tsconfig.json`:
@@ -276,7 +291,9 @@ main().then((code) => {
 Run:
 
 ```bash
+corepack enable
 pnpm install
+pnpm install --frozen-lockfile
 pnpm build
 pnpm test
 ```
@@ -286,7 +303,7 @@ Expected: all three `info commands` tests pass.
 - [ ] **Step 5: Commit package scaffold**
 
 ```bash
-git add package.json pnpm-lock.yaml tsconfig.json .gitignore src/info.ts src/cli.ts test/helpers.ts test/info.test.ts
+git add package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json .gitignore src/info.ts src/cli.ts test/helpers.ts test/info.test.ts
 git commit -m "feat: scaffold agent-docs cli"
 ```
 
@@ -1430,7 +1447,7 @@ Repo-local project memory for humans and AI agents.
 ## Install
 
 ```bash
-npm install --save-dev agent-docs
+pnpm add -D agent-docs
 ```
 
 For local development in this repo:
@@ -1717,6 +1734,8 @@ Spec coverage:
 - Validation: Task 5.
 - Help, version, and introduction commands: Task 1.
 - Constructive agent challenge stance: Task 7.
+- Pinned pnpm, frozen install flow, release-age delay, strict build-script
+  settings, committed lockfile, and zero runtime dependencies: Task 1.
 - First self-test from this conversation: Task 8.
 
 No implementation task requires hosted SaaS, auth, browser editing, GitHub App integration, automatic CLI access to agent chat, static site generation, project generator wrapping, or deep code understanding.

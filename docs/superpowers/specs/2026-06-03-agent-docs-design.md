@@ -64,6 +64,9 @@ portals, comments, non-technical editing, and cross-project dashboards.
   business readers, and public summaries.
 - Validate required files, frontmatter, broken relative links, missing scopes,
   and stale code anchors.
+- Use a conservative supply-chain baseline: pnpm, pinned package manager,
+  committed lockfile, frozen installs, delayed new package versions, strict
+  dependency build scripts, and zero runtime dependencies for the MVP CLI.
 
 ## V1 Non-Goals
 
@@ -76,6 +79,44 @@ portals, comments, non-technical editing, and cross-project dashboards.
 - Full static docs website generation.
 - Wrapping `create-next-app` or other project generators.
 - Deep automatic code understanding.
+
+## Supply-Chain Security Baseline
+
+V1 should use pnpm as the development package manager and publish as a normal
+npm package when release work begins. The package should still be installable
+from the npm registry, but repository development should avoid npm installs.
+
+The MVP CLI should have zero runtime dependencies. Development dependencies
+should be limited to TypeScript and Node types unless a later approved design
+change justifies more.
+
+Repository security defaults:
+
+```json
+{
+  "packageManager": "pnpm@11.5.1"
+}
+```
+
+```yaml
+packages:
+  - "."
+minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
+strictDepBuilds: true
+onlyBuiltDependencies: []
+ignoredBuiltDependencies: []
+```
+
+Install and CI commands should use frozen installs:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm check
+```
+
+Publishing should eventually use trusted publishing/OIDC instead of long-lived
+npm tokens, but npm publishing automation is outside V1 implementation scope.
 
 ## Repo Structure
 
@@ -426,6 +467,9 @@ V1 is successful when:
   current project direction without needing the full chat transcript.
 - The repo-local format is clear enough that a later SaaS can ingest it without
   changing the source docs.
+- The repo uses pnpm with a pinned package manager, committed lockfile,
+  release-age delay, strict dependency build settings, and no runtime
+  dependencies.
 
 ## Open Questions
 
