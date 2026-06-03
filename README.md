@@ -8,6 +8,8 @@ Repo-local project memory for humans and AI agents.
 
 The package name is provisional. An unrelated package named `agent-docs` already exists on npm, so do not install `agent-docs` from the public registry until the package name is resolved.
 
+This repo's package is marked `private` in `package.json` while the name is unresolved. Use it only for local build, link, and package dry-run testing.
+
 ## Local Development
 
 ```bash

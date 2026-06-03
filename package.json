@@ -1,6 +1,7 @@
 {
   "name": "agent-docs",
   "version": "0.1.0",
+  "private": true,
   "description": "Repo-local project memory for humans and AI agents.",
   "type": "module",
   "bin": {
@@ -8,7 +9,7 @@
   },
   "packageManager": "pnpm@11.5.1",
   "files": [
-    "dist",
+    "dist/src",
     "skills",
     "README.md",
     "LICENSE"
