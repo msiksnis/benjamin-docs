@@ -20,6 +20,7 @@ pnpm check
 - Run `pnpm check`.
 - Run `node dist/src/cli.js validate` when docs change.
 - Avoid adding runtime dependencies unless there is a strong reason.
+- `main` is protected: use a feature branch and open a pull request for all changes.
 
 ## Design Principles
 
