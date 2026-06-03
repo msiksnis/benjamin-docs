@@ -106,4 +106,96 @@ describe("validate", () => {
       }
     });
   });
+
+  it("reports markdown links to symlinks that resolve outside the project root", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      try {
+        runCli(["init"], dir);
+        writeFileSync(join(outsideDir, "outside.md"), "# Outside\n", "utf8");
+        symlinkSync(join(outsideDir, "outside.md"), join(dir, "docs/project/outside-link.md"), "file");
+
+        const briefPath = join(dir, "docs/project/brief.md");
+        const brief = readFileSync(briefPath, "utf8");
+        writeFileSync(briefPath, `${brief}\nSee [outside](outside-link.md).\n`, "utf8");
+
+        const result = runCliResult(["validate"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /docs\/project\/brief\.md: link must remain inside project root: outside-link\.md/);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it("reports broken markdown symlinks under docs without crashing", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      symlinkSync(join(dir, "docs/project/missing-target.md"), join(dir, "docs/project/broken-link.md"), "file");
+
+      const result = runCliResult(["validate"], dir);
+
+      assert.equal(result.status, 1);
+      assert.doesNotMatch(result.stderr, /Unhandled|ENOENT: no such file or directory, open/);
+      assert.match(result.stderr, /docs\/project\/broken-link\.md: symlink target is missing/);
+    });
+  });
+
+  it("reports unsafe anchor ids in metadata", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      writeFileSync(join(dir, "safe.ts"), "export const safe = true;\n", "utf8");
+      writeFileSync(
+        join(dir, ".agent-docs/anchors.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            anchors: {
+              "../bad": {
+                file: "safe.ts",
+                docs: [],
+              },
+            },
+          },
+          null,
+          2,
+        ),
+        "utf8",
+      );
+
+      const result = runCliResult(["validate"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Invalid anchor id: \.\.\/bad/);
+    });
+  });
+
+  it("reports unsafe anchor file paths in metadata", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      writeFileSync(
+        join(dir, ".agent-docs/anchors.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            anchors: {
+              unsafe: {
+                file: "src/../safe.ts",
+                docs: [],
+              },
+            },
+          },
+          null,
+          2,
+        ),
+        "utf8",
+      );
+
+      const result = runCliResult(["validate"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Invalid anchor file: src\/\.\.\/safe\.ts/);
+    });
+  });
 });

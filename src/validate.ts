@@ -1,5 +1,5 @@
-import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
-import { dirname, isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
+import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { dirname, isAbsolute, join, normalize, relative, resolve, sep, win32 } from "node:path";
 import { ANCHORS_FILE, CONFIG_DIR, CONFIG_FILE, DOCS_DIR, KNOWN_SCOPES, KNOWN_STATUSES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
 import { readJson, rootPath } from "./fsx.js";
@@ -10,10 +10,13 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+const ANCHOR_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 export function validateProject(root: string): ValidationResult {
   const resolvedRoot = resolve(root);
   const errors: string[] = [];
   const warnings: string[] = [];
+  const realRoot = resolveRealPath(resolvedRoot, "Project root", resolvedRoot, errors) ?? resolvedRoot;
 
   const config = readMetadataFile<AgentDocsConfig>(resolvedRoot, join(CONFIG_DIR, CONFIG_FILE), errors);
   const manifest = readMetadataFile<ManifestFile>(resolvedRoot, join(CONFIG_DIR, MANIFEST_FILE), errors);
@@ -21,17 +24,17 @@ export function validateProject(root: string): ValidationResult {
   const anchors = readMetadataFile<AnchorsFile>(resolvedRoot, join(CONFIG_DIR, ANCHORS_FILE), errors);
 
   if (config) validateConfig(config, errors);
-  if (manifest) validateManifest(resolvedRoot, manifest, errors);
+  if (manifest) validateManifest(resolvedRoot, realRoot, manifest, errors);
   if (scopes) validateScopes(resolvedRoot, scopes, errors);
 
-  const docs = findMarkdownFiles(join(resolvedRoot, DOCS_DIR));
+  const docs = findMarkdownFiles(resolvedRoot, join(resolvedRoot, DOCS_DIR), errors);
   if (docs.length === 0) warnings.push("No Markdown docs found under docs/");
 
   for (const doc of docs) {
-    validateMarkdownDoc(resolvedRoot, doc, errors);
+    validateMarkdownDoc(resolvedRoot, realRoot, doc, errors);
   }
 
-  if (anchors) validateAnchors(resolvedRoot, anchors, errors);
+  if (anchors) validateAnchors(resolvedRoot, realRoot, anchors, errors);
 
   return { errors, warnings };
 }
@@ -69,7 +72,7 @@ function validateConfig(config: AgentDocsConfig, errors: string[]): void {
   }
 }
 
-function validateManifest(root: string, manifest: ManifestFile, errors: string[]): void {
+function validateManifest(root: string, realRoot: string, manifest: ManifestFile, errors: string[]): void {
   if (!isRecord(manifest)) {
     errors.push(`${CONFIG_DIR}/${MANIFEST_FILE}: expected an object`);
     return;
@@ -97,6 +100,12 @@ function validateManifest(root: string, manifest: ManifestFile, errors: string[]
 
     if (!safeStatIsFile(fullPath)) {
       errors.push(`Manifest doc is not a file: ${doc}`);
+      return;
+    }
+
+    const realDoc = resolveRealPath(fullPath, `Manifest doc target`, doc, errors);
+    if (realDoc && !isInsideRoot(realRoot, realDoc)) {
+      errors.push(`Manifest doc must remain inside project root: ${doc}`);
     }
   });
 }
@@ -140,18 +149,52 @@ function validateScopes(root: string, scopes: ScopesFile, errors: string[]): voi
   });
 }
 
-function validateMarkdownDoc(root: string, fullPath: string, errors: string[]): void {
+function validateMarkdownDoc(root: string, realRoot: string, fullPath: string, errors: string[]): void {
   const relativePath = toProjectPath(root, fullPath);
 
+  let stat;
   try {
-    const parsed = parseMarkdown(readFileSync(fullPath, "utf8"));
-    validateLinks(root, relativePath, parsed.body, errors);
+    stat = lstatSync(fullPath);
+  } catch (error) {
+    errors.push(`${relativePath}: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
+    return;
+  }
+
+  if (stat.isSymbolicLink()) {
+    const realTarget = resolveRealPath(fullPath, `${relativePath}: symlink target`, relativePath, errors);
+    if (!realTarget) return;
+
+    if (!isInsideRoot(realRoot, realTarget)) {
+      errors.push(`${relativePath}: symlink target must remain inside project root`);
+      return;
+    }
+
+    if (!safeStatIsFile(realTarget)) {
+      errors.push(`${relativePath}: symlink target is not a file`);
+      return;
+    }
+  } else if (!stat.isFile()) {
+    errors.push(`${relativePath}: Markdown path is not a file`);
+    return;
+  }
+
+  let content: string;
+  try {
+    content = readFileSync(fullPath, "utf8");
+  } catch (error) {
+    errors.push(`${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
+    return;
+  }
+
+  try {
+    const parsed = parseMarkdown(content);
+    validateLinks(root, realRoot, relativePath, parsed.body, errors);
   } catch (error) {
     errors.push(`${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-function validateLinks(root: string, docPath: string, body: string, errors: string[]): void {
+function validateLinks(root: string, realRoot: string, docPath: string, body: string, errors: string[]): void {
   const linkPattern = /!?\[[^\]]*]\(([^)]+)\)/g;
 
   for (const match of body.matchAll(linkPattern)) {
@@ -171,11 +214,19 @@ function validateLinks(root: string, docPath: string, body: string, errors: stri
 
     if (!existsSync(targetPath)) {
       errors.push(`${docPath}: broken link ${target}`);
+      continue;
+    }
+
+    const realTarget = resolveRealPath(targetPath, `${docPath}: link target`, target, errors);
+    if (!realTarget) continue;
+
+    if (!isInsideRoot(realRoot, realTarget)) {
+      errors.push(`${docPath}: link must remain inside project root: ${target}`);
     }
   }
 }
 
-function validateAnchors(root: string, anchors: AnchorsFile, errors: string[]): void {
+function validateAnchors(root: string, realRoot: string, anchors: AnchorsFile, errors: string[]): void {
   if (!isRecord(anchors)) {
     errors.push(`${CONFIG_DIR}/${ANCHORS_FILE}: expected an object`);
     return;
@@ -187,9 +238,11 @@ function validateAnchors(root: string, anchors: AnchorsFile, errors: string[]): 
     return;
   }
 
-  const realRoot = realpathSync(root);
-
   for (const [id, anchor] of Object.entries(anchors.anchors)) {
+    if (!ANCHOR_ID_PATTERN.test(id)) {
+      errors.push(`Invalid anchor id: ${id}`);
+    }
+
     if (!isAnchorRecord(anchor)) {
       errors.push(`${CONFIG_DIR}/${ANCHORS_FILE}: anchor ${id} must contain a file and docs array`);
       continue;
@@ -201,7 +254,7 @@ function validateAnchors(root: string, anchors: AnchorsFile, errors: string[]): 
 }
 
 function validateAnchorFile(root: string, realRoot: string, id: string, file: string, errors: string[]): void {
-  const fullPath = resolveProjectPath(root, file, `Anchor ${id} file`, errors);
+  const fullPath = resolveAnchorPath(root, file, "anchor file", errors);
   if (!fullPath) return;
 
   if (!existsSync(fullPath)) {
@@ -236,7 +289,7 @@ function validateAnchorFile(root: string, realRoot: string, id: string, file: st
 }
 
 function validateAnchorDoc(root: string, id: string, doc: string, errors: string[]): void {
-  const fullPath = resolveProjectPath(root, doc, `Anchor ${id} doc`, errors);
+  const fullPath = resolveAnchorPath(root, doc, "anchor docs path", errors);
   if (!fullPath) return;
 
   if (!existsSync(fullPath)) {
@@ -247,6 +300,15 @@ function validateAnchorDoc(root: string, id: string, doc: string, errors: string
   if (!safeStatIsFile(fullPath)) {
     errors.push(`Anchor ${id} doc is not a file: ${doc}`);
   }
+}
+
+function resolveAnchorPath(root: string, path: string, label: string, errors: string[]): string | undefined {
+  if (!path || path.includes("\\") || win32.isAbsolute(path) || hasDotSegment(path)) {
+    errors.push(`Invalid ${label}: ${path}`);
+    return undefined;
+  }
+
+  return resolveProjectPath(root, path, label, errors);
 }
 
 function resolveProjectPath(root: string, path: string, label: string, errors: string[]): string | undefined {
@@ -263,15 +325,34 @@ function resolveProjectPath(root: string, path: string, label: string, errors: s
   }
 }
 
-function findMarkdownFiles(dir: string): string[] {
+function findMarkdownFiles(root: string, dir: string, errors: string[]): string[] {
   if (!existsSync(dir)) return [];
 
   const files: string[] = [];
-  for (const entry of readdirSync(dir)) {
-    const fullPath = join(dir, entry);
-    const stat = statSync(fullPath);
+  let entries: string[];
+  try {
+    entries = readdirSync(dir);
+  } catch (error) {
+    errors.push(`${toProjectPath(root, dir)}: could not be read: ${error instanceof Error ? error.message : String(error)}`);
+    return files;
+  }
 
-    if (stat.isDirectory()) files.push(...findMarkdownFiles(fullPath));
+  for (const entry of entries) {
+    const fullPath = join(dir, entry);
+    let stat;
+    try {
+      stat = lstatSync(fullPath);
+    } catch (error) {
+      errors.push(`${toProjectPath(root, fullPath)}: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
+      continue;
+    }
+
+    if (stat.isSymbolicLink()) {
+      if (fullPath.endsWith(".md")) files.push(fullPath);
+      continue;
+    }
+
+    if (stat.isDirectory()) files.push(...findMarkdownFiles(root, fullPath, errors));
     if (stat.isFile() && fullPath.endsWith(".md")) files.push(fullPath);
   }
 
@@ -313,6 +394,21 @@ function safeStatIsFile(path: string): boolean {
   }
 }
 
+function resolveRealPath(fullPath: string, label: string, displayPath: string, errors: string[]): string | undefined {
+  try {
+    return realpathSync(fullPath);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes("ENOENT")) {
+      errors.push(`${label} is missing: ${displayPath}`);
+      return undefined;
+    }
+
+    errors.push(`${label} could not be resolved: ${displayPath}: ${message}`);
+    return undefined;
+  }
+}
+
 function toProjectPath(root: string, fullPath: string): string {
   return normalize(relative(root, fullPath)).split(sep).join("/");
 }
@@ -324,6 +420,10 @@ function isInsideRoot(root: string, target: string): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasDotSegment(path: string): boolean {
+  return path.split("/").some((part) => part === "." || part === ".." || part === "");
 }
 
 function isScopeRecord(value: unknown): value is ScopeRecord {
