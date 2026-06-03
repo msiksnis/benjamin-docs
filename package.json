@@ -3,6 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "description": "Repo-local project memory for humans and AI agents.",
+  "keywords": [
+    "ai",
+    "agents",
+    "documentation",
+    "project-memory",
+    "cli"
+  ],
+  "homepage": "https://github.com/msiksnis/benjamin-docs#readme",
+  "bugs": {
+    "url": "https://github.com/msiksnis/benjamin-docs/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msiksnis/benjamin-docs.git"
+  },
   "type": "module",
   "bin": {
     "benjamin-docs": "./dist/src/cli.js"
