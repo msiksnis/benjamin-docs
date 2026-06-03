@@ -18,9 +18,11 @@ describe("info commands", () => {
     withTempDir((dir) => {
       const output = runCli(["help"], dir);
 
+      assert.match(output, /agent-docs --version/);
       assert.match(output, /agent-docs init/);
       assert.match(output, /agent-docs validate/);
       assert.match(output, /agent-docs export --audience developer/);
+      assert.match(output, /agent-docs promote --to codebase/);
     });
   });
 
