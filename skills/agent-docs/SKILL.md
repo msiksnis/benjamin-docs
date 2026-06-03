@@ -24,11 +24,12 @@ Use this skill when the user asks to capture, document, summarize, hand off, exp
    - feature: one feature, module, redesign, experiment, or v2 plan
    - handoff: context for another person or future agent
    - release: shipped change notes
-5. Use CLI-created templates when possible, especially `scope create` for feature, release, and handoff scopes.
-6. Write durable docs under `docs/`.
-7. Update existing docs instead of dumping a transcript.
-8. Run the local CLI command with `validate`.
-9. Report changed files, key decisions captured, and unresolved questions.
+5. Use CLI-created templates when possible. Use `scope create feature <slug>` for feature scopes only; V1 does not create release or handoff scopes through `scope create`.
+6. For release and handoff docs, update existing docs created by `init` or `promote --to codebase` when they fit. If no suitable starter doc exists, create manual docs with valid frontmatter until CLI support exists.
+7. Write durable docs under `docs/`.
+8. Update existing docs instead of dumping a transcript.
+9. Run the local CLI command with `validate`.
+10. Report changed files, key decisions captured, and unresolved questions.
 
 ## Capture Quality
 
@@ -48,7 +49,7 @@ Do not capture raw transcript unless the user explicitly asks for an archive.
 
 Every Markdown file under `docs/` must validate. Preserve existing frontmatter when updating docs, including fields you are not changing.
 
-For new docs, prefer files created by `init`, `promote --to codebase`, or `scope create`. If you must create a Markdown file manually, include all required frontmatter fields:
+For new feature docs, prefer files created by `scope create feature <slug>`. For project, release, and handoff docs, prefer existing files created by `init` or `promote --to codebase`. If you must create a Markdown file manually, include all required frontmatter fields:
 
 ```yaml
 ---
