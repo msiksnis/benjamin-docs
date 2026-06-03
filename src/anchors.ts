@@ -1,10 +1,11 @@
 import { realpathSync, statSync } from "node:fs";
 import { isAbsolute, relative, sep, win32 } from "node:path";
 import { ANCHORS_FILE, CONFIG_DIR } from "./constants.js";
-import { pathExists, readJson, rootPath, writeJson } from "./fsx.js";
+import { pathExists, readGeneratedJson, rootPath, writeGeneratedJson } from "./fsx.js";
 import type { AnchorsFile } from "./types.js";
 
 const ANCHOR_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const METADATA_LABEL = "Metadata path";
 
 export function addAnchor(root: string, id: string, file: string, docs: string[] = []): void {
   if (!ANCHOR_ID_PATTERN.test(id)) {
@@ -19,10 +20,10 @@ export function addAnchor(root: string, id: string, file: string, docs: string[]
   }
   assertRegularFileInsideRoot(root, filePath.full, file);
 
-  const anchorsPath = rootPath(root, CONFIG_DIR, ANCHORS_FILE);
-  const anchors = readJson<AnchorsFile>(anchorsPath);
+  const anchorsPath = `${CONFIG_DIR}/${ANCHORS_FILE}`;
+  const anchors = readGeneratedJson<AnchorsFile>(root, anchorsPath, METADATA_LABEL);
   anchors.anchors[id] = { file, docs: safeDocs.map((doc) => doc.relative) };
-  writeJson(anchorsPath, anchors);
+  writeGeneratedJson(root, anchorsPath, anchors, METADATA_LABEL);
 }
 
 interface SafePath {

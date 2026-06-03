@@ -236,19 +236,24 @@ The CLI owns deterministic structure and integrity.
 Initial command surface:
 
 ```bash
-npx agent-docs --version
-npx agent-docs help
-npx agent-docs introduce
-npx agent-docs init
-npx agent-docs status
-npx agent-docs validate
-npx agent-docs scope create feature booking-capacity
-npx agent-docs export --audience developer
-npx agent-docs export --audience designer
-npx agent-docs export --audience agent
-npx agent-docs promote --to codebase
-npx agent-docs anchor add booking-capacity-rules src/...
+node dist/src/cli.js --version
+node dist/src/cli.js help
+node dist/src/cli.js introduce
+node dist/src/cli.js init
+node dist/src/cli.js status
+node dist/src/cli.js validate
+node dist/src/cli.js scope create feature booking-capacity
+node dist/src/cli.js export --audience developer
+node dist/src/cli.js export --audience designer
+node dist/src/cli.js export --audience agent
+node dist/src/cli.js promote --to codebase
+node dist/src/cli.js anchor add booking-capacity-rules src/...
 ```
+
+After this repo's package is installed or linked locally into another project,
+the equivalent command form is `pnpm exec agent-docs ...`. Do not use `npx`
+for this package name while the name is unresolved because the public npm
+package name may resolve to unrelated code.
 
 The CLI should:
 
@@ -355,7 +360,8 @@ sync to SaaS
 
 ### Existing Codebase
 
-1. User runs `npx agent-docs init` inside an existing project.
+1. User runs `node dist/src/cli.js init` in this repo, or `pnpm exec
+   agent-docs init` after a local install/link into another project.
 2. Skill captures current project state or a current feature conversation.
 3. CLI creates or updates scopes and validates docs.
 4. Optional code anchors link docs to files.

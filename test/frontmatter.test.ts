@@ -34,6 +34,13 @@ describe("frontmatter", () => {
     );
   });
 
+  it("throws when audience is empty", () => {
+    assert.throws(
+      () => parseMarkdown(`---\ntitle: Empty Audience\nscope: project\nscope_id: project\naudience: []\nstatus: draft\nvisibility: private\nupdated: 2026-06-03\nsource: manual\n---\n\n# Empty Audience\n`),
+      /Frontmatter field audience must include at least one value/,
+    );
+  });
+
   it("throws when scope is unknown", () => {
     assert.throws(
       () => parseMarkdown(`---\ntitle: Unknown Scope\nscope: workspace\nscope_id: unknown-scope\naudience: [developer]\nstatus: draft\nvisibility: private\nupdated: 2026-06-03\nsource: manual\n---\n\n# Unknown Scope\n`),
@@ -45,6 +52,20 @@ describe("frontmatter", () => {
     assert.throws(
       () => parseMarkdown(`---\ntitle: Unknown Audience\nscope: project\nscope_id: project\naudience: [developer, investor]\nstatus: draft\nvisibility: private\nupdated: 2026-06-03\nsource: manual\n---\n\n# Unknown Audience\n`),
       /Unknown frontmatter audience: investor/,
+    );
+  });
+
+  it("throws when updated is not YYYY-MM-DD", () => {
+    assert.throws(
+      () => parseMarkdown(`---\ntitle: Bad Updated\nscope: project\nscope_id: project\naudience: [developer]\nstatus: draft\nvisibility: private\nupdated: 2026-6-3\nsource: manual\n---\n\n# Bad Updated\n`),
+      /Frontmatter field updated must be YYYY-MM-DD/,
+    );
+  });
+
+  it("throws when updated is not a real calendar date", () => {
+    assert.throws(
+      () => parseMarkdown(`---\ntitle: Impossible Updated\nscope: project\nscope_id: project\naudience: [developer]\nstatus: draft\nvisibility: private\nupdated: 2026-02-30\nsource: manual\n---\n\n# Impossible Updated\n`),
+      /Frontmatter field updated must be YYYY-MM-DD/,
     );
   });
 

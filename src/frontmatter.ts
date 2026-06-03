@@ -11,6 +11,7 @@ const ORDER: Array<keyof DocFrontmatter> = [
   "updated",
   "source",
 ];
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export function parseMarkdown(markdown: string): ParsedMarkdown {
   const normalized = normalizeMarkdown(markdown);
@@ -78,7 +79,7 @@ function validateFrontmatter(frontmatter: Record<string, unknown>): DocFrontmatt
     audience,
     status,
     visibility,
-    updated: requiredString(frontmatter, "updated"),
+    updated: requiredDate(frontmatter),
     source,
   };
 }
@@ -118,7 +119,22 @@ function requiredAudience(frontmatter: Record<string, unknown>): DocFrontmatter[
     audiences.push(knownValue("audience", audience, KNOWN_AUDIENCES));
   }
 
+  if (audiences.length === 0) {
+    throw new Error("Frontmatter field audience must include at least one value");
+  }
+
   return audiences;
+}
+
+function requiredDate(frontmatter: Record<string, unknown>): string {
+  const value = requiredString(frontmatter, "updated");
+  const date = new Date(`${value}T00:00:00.000Z`);
+
+  if (!DATE_PATTERN.test(value) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw new Error("Frontmatter field updated must be YYYY-MM-DD");
+  }
+
+  return value;
 }
 
 function knownValue<const T extends readonly string[]>(field: string, value: string, knownValues: T): T[number] {

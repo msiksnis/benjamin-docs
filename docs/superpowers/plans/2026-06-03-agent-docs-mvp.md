@@ -1412,7 +1412,9 @@ Use this skill when the user asks to capture, document, summarize, hand off, exp
 ## Workflow
 
 1. Check whether `.agent-docs/config.json` exists.
-2. If it does not exist, run `npx agent-docs init`.
+2. If it does not exist, run `node dist/src/cli.js init` in this repo. In
+   another repo, use `pnpm exec agent-docs init` only after this package has
+   been installed or linked locally.
 3. Decide the capture scope:
    - project: whole project, product, app, or business
    - feature: one feature, module, redesign, experiment, or v2 plan
@@ -1420,7 +1422,8 @@ Use this skill when the user asks to capture, document, summarize, hand off, exp
    - release: shipped change notes
 4. Write durable docs under `docs/`.
 5. Update existing docs instead of dumping a transcript.
-6. Run `npx agent-docs validate`.
+6. Run `node dist/src/cli.js validate` in this repo, or `pnpm exec agent-docs
+   validate` after local install/link into another repo.
 7. Report changed files, key decisions captured, and unresolved questions.
 
 ## Capture Quality
@@ -1458,7 +1461,8 @@ Repo-local project memory for humans and AI agents.
 ## Install
 
 ```bash
-pnpm add -D agent-docs
+# After this repo's package name is resolved and the package is locally installed or linked:
+pnpm exec agent-docs introduce
 ```
 
 For local development in this repo:
@@ -1472,17 +1476,21 @@ node dist/src/cli.js introduce
 ## Common Commands
 
 ```bash
-agent-docs introduce
-agent-docs help
-agent-docs --version
-agent-docs init
-agent-docs status
-agent-docs validate
-agent-docs scope create feature booking-capacity
-agent-docs anchor add booking-capacity-rules src/features/booking/capacity.ts
-agent-docs export --audience developer
-agent-docs promote --to codebase
+node dist/src/cli.js introduce
+node dist/src/cli.js help
+node dist/src/cli.js --version
+node dist/src/cli.js init
+node dist/src/cli.js status
+node dist/src/cli.js validate
+node dist/src/cli.js scope create feature booking-capacity
+node dist/src/cli.js anchor add booking-capacity-rules src/features/booking/capacity.ts
+node dist/src/cli.js export --audience developer
+node dist/src/cli.js promote --to codebase
 ```
+
+Use `pnpm exec agent-docs ...` only after this repo's package is installed or
+linked locally into the target project. Do not use `npx` for this package name
+while the package name is unresolved.
 
 ## What It Creates
 

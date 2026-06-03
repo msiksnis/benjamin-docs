@@ -1,8 +1,9 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { withTempDir, runCli } from "./helpers.js";
+import { withTempDir, runCli, runCliResult } from "./helpers.js";
 
 describe("init", () => {
   it("creates docs and metadata in an empty planning repo", () => {
@@ -29,6 +30,40 @@ describe("init", () => {
       const after = readFileSync(briefPath, "utf8");
 
       assert.equal(after, before);
+    });
+  });
+
+  it("rejects a symlinked docs directory during init", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      try {
+        symlinkSync(outsideDir, join(dir, "docs"), "dir");
+
+        const result = runCliResult(["init"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Generated output path must not be a symlink: docs/);
+        assert.equal(existsSync(join(outsideDir, "project/brief.md")), false);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it("rejects a symlinked metadata directory during init", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      try {
+        symlinkSync(outsideDir, join(dir, ".agent-docs"), "dir");
+
+        const result = runCliResult(["init"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Metadata path must not be a symlink: \.agent-docs/);
+        assert.equal(existsSync(join(outsideDir, "config.json")), false);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
     });
   });
 });

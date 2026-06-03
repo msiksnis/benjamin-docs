@@ -69,6 +69,24 @@ describe("scopes and anchors", () => {
     });
   });
 
+  it("rejects a symlinked feature docs directory during scope creation", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      try {
+        runCli(["init"], dir);
+        symlinkSync(outsideDir, join(dir, "docs/features"), "dir");
+
+        const result = runCliResult(["scope", "create", "feature", "booking-capacity"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Generated output path must not be a symlink: docs\/features/);
+        assert.equal(existsSync(join(outsideDir, "booking-capacity/brief.md")), false);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
   it("adds a code anchor with metadata", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
@@ -85,6 +103,26 @@ describe("scopes and anchors", () => {
         file: "src/features/booking/capacity.ts",
         docs: [],
       });
+    });
+  });
+
+  it("rejects a symlinked metadata directory during anchor add", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-"));
+      try {
+        runCli(["init"], dir);
+        writeFileSync(join(dir, "safe.ts"), "export const safe = true;\n");
+        rmSync(join(dir, ".agent-docs"), { recursive: true, force: true });
+        symlinkSync(outsideDir, join(dir, ".agent-docs"), "dir");
+
+        const result = runCliResult(["anchor", "add", "safe-anchor", "safe.ts"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Metadata path must not be a symlink: \.agent-docs/);
+        assert.equal(existsSync(join(outsideDir, "anchors.json")), false);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
     });
   });
 
