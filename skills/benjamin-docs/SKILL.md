@@ -14,8 +14,10 @@ Use this skill when the user asks to capture, document, summarize, hand off, exp
 ## Workflow
 
 1. Choose the local CLI command:
+   - Prefer `benjamin-docs` when it is available on `PATH`.
    - In this repo, run `pnpm build` when needed and use `node dist/src/cli.js`.
    - In another repo, use `pnpm exec benjamin-docs` only when this repo's package has been installed or linked locally.
+   - If neither command is available, ask the user whether to install/link the CLI or use the source repo directly.
 2. Check whether `.benjamin-docs/config.json` exists.
 3. If it does not exist, run the local CLI command with `init`.
 4. Decide the capture scope:
