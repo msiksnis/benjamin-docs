@@ -1,3 +1,14 @@
+---
+title: Agent Docs V1 Design
+scope: project
+scope_id: project
+audience: [developer, agent]
+status: approved
+visibility: private
+updated: 2026-06-03
+source: manual
+---
+
 # Agent Docs V1 Design
 
 ## Metadata

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "docs": [
+    "docs/project/brief.md",
+    "docs/project/roadmap.md",
+    "docs/project/open-questions.md",
+    "docs/handoff/human-brief.md",
+    "docs/handoff/agent-brief.md",
+    "docs/features/session-capture/brief.md",
+    "docs/features/session-capture/plan.md",
+    "docs/features/session-capture/decisions.md",
+    "docs/features/session-capture/handoff.md"
+  ]
+}

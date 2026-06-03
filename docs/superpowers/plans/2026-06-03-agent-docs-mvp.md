@@ -1,3 +1,14 @@
+---
+title: Agent Docs MVP Implementation Plan
+scope: project
+scope_id: project
+audience: [developer, agent]
+status: approved
+visibility: private
+updated: 2026-06-03
+source: manual
+---
+
 # Agent Docs MVP Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

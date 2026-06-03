@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "scopes": [
+    {
+      "id": "project",
+      "kind": "project",
+      "title": "Project",
+      "path": "docs/project",
+      "status": "draft"
+    },
+    {
+      "id": "human-brief",
+      "kind": "handoff",
+      "title": "Human Brief",
+      "path": "docs/handoff/human-brief.md",
+      "status": "draft"
+    },
+    {
+      "id": "agent-brief",
+      "kind": "handoff",
+      "title": "Agent Brief",
+      "path": "docs/handoff/agent-brief.md",
+      "status": "draft"
+    },
+    {
+      "id": "session-capture",
+      "kind": "feature",
+      "title": "Session Capture",
+      "path": "docs/features/session-capture",
+      "status": "draft"
+    }
+  ]
+}
