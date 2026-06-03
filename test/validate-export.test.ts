@@ -357,6 +357,15 @@ describe("status and export", () => {
     });
   });
 
+  it("reports a clear status error for uninitialized projects", () => {
+    withTempDir((dir) => {
+      const result = runCliResult(["status"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /agent-docs is not initialized/);
+    });
+  });
+
   it("exports docs for an audience while preserving docs-relative structure", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
@@ -366,6 +375,45 @@ describe("status and export", () => {
       assert.equal(existsSync(join(dir, "exports/agent/handoff/agent-brief.md")), true);
       assert.equal(existsSync(join(dir, "exports/agent/project/brief.md")), true);
       assert.equal(existsSync(join(dir, "exports/agent/handoff/human-brief.md")), false);
+    });
+  });
+
+  it("rejects symlinked export bundle directories before writing", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-export-"));
+      try {
+        runCli(["init"], dir);
+        mkdirSync(join(dir, "exports"), { recursive: true });
+        symlinkSync(outsideDir, join(dir, "exports/agent"), "dir");
+
+        const result = runCliResult(["export", "--audience", "agent"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Generated output path must not be a symlink/);
+        assert.equal(existsSync(join(outsideDir, "project/brief.md")), false);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it("removes stale files when regenerating an audience export", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["export", "--audience", "agent"], dir);
+
+      const briefPath = join(dir, "docs/project/brief.md");
+      const brief = readFileSync(briefPath, "utf8");
+      writeFileSync(
+        briefPath,
+        brief.replace("audience: [developer, designer, business, agent]", "audience: [developer, designer, business]"),
+        "utf8",
+      );
+
+      runCli(["export", "--audience", "agent"], dir);
+
+      assert.equal(existsSync(join(dir, "exports/agent/project/brief.md")), false);
+      assert.equal(existsSync(join(dir, "exports/agent/handoff/agent-brief.md")), true);
     });
   });
 
@@ -405,6 +453,24 @@ describe("status and export", () => {
       assert.equal(existsSync(join(dir, "docs/engineering/architecture.md")), true);
       assert.equal(existsSync(join(dir, "docs/engineering/code-map.md")), true);
       assert.equal(existsSync(join(dir, "docs/releases/changelog.md")), true);
+    });
+  });
+
+  it("rejects symlinked codebase doc parent directories before promoting", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "agent-docs-outside-promote-"));
+      try {
+        runCli(["init"], dir);
+        symlinkSync(outsideDir, join(dir, "docs/engineering"), "dir");
+
+        const result = runCliResult(["promote", "--to", "codebase"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Generated output path must not be a symlink/);
+        assert.equal(existsSync(join(outsideDir, "architecture.md")), false);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
     });
   });
 
