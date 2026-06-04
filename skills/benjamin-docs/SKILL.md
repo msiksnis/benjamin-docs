@@ -19,18 +19,20 @@ Use this skill when the user asks to capture, document, summarize, hand off, exp
    - In another repo, use `pnpm exec benjamin-docs` only when this repo's package has been installed or linked locally.
    - If neither command is available, ask the user whether to install/link the CLI or use the source repo directly.
 2. Check whether `.benjamin-docs/config.json` exists.
-3. If it does not exist, run the local CLI command with `init`.
-4. Decide the capture scope:
+3. If it does not exist, run the local CLI command with `init`, then run `next` to get the recommended capture prompt.
+4. Read `.benjamin-docs/config.json` and use its `docsRoot` value as the Benjamin docs workspace. The default is `benjamin-docs`.
+5. Decide the capture scope:
    - project: whole project, product, app, or business
    - feature: one feature, module, redesign, experiment, or v2 plan
    - handoff: context for another person or future agent
    - release: shipped change notes
-5. Use CLI-created templates when possible. Use `scope create feature <slug>` for feature scopes only; V1 does not create release or handoff scopes through `scope create`.
-6. For release and handoff docs, update existing docs created by `init` or `promote --to codebase` when they fit. If no suitable starter doc exists, create manual docs with valid frontmatter until CLI support exists.
-7. Write durable docs under `docs/`.
-8. Update existing docs instead of dumping a transcript.
-9. Run the local CLI command with `validate`.
-10. Report changed files, key decisions captured, and unresolved questions.
+6. Use CLI-created templates when possible. Use `scope create feature <slug>` for feature scopes only; V1 does not create release or handoff scopes through `scope create`.
+7. For release and handoff docs, update existing docs created by `init` or `promote --to codebase` when they fit. If no suitable starter doc exists, create manual docs with valid frontmatter until CLI support exists.
+8. Write durable Benjamin-managed docs only under the configured docs root, usually `benjamin-docs/`.
+9. Existing `docs/` directories may be read as project context, but do not create or update Benjamin-managed docs there unless `.benjamin-docs/config.json` explicitly sets `docsRoot` to `docs`.
+10. Update existing docs instead of dumping a transcript.
+11. Run the local CLI command with `validate`.
+12. Report changed files, key decisions captured, and unresolved questions.
 
 ## Capture Quality
 
@@ -48,7 +50,7 @@ Do not capture raw transcript unless the user explicitly asks for an archive.
 
 ## Doc Format
 
-Every Markdown file under `docs/` must validate. Preserve existing frontmatter when updating docs, including fields you are not changing.
+Every Benjamin-managed Markdown file under the configured docs root must validate. Preserve existing frontmatter when updating docs, including fields you are not changing.
 
 For new feature docs, prefer files created by `scope create feature <slug>`. For project, release, and handoff docs, prefer existing files created by `init` or `promote --to codebase`. If you must create a Markdown file manually, include all required frontmatter fields:
 

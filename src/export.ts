@@ -1,8 +1,9 @@
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { relative, sep } from "node:path";
-import { DOCS_DIR, KNOWN_AUDIENCES } from "./constants.js";
+import { KNOWN_AUDIENCES } from "./constants.js";
 import { assertGeneratedPathSafe, ensureGeneratedDir, lstatIfExists, rootPath, writeGeneratedText } from "./fsx.js";
 import { parseMarkdown } from "./frontmatter.js";
+import { readConfig } from "./project-config.js";
 import type { Audience } from "./types.js";
 import { validateProject } from "./validate.js";
 
@@ -13,7 +14,8 @@ export function exportAudience(root: string, audience: string): string[] {
     throw new Error(["Cannot export while validation has errors:", ...validation.errors.map((error) => `- ${error}`)].join("\n"));
   }
 
-  const docsRoot = rootPath(root, DOCS_DIR);
+  const config = readConfig(root);
+  const docsRoot = rootPath(root, config.docsRoot);
   const docs = findMarkdownFiles(docsRoot);
   const bundleRelativeRoot = `exports/${selectedAudience}`;
   prepareCleanBundleDirectory(root, selectedAudience);

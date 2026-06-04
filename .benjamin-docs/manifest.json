@@ -1,14 +1,18 @@
 {
   "version": 1,
   "docs": [
-    "docs/project/brief.md",
-    "docs/project/roadmap.md",
-    "docs/project/open-questions.md",
-    "docs/handoff/human-brief.md",
-    "docs/handoff/agent-brief.md",
-    "docs/features/session-capture/brief.md",
-    "docs/features/session-capture/plan.md",
-    "docs/features/session-capture/decisions.md",
-    "docs/features/session-capture/handoff.md"
+    "benjamin-docs/project/brief.md",
+    "benjamin-docs/project/roadmap.md",
+    "benjamin-docs/project/open-questions.md",
+    "benjamin-docs/handoff/human-brief.md",
+    "benjamin-docs/handoff/agent-brief.md",
+    "benjamin-docs/engineering/architecture.md",
+    "benjamin-docs/engineering/code-map.md",
+    "benjamin-docs/features/index.md",
+    "benjamin-docs/features/session-capture/brief.md",
+    "benjamin-docs/features/session-capture/plan.md",
+    "benjamin-docs/features/session-capture/decisions.md",
+    "benjamin-docs/features/session-capture/handoff.md",
+    "benjamin-docs/releases/changelog.md"
   ]
 }

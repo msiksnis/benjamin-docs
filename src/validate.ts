@@ -1,8 +1,9 @@
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { dirname, isAbsolute, join, normalize, relative, resolve, sep, win32 } from "node:path";
-import { ANCHORS_FILE, CONFIG_DIR, CONFIG_FILE, DOCS_DIR, KNOWN_SCOPES, KNOWN_STATUSES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
+import { ANCHORS_FILE, CONFIG_DIR, CONFIG_FILE, DEFAULT_DOCS_ROOT, KNOWN_FOCUS_TYPES, KNOWN_SCOPES, KNOWN_STATUSES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
 import { readJson, rootPath } from "./fsx.js";
+import { isSafeDocsRoot, normalizeConfig } from "./project-config.js";
 import type { BenjaminDocsConfig, AnchorsFile, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
 
 export interface ValidationResult {
@@ -20,9 +21,10 @@ export function validateProject(root: string): ValidationResult {
   const metadataRoot = rootPath(resolvedRoot, CONFIG_DIR);
   const metadataRootIsSafe = validateMetadataRoot(realRoot, metadataRoot, errors);
 
-  const config = metadataRootIsSafe
+  const rawConfig = metadataRootIsSafe
     ? readMetadataFile<BenjaminDocsConfig>(resolvedRoot, realRoot, join(CONFIG_DIR, CONFIG_FILE), errors)
     : undefined;
+  const config = rawConfig ? normalizeConfig(rawConfig) : undefined;
   const manifest = metadataRootIsSafe
     ? readMetadataFile<ManifestFile>(resolvedRoot, realRoot, join(CONFIG_DIR, MANIFEST_FILE), errors)
     : undefined;
@@ -37,10 +39,11 @@ export function validateProject(root: string): ValidationResult {
   if (manifest) validateManifest(resolvedRoot, realRoot, manifest, errors);
   if (scopes) validateScopes(resolvedRoot, realRoot, scopes, errors);
 
-  const docsRoot = resolveProjectPath(resolvedRoot, DOCS_DIR, "docs/", errors);
-  const docs = docsRoot && validateDocsRoot(realRoot, docsRoot, errors) ? findMarkdownFiles(resolvedRoot, realRoot, docsRoot, errors) : [];
+  const docsRootName = config?.docsRoot ?? DEFAULT_DOCS_ROOT;
+  const docsRoot = resolveProjectPath(resolvedRoot, docsRootName, `${docsRootName}/`, errors);
+  const docs = docsRoot && validateDocsRoot(realRoot, docsRoot, docsRootName, errors) ? findMarkdownFiles(resolvedRoot, realRoot, docsRoot, errors) : [];
   const managedDocs = manifest ? new Set(manifest.docs.map(normalizeProjectPath)) : undefined;
-  if (docs.length === 0) warnings.push("No Markdown docs found under docs/");
+  if (docs.length === 0) warnings.push(`No Markdown docs found under ${docsRootName}/`);
 
   for (const doc of docs) {
     const relativeDoc = toProjectPath(resolvedRoot, doc);
@@ -131,6 +134,15 @@ function validateConfig(config: BenjaminDocsConfig, errors: string[]): void {
   if (config.version !== 1) errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: version must be 1`);
   if (config.mode !== "planning" && config.mode !== "codebase") {
     errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: mode must be planning or codebase`);
+  }
+  if (!isSafeDocsRoot(config.docsRoot)) {
+    errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: docsRoot must be a safe relative path`);
+  }
+  if (!KNOWN_FOCUS_TYPES.includes(config.focus)) {
+    errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: focus must be project, codebase, or feature`);
+  }
+  if (config.feature !== undefined && typeof config.feature !== "string") {
+    errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: feature must be a string`);
   }
 }
 
@@ -413,31 +425,31 @@ function resolveProjectPath(root: string, path: string, label: string, errors: s
   }
 }
 
-function validateDocsRoot(realRoot: string, docsRoot: string, errors: string[]): boolean {
+function validateDocsRoot(realRoot: string, docsRoot: string, docsRootName: string, errors: string[]): boolean {
   let stat;
   try {
     stat = lstatSync(docsRoot);
   } catch (error) {
     if (isNotFoundError(error)) return true;
-    errors.push(`docs/: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
+    errors.push(`${docsRootName}/: could not be inspected: ${error instanceof Error ? error.message : String(error)}`);
     return false;
   }
 
-  const realDocsRoot = resolveRealPath(docsRoot, "docs/", "docs/", errors);
+  const realDocsRoot = resolveRealPath(docsRoot, `${docsRootName}/`, `${docsRootName}/`, errors);
   if (!realDocsRoot) return false;
 
   if (!isInsideRoot(realRoot, realDocsRoot)) {
-    errors.push("docs/ must remain inside project root");
+    errors.push(`${docsRootName}/ must remain inside project root`);
     return false;
   }
 
   if (stat.isSymbolicLink() && !safeStatIsDirectory(realDocsRoot)) {
-    errors.push("docs/ symlink target must be a directory");
+    errors.push(`${docsRootName}/ symlink target must be a directory`);
     return false;
   }
 
   if (!stat.isSymbolicLink() && !stat.isDirectory()) {
-    errors.push("docs/ must be a directory");
+    errors.push(`${docsRootName}/ must be a directory`);
     return false;
   }
 

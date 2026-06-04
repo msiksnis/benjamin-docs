@@ -1,10 +1,14 @@
 #!/usr/bin/env node
+import { emitKeypressEvents } from "node:readline";
+import { createInterface } from "node:readline/promises";
 import { addAnchor } from "./anchors.js";
 import { exportAudience } from "./export.js";
-import { initProject, promoteToCodebase } from "./init.js";
+import { initProject, promoteToCodebase, type InitProjectOptions } from "./init.js";
 import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
+import { formatNextMessage, getNextPrompt } from "./next.js";
 import { createScope } from "./scopes.js";
 import { getStatus } from "./status.js";
+import type { FocusType } from "./types.js";
 import { validateProject } from "./validate.js";
 
 export async function main(argv: string[] = process.argv.slice(2), cwd: string = process.cwd()): Promise<number> {
@@ -26,8 +30,16 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "init") {
-    const written = initProject(cwd);
-    console.log(`Initialized benjamin-docs. ${written.length} files created.`);
+    const options = await resolveInitOptions(argv.slice(1));
+    const result = initProject(cwd, options);
+    console.log(`Initialized benjamin-docs. ${result.written.length} files created.`);
+    console.log("");
+    console.log(formatNextMessage(getNextPrompt(cwd)));
+    return 0;
+  }
+
+  if (command === "next") {
+    console.log(formatNextMessage(getNextPrompt(cwd)));
     return 0;
   }
 
@@ -106,6 +118,140 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   console.error("");
   console.error(getHelpText());
   return 1;
+}
+
+async function resolveInitOptions(args: string[]): Promise<InitProjectOptions> {
+  const parsed = parseInitArgs(args);
+  if (parsed.setup) return parsed;
+
+  if (process.stdin.isTTY && process.stdout.isTTY) {
+    return promptForInitOptions();
+  }
+
+  return { setup: "project" };
+}
+
+function parseInitArgs(args: string[]): InitProjectOptions {
+  const options: InitProjectOptions = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--mode" || arg === "--type" || arg === "--setup") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs init --mode <planning|codebase|feature>");
+      options.setup = parseSetup(value);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--feature") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs init --mode feature --feature <slug>");
+      options.feature = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--docs-root") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs init --docs-root <path>");
+      options.docsRoot = value;
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown init option: ${arg}`);
+  }
+
+  return options;
+}
+
+function parseSetup(value: string): FocusType {
+  if (value === "planning" || value === "project") return "project";
+  if (value === "codebase") return "codebase";
+  if (value === "feature") return "feature";
+  throw new Error("Usage: benjamin-docs init --mode <planning|codebase|feature>");
+}
+
+async function promptForInitOptions(): Promise<InitProjectOptions> {
+  const choices: Array<{ label: string; setup: FocusType }> = [
+    { label: "Planning a new project", setup: "project" },
+    { label: "Documenting an existing codebase", setup: "codebase" },
+    { label: "Planning/documenting one feature", setup: "feature" },
+  ];
+  const selected = await selectChoice("What are you setting up?", choices.map((choice) => choice.label));
+  const setup = choices[selected]?.setup ?? "project";
+
+  if (setup !== "feature") return { setup };
+
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    const feature = (await rl.question("Feature slug: ")).trim();
+    return { setup, feature };
+  } finally {
+    rl.close();
+  }
+}
+
+async function selectChoice(question: string, choices: string[]): Promise<number> {
+  let selected = 0;
+  const input = process.stdin;
+
+  emitKeypressEvents(input);
+  input.setRawMode(true);
+
+  const render = (): void => {
+    process.stdout.write("\x1Bc");
+    process.stdout.write(`${question}\n\n`);
+    choices.forEach((choice, index) => {
+      process.stdout.write(`${index === selected ? "> " : "  "}${choice}\n`);
+    });
+    process.stdout.write("\nNavigate to select. Press Enter to continue.\n");
+  };
+
+  return new Promise((resolve) => {
+    const cleanup = (): void => {
+      input.setRawMode(false);
+      input.off("keypress", onKeypress);
+      process.stdout.write("\n");
+    };
+
+    const onKeypress = (str: string, key: { name?: string; ctrl?: boolean }): void => {
+      if (key.ctrl && key.name === "c") {
+        cleanup();
+        process.exit(130);
+      }
+
+      if (key.name === "up" || str === "k") {
+        selected = selected === 0 ? choices.length - 1 : selected - 1;
+        render();
+        return;
+      }
+
+      if (key.name === "down" || str === "j") {
+        selected = selected === choices.length - 1 ? 0 : selected + 1;
+        render();
+        return;
+      }
+
+      if (/^[1-9]$/.test(str)) {
+        const index = Number(str) - 1;
+        if (index >= 0 && index < choices.length) {
+          selected = index;
+          render();
+        }
+        return;
+      }
+
+      if (key.name === "return" || key.name === "enter") {
+        cleanup();
+        resolve(selected);
+      }
+    };
+
+    input.on("keypress", onKeypress);
+    render();
+  });
 }
 
 main()

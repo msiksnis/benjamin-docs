@@ -1,6 +1,14 @@
-import type { KNOWN_AUDIENCES, KNOWN_SCOPES, KNOWN_SOURCES, KNOWN_STATUSES, KNOWN_VISIBILITIES } from "./constants.js";
+import type {
+  KNOWN_AUDIENCES,
+  KNOWN_FOCUS_TYPES,
+  KNOWN_SCOPES,
+  KNOWN_SOURCES,
+  KNOWN_STATUSES,
+  KNOWN_VISIBILITIES,
+} from "./constants.js";
 
 export type ScopeKind = (typeof KNOWN_SCOPES)[number];
+export type FocusType = (typeof KNOWN_FOCUS_TYPES)[number];
 export type Audience = (typeof KNOWN_AUDIENCES)[number];
 export type DocStatus = (typeof KNOWN_STATUSES)[number];
 export type Visibility = (typeof KNOWN_VISIBILITIES)[number];
@@ -25,6 +33,9 @@ export interface ParsedMarkdown {
 export interface BenjaminDocsConfig {
   version: 1;
   mode: "planning" | "codebase";
+  docsRoot: string;
+  focus: FocusType;
+  feature?: string;
 }
 
 export interface ScopeRecord {

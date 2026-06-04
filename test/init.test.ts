@@ -11,19 +11,24 @@ describe("init", () => {
       const output = runCli(["init"], dir);
 
       assert.match(output, /Initialized benjamin-docs/);
-      assert.equal(existsSync(join(dir, "docs/project/brief.md")), true);
-      assert.equal(existsSync(join(dir, "docs/handoff/agent-brief.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/project/brief.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/handoff/agent-brief.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/engineering/architecture.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/features/index.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/releases/changelog.md")), true);
       assert.equal(existsSync(join(dir, ".benjamin-docs/config.json")), true);
       assert.equal(existsSync(join(dir, ".benjamin-docs/manifest.json")), true);
       assert.equal(existsSync(join(dir, ".benjamin-docs/scopes.json")), true);
       assert.equal(existsSync(join(dir, ".benjamin-docs/anchors.json")), true);
+      assert.match(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8"), /"docsRoot": "benjamin-docs"/);
+      assert.match(output, /Next, ask your agent:/);
     });
   });
 
   it("does not overwrite an existing project brief", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
-      const briefPath = join(dir, "docs/project/brief.md");
+      const briefPath = join(dir, "benjamin-docs/project/brief.md");
       const before = readFileSync(briefPath, "utf8");
 
       runCli(["init"], dir);
@@ -33,16 +38,40 @@ describe("init", () => {
     });
   });
 
-  it("rejects a symlinked docs directory during init", () => {
+  it("initializes codebase focus from flags", () => {
+    withTempDir((dir) => {
+      const output = runCli(["init", "--mode", "codebase"], dir);
+      const config = readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8");
+
+      assert.match(config, /"mode": "codebase"/);
+      assert.match(config, /"focus": "codebase"/);
+      assert.match(output, /Capture the current project baseline/);
+      assert.match(output, /benjamin-docs\/engineering\/architecture\.md/);
+    });
+  });
+
+  it("initializes feature focus from flags", () => {
+    withTempDir((dir) => {
+      const output = runCli(["init", "--mode", "feature", "--feature", "billing-reminders"], dir);
+      const config = readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8");
+
+      assert.match(config, /"focus": "feature"/);
+      assert.match(config, /"feature": "billing-reminders"/);
+      assert.equal(existsSync(join(dir, "benjamin-docs/features/billing-reminders/brief.md")), true);
+      assert.match(output, /Capture the billing-reminders feature/);
+    });
+  });
+
+  it("rejects a symlinked docs root during init", () => {
     withTempDir((dir) => {
       const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
-        symlinkSync(outsideDir, join(dir, "docs"), "dir");
+        symlinkSync(outsideDir, join(dir, "benjamin-docs"), "dir");
 
         const result = runCliResult(["init"], dir);
 
         assert.equal(result.status, 1);
-        assert.match(result.stderr, /Generated output path must not be a symlink: docs/);
+        assert.match(result.stderr, /Generated output path must not be a symlink: benjamin-docs/);
         assert.equal(existsSync(join(outsideDir, "project/brief.md")), false);
       } finally {
         rmSync(outsideDir, { recursive: true, force: true });

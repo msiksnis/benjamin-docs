@@ -21,30 +21,31 @@ describe("validate", () => {
   it("reports missing docs", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
-      rmSync(join(dir, "docs/project/brief.md"));
+      rmSync(join(dir, "benjamin-docs/project/brief.md"));
 
       const result = runCliResult(["validate"], dir);
 
       assert.equal(result.status, 1);
-      assert.match(result.stderr, /docs\/project\/brief\.md/);
+      assert.match(result.stderr, /benjamin-docs\/project\/brief\.md/);
     });
   });
 
   it("reports markdown docs without valid frontmatter", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
-      writeFileSync(join(dir, "docs/project/brief.md"), "# Project Brief\n\nMissing metadata.\n", "utf8");
+      writeFileSync(join(dir, "benjamin-docs/project/brief.md"), "# Project Brief\n\nMissing metadata.\n", "utf8");
 
       const result = runCliResult(["validate"], dir);
 
       assert.equal(result.status, 1);
-      assert.match(result.stderr, /docs\/project\/brief\.md: Markdown file is missing frontmatter/);
+      assert.match(result.stderr, /benjamin-docs\/project\/brief\.md: Markdown file is missing frontmatter/);
     });
   });
 
   it("ignores unmanaged legacy markdown docs without frontmatter", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
+      mkdirSync(join(dir, "docs"), { recursive: true });
       writeFileSync(join(dir, "docs/legacy-notes.md"), "# Legacy Notes\n\nAlready existed before benjamin-docs.\n", "utf8");
 
       const result = runCliResult(["validate"], dir);
@@ -58,29 +59,29 @@ describe("validate", () => {
   it("reports broken relative markdown links", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
-      const briefPath = join(dir, "docs/project/brief.md");
+      const briefPath = join(dir, "benjamin-docs/project/brief.md");
       const brief = readFileSync(briefPath, "utf8");
       writeFileSync(briefPath, `${brief}\nSee [missing notes](missing-notes.md).\n`, "utf8");
 
       const result = runCliResult(["validate"], dir);
 
       assert.equal(result.status, 1);
-      assert.match(result.stderr, /docs\/project\/brief\.md: broken link missing-notes\.md/);
+      assert.match(result.stderr, /benjamin-docs\/project\/brief\.md: broken link missing-notes\.md/);
     });
   });
 
   it("warns without failing when docs is empty", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
-      rmSync(join(dir, "docs"), { recursive: true, force: true });
-      mkdirSync(join(dir, "docs"));
+      rmSync(join(dir, "benjamin-docs"), { recursive: true, force: true });
+      mkdirSync(join(dir, "benjamin-docs"));
       writeFileSync(join(dir, ".benjamin-docs/manifest.json"), JSON.stringify({ version: 1, docs: [] }, null, 2), "utf8");
       writeFileSync(join(dir, ".benjamin-docs/scopes.json"), JSON.stringify({ version: 1, scopes: [] }, null, 2), "utf8");
 
       const result = runCliResult(["validate"], dir);
 
       assert.equal(result.status, 0);
-      assert.match(result.stderr, /Warning: No Markdown docs found under docs\//);
+      assert.match(result.stderr, /Warning: No Markdown docs found under benjamin-docs\//);
       assert.match(result.stdout, /Validation passed/);
     });
   });
@@ -100,7 +101,7 @@ describe("validate", () => {
               anchors: {
                 secret: {
                   file: "secret-link.ts",
-                  docs: ["docs/project/brief.md"],
+                  docs: ["benjamin-docs/project/brief.md"],
                 },
               },
             },
@@ -126,16 +127,16 @@ describe("validate", () => {
       try {
         runCli(["init"], dir);
         writeFileSync(join(outsideDir, "outside.md"), "# Outside\n", "utf8");
-        symlinkSync(join(outsideDir, "outside.md"), join(dir, "docs/project/outside-link.md"), "file");
+        symlinkSync(join(outsideDir, "outside.md"), join(dir, "benjamin-docs/project/outside-link.md"), "file");
 
-        const briefPath = join(dir, "docs/project/brief.md");
+        const briefPath = join(dir, "benjamin-docs/project/brief.md");
         const brief = readFileSync(briefPath, "utf8");
         writeFileSync(briefPath, `${brief}\nSee [outside](outside-link.md).\n`, "utf8");
 
         const result = runCliResult(["validate"], dir);
 
         assert.equal(result.status, 1);
-        assert.match(result.stderr, /docs\/project\/brief\.md: link must remain inside project root: outside-link\.md/);
+        assert.match(result.stderr, /benjamin-docs\/project\/brief\.md: link must remain inside project root: outside-link\.md/);
       } finally {
         rmSync(outsideDir, { recursive: true, force: true });
       }
@@ -145,13 +146,13 @@ describe("validate", () => {
   it("reports broken markdown symlinks under docs without crashing", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
-      symlinkSync(join(dir, "docs/project/missing-target.md"), join(dir, "docs/project/broken-link.md"), "file");
+      symlinkSync(join(dir, "benjamin-docs/project/missing-target.md"), join(dir, "benjamin-docs/project/broken-link.md"), "file");
 
       const result = runCliResult(["validate"], dir);
 
       assert.equal(result.status, 1);
       assert.doesNotMatch(result.stderr, /Unhandled|ENOENT: no such file or directory, open/);
-      assert.match(result.stderr, /docs\/project\/broken-link\.md: symlink target is missing/);
+      assert.match(result.stderr, /benjamin-docs\/project\/broken-link\.md: symlink target is missing/);
     });
   });
 
@@ -212,23 +213,23 @@ describe("validate", () => {
     });
   });
 
-  it("reports docs directory symlinked outside the project root", () => {
+  it("reports docs root symlinked outside the project root", () => {
     withTempDir((dir) => {
       const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-docs-"));
       try {
         runCli(["init"], dir);
-        const brief = readFileSync(join(dir, "docs/project/brief.md"), "utf8");
-        rmSync(join(dir, "docs"), { recursive: true, force: true });
+        const brief = readFileSync(join(dir, "benjamin-docs/project/brief.md"), "utf8");
+        rmSync(join(dir, "benjamin-docs"), { recursive: true, force: true });
         mkdirSync(join(outsideDir, "project"), { recursive: true });
         writeFileSync(join(outsideDir, "project/brief.md"), brief, "utf8");
-        symlinkSync(outsideDir, join(dir, "docs"), "dir");
+        symlinkSync(outsideDir, join(dir, "benjamin-docs"), "dir");
         writeFileSync(join(dir, ".benjamin-docs/manifest.json"), JSON.stringify({ version: 1, docs: [] }, null, 2), "utf8");
         writeFileSync(join(dir, ".benjamin-docs/scopes.json"), JSON.stringify({ version: 1, scopes: [] }, null, 2), "utf8");
 
         const result = runCliResult(["validate"], dir);
 
         assert.equal(result.status, 1);
-        assert.match(result.stderr, /docs\/ must remain inside project root/);
+        assert.match(result.stderr, /benjamin-docs\/ must remain inside project root/);
       } finally {
         rmSync(outsideDir, { recursive: true, force: true });
       }
@@ -365,8 +366,21 @@ describe("status and export", () => {
 
       assert.match(output, /benjamin-docs status/);
       assert.match(output, /mode: planning/);
-      assert.match(output, /docs: 5/);
-      assert.match(output, /scopes: 3/);
+      assert.match(output, /focus: project/);
+      assert.match(output, /docsRoot: benjamin-docs/);
+      assert.match(output, /docs: 9/);
+      assert.match(output, /scopes: 4/);
+    });
+  });
+
+  it("prints the next recommended agent prompt", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "feature", "--feature", "billing-reminders"], dir);
+      const output = runCli(["next"], dir);
+
+      assert.match(output, /Next, ask your agent:/);
+      assert.match(output, /Capture the billing-reminders feature/);
+      assert.match(output, /benjamin-docs\/features\/billing-reminders/);
     });
   });
 
@@ -415,7 +429,7 @@ describe("status and export", () => {
       runCli(["init"], dir);
       runCli(["export", "--audience", "agent"], dir);
 
-      const briefPath = join(dir, "docs/project/brief.md");
+      const briefPath = join(dir, "benjamin-docs/project/brief.md");
       const brief = readFileSync(briefPath, "utf8");
       writeFileSync(
         briefPath,
@@ -446,7 +460,7 @@ describe("status and export", () => {
   it("does not export docs when validation has errors", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
-      writeFileSync(join(dir, "docs/project/brief.md"), "# Project Brief\n\nMissing metadata.\n", "utf8");
+      writeFileSync(join(dir, "benjamin-docs/project/brief.md"), "# Project Brief\n\nMissing metadata.\n", "utf8");
 
       const result = runCliResult(["export", "--audience", "agent"], dir);
 
@@ -463,9 +477,9 @@ describe("status and export", () => {
       const config = readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8");
 
       assert.match(config, /"mode": "codebase"/);
-      assert.equal(existsSync(join(dir, "docs/engineering/architecture.md")), true);
-      assert.equal(existsSync(join(dir, "docs/engineering/code-map.md")), true);
-      assert.equal(existsSync(join(dir, "docs/releases/changelog.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/engineering/architecture.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/engineering/code-map.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/releases/changelog.md")), true);
     });
   });
 
@@ -474,7 +488,8 @@ describe("status and export", () => {
       const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-promote-"));
       try {
         runCli(["init"], dir);
-        symlinkSync(outsideDir, join(dir, "docs/engineering"), "dir");
+        rmSync(join(dir, "benjamin-docs/engineering"), { recursive: true, force: true });
+        symlinkSync(outsideDir, join(dir, "benjamin-docs/engineering"), "dir");
 
         const result = runCliResult(["promote", "--to", "codebase"], dir);
 
@@ -490,8 +505,8 @@ describe("status and export", () => {
   it("does not overwrite existing codebase docs during promote", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
-      mkdirSync(join(dir, "docs/engineering"), { recursive: true });
-      const architecturePath = join(dir, "docs/engineering/architecture.md");
+      mkdirSync(join(dir, "benjamin-docs/engineering"), { recursive: true });
+      const architecturePath = join(dir, "benjamin-docs/engineering/architecture.md");
       const existing = [
         "---",
         "title: Existing Architecture",

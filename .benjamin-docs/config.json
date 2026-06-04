@@ -1,4 +1,6 @@
 {
   "version": 1,
-  "mode": "planning"
+  "mode": "planning",
+  "docsRoot": "benjamin-docs",
+  "focus": "project"
 }

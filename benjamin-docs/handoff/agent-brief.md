@@ -13,7 +13,7 @@ source: session-capture
 
 ## Current State
 
-`benjamin-docs` is an early MVP for repo-local project memory. It turns planning/build conversations into structured Markdown docs in `docs/` plus deterministic metadata in `.benjamin-docs/`.
+`benjamin-docs` is an early MVP for repo-local project memory. It turns planning/build conversations into structured Markdown docs in `benjamin-docs/` plus deterministic metadata in `.benjamin-docs/`.
 
 The source repo is:
 
@@ -31,7 +31,7 @@ The project has been renamed fully from the earlier working name `agent-docs`; d
 - Commands: `init`, `status`, `validate`, `scope create feature <slug>`, `anchor add <id> <file>`, `export --audience <audience>`, `promote --to codebase`, `introduce`, `help`, `--version`, `-v`.
 - Planning-mode docs created by `init`.
 - Codebase-mode docs created by `promote --to codebase`.
-- Feature-scope templates under `docs/features/<slug>/`.
+- Feature-scope templates under `benjamin-docs/features/<slug>/`.
 - JSON metadata in `.benjamin-docs/`.
 - Validation for frontmatter, metadata, anchors, links, symlink safety, and project-root containment.
 - Export bundles for audience-specific handoff.
@@ -86,6 +86,7 @@ Testing in `/Users/marty/Important/pet-software/pup-base` exposed an important V
 - Existing repos may already have Markdown files under `docs/`.
 - `benjamin-docs validate` should validate Benjamin-managed docs listed in `.benjamin-docs/manifest.json`.
 - Legacy unmanaged Markdown docs should not fail validation just because they lack Benjamin frontmatter.
+- Public V1 now uses `benjamin-docs/` as the default docs root so existing project `docs/` directories stay separate.
 
 This was fixed in commit:
 
@@ -106,10 +107,10 @@ When continuing this project:
    pnpm check
    ```
 3. Read these docs first:
-   - `docs/project/brief.md`
-   - `docs/project/roadmap.md`
-   - `docs/project/open-questions.md`
-   - `docs/handoff/agent-brief.md`
+   - `benjamin-docs/project/brief.md`
+   - `benjamin-docs/project/roadmap.md`
+   - `benjamin-docs/project/open-questions.md`
+   - `benjamin-docs/handoff/agent-brief.md`
    - `docs/superpowers/specs/2026-06-03-benjamin-docs-design.md`
    - `docs/superpowers/plans/2026-06-03-benjamin-docs-mvp.md`
 4. Keep changes small and practical. This project should remain useful before it becomes clever.

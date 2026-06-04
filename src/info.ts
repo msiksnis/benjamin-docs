@@ -19,6 +19,9 @@ export function getHelpText(): string {
     "  benjamin-docs --version",
     "  benjamin-docs introduce",
     "  benjamin-docs init",
+    "  benjamin-docs init --mode codebase",
+    "  benjamin-docs init --mode feature --feature booking-capacity",
+    "  benjamin-docs next",
     "  benjamin-docs status",
     "  benjamin-docs validate",
     "  benjamin-docs scope create feature booking-capacity",
@@ -32,6 +35,7 @@ export function getHelpText(): string {
     "Start here:",
     "  benjamin-docs introduce",
     "  benjamin-docs init",
+    "  benjamin-docs next",
   ].join("\n");
 }
 

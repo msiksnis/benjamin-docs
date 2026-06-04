@@ -13,7 +13,7 @@ source: session-capture
 
 ## Done In MVP
 
-- Initialize repo-local `docs/` and `.benjamin-docs/`.
+- Initialize repo-local `benjamin-docs/` and `.benjamin-docs/`.
 - Support planning-only projects with `init`.
 - Support existing-codebase projects with `promote --to codebase`.
 - Support feature scopes with `scope create feature <slug>`.
@@ -23,7 +23,8 @@ source: session-capture
 - Provide human-readable help, version output, and a plain-language `introduce` command.
 - Provide a `benjamin-docs` skill for Codex/Claude-style session capture.
 - Prepare the public GitHub repo with README, license, contribution/security docs, CI, issue templates, CODEOWNERS, and branch protection.
-- Fix existing-repo validation so legacy unmanaged Markdown under `docs/` does not block validation.
+- Move the default managed docs root to `benjamin-docs/` so legacy project docs under `docs/` stay separate.
+- Fix existing-repo validation so legacy unmanaged Markdown does not block validation.
 
 ## Current Local Setup
 
@@ -40,7 +41,7 @@ source: session-capture
   - global/local CLI while unpublished
   - per-project package install/link
 - Add a short "capture baseline" guide for a fresh idea, an existing codebase, and a single feature.
-- Improve the skill instructions so agents know how to choose between global `benjamin-docs`, `pnpm exec benjamin-docs`, and direct source CLI usage.
+- Keep improving skill instructions so agents know how to choose between global `benjamin-docs`, `pnpm exec benjamin-docs`, and direct source CLI usage.
 - Decide whether `validate` should report skipped unmanaged docs as an optional warning or stay quiet.
 - Add tests/docs for the current global-shim workaround or replace it with a cleaner local install path.
 - Capture a full baseline for `pup-base` as the first real dogfood project.
@@ -57,6 +58,9 @@ source: session-capture
 
 - Add command examples for common flows:
   - `benjamin-docs init`
+  - `benjamin-docs init --mode codebase`
+  - `benjamin-docs init --mode feature --feature <slug>`
+  - `benjamin-docs next`
   - `benjamin-docs promote --to codebase`
   - `benjamin-docs scope create feature <slug>`
   - `benjamin-docs anchor add <id> <file>`

@@ -5,28 +5,35 @@
       "id": "project",
       "kind": "project",
       "title": "Project",
-      "path": "docs/project",
+      "path": "benjamin-docs/project",
       "status": "draft"
     },
     {
       "id": "human-brief",
       "kind": "handoff",
       "title": "Human Brief",
-      "path": "docs/handoff/human-brief.md",
+      "path": "benjamin-docs/handoff/human-brief.md",
       "status": "draft"
     },
     {
       "id": "agent-brief",
       "kind": "handoff",
       "title": "Agent Brief",
-      "path": "docs/handoff/agent-brief.md",
+      "path": "benjamin-docs/handoff/agent-brief.md",
       "status": "draft"
     },
     {
       "id": "session-capture",
       "kind": "feature",
       "title": "Session Capture",
-      "path": "docs/features/session-capture",
+      "path": "benjamin-docs/features/session-capture",
+      "status": "draft"
+    },
+    {
+      "id": "release",
+      "kind": "release",
+      "title": "Release",
+      "path": "benjamin-docs/releases/changelog.md",
       "status": "draft"
     }
   ]

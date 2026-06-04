@@ -12,13 +12,16 @@ describe("scopes and anchors", () => {
       const output = runCli(["scope", "create", "feature", "booking-capacity"], dir);
 
       assert.match(output, /Created feature scope booking-capacity/);
-      assert.equal(existsSync(join(dir, "docs/features/booking-capacity/brief.md")), true);
-      assert.equal(existsSync(join(dir, "docs/features/booking-capacity/plan.md")), true);
-      assert.equal(existsSync(join(dir, "docs/features/booking-capacity/decisions.md")), true);
-      assert.equal(existsSync(join(dir, "docs/features/booking-capacity/handoff.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/features/booking-capacity/brief.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/features/booking-capacity/plan.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/features/booking-capacity/decisions.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/features/booking-capacity/handoff.md")), true);
 
       const scopes = JSON.parse(readFileSync(join(dir, ".benjamin-docs/scopes.json"), "utf8")) as {
         scopes: Array<{ id: string; kind: string; path: string }>;
+      };
+      const manifest = JSON.parse(readFileSync(join(dir, ".benjamin-docs/manifest.json"), "utf8")) as {
+        docs: string[];
       };
       assert.deepEqual(
         scopes.scopes.find((scope) => scope.id === "booking-capacity"),
@@ -26,10 +29,11 @@ describe("scopes and anchors", () => {
           id: "booking-capacity",
           kind: "feature",
           title: "Booking Capacity",
-          path: "docs/features/booking-capacity",
+          path: "benjamin-docs/features/booking-capacity",
           status: "draft",
         },
       );
+      assert.equal(manifest.docs.includes("benjamin-docs/features/booking-capacity/brief.md"), true);
     });
   });
 
@@ -74,13 +78,13 @@ describe("scopes and anchors", () => {
       const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
       try {
         runCli(["init"], dir);
-        symlinkSync(outsideDir, join(dir, "docs/features"), "dir");
+        symlinkSync(outsideDir, join(dir, "benjamin-docs/features/booking-capacity"), "dir");
 
         const result = runCliResult(["scope", "create", "feature", "booking-capacity"], dir);
 
         assert.equal(result.status, 1);
-        assert.match(result.stderr, /Generated output path must not be a symlink: docs\/features/);
-        assert.equal(existsSync(join(outsideDir, "booking-capacity/brief.md")), false);
+        assert.match(result.stderr, /Generated output path must not be a symlink: benjamin-docs\/features\/booking-capacity/);
+        assert.equal(existsSync(join(outsideDir, "brief.md")), false);
       } finally {
         rmSync(outsideDir, { recursive: true, force: true });
       }
