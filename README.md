@@ -21,6 +21,30 @@ Long agent sessions create valuable project context: product decisions, rejected
 - local validation before docs are shared or exported
 - agent skill guidance so future sessions can update docs without drifting
 
+## Try It From Any Chat
+
+If a conversation already contains a useful project idea, ask your agent:
+
+```text
+Use benjamin-docs to create a project from this chat.
+```
+
+The agent should suggest a local folder like:
+
+```text
+~/Documents/Benjamin Docs/Atelier Edits
+```
+
+After you confirm, it creates:
+
+```text
+README.md
+benjamin-docs/
+.benjamin-docs/
+```
+
+The top-level `README.md` explains the project in plain language. The `benjamin-docs/` folder captures the project brief, roadmap, open questions, and handoff notes. Nothing is uploaded by the CLI.
+
 ## For Non-Programmers
 
 You can use `benjamin-docs` even if you are planning an app, product, service, or creative project before any code exists.
