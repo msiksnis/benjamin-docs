@@ -19,6 +19,9 @@ describe("info commands", () => {
       const output = runCli(["help"], dir);
 
       assert.match(output, /benjamin-docs --version/);
+      assert.match(output, /What it does/);
+      assert.match(output, /plain language/);
+      assert.match(output, /create a project folder from this chat/);
       assert.match(output, /benjamin-docs init/);
       assert.match(output, /benjamin-docs validate/);
       assert.match(output, /benjamin-docs export --audience developer/);
@@ -40,6 +43,10 @@ describe("info commands", () => {
       assert.match(output, /project memory/i);
       assert.match(output, /humans/i);
       assert.match(output, /AI agents/i);
+      assert.match(output, /local notebook/i);
+      assert.match(output, /not uploaded/i);
+      assert.match(output, /only have a chat/i);
+      assert.match(output, /already have a project folder/i);
       assert.match(output, /source of truth/i);
     });
   });

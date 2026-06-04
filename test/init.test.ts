@@ -22,6 +22,7 @@ describe("init", () => {
       assert.equal(existsSync(join(dir, ".benjamin-docs/anchors.json")), true);
       assert.match(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8"), /"docsRoot": "benjamin-docs"/);
       assert.match(output, /Next, ask your agent:/);
+      assert.match(output, /Use plain language/);
     });
   });
 
@@ -47,6 +48,7 @@ describe("init", () => {
       assert.match(config, /"focus": "codebase"/);
       assert.match(output, /Capture the current project baseline/);
       assert.match(output, /benjamin-docs\/engineering\/architecture\.md/);
+      assert.match(output, /understandable for non-technical readers/);
     });
   });
 
@@ -59,6 +61,7 @@ describe("init", () => {
       assert.match(config, /"feature": "billing-reminders"/);
       assert.equal(existsSync(join(dir, "benjamin-docs/features/billing-reminders/brief.md")), true);
       assert.match(output, /Capture the billing-reminders feature/);
+      assert.match(output, /understandable for non-technical readers/);
     });
   });
 

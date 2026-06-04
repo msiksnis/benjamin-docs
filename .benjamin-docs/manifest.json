@@ -3,6 +3,9 @@
   "docs": [
     "benjamin-docs/project/brief.md",
     "benjamin-docs/project/roadmap.md",
+    "benjamin-docs/project/baseline-capture.md",
+    "benjamin-docs/project/non-code-stranger-test.md",
+    "benjamin-docs/project/chat-to-project.md",
     "benjamin-docs/project/open-questions.md",
     "benjamin-docs/handoff/human-brief.md",
     "benjamin-docs/handoff/agent-brief.md",

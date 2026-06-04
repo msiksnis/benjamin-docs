@@ -25,6 +25,10 @@ source: session-capture
 - Prepare the public GitHub repo with README, license, contribution/security docs, CI, issue templates, CODEOWNERS, and branch protection.
 - Move the default managed docs root to `benjamin-docs/` so legacy project docs under `docs/` stay separate.
 - Fix existing-repo validation so legacy unmanaged Markdown does not block validation.
+- Add a concise baseline capture guide for new ideas, existing codebases, and single feature scopes.
+- Clarify unpublished setup paths for agent-skill-only use, per-project local package installs, direct source CLI use, and temporary global CLI use.
+- Improve the non-code stranger path with a plain-language README section, gentler CLI introduction/help copy, and generated prompts that ask for non-technical readability.
+- Restore chat-to-project as a core V1 workflow: a user can ask an agent to create a new local project from the current chat, including a top-level README and initialized Benjamin docs.
 
 ## Current Local Setup
 
@@ -36,15 +40,12 @@ source: session-capture
 
 ## Immediate Next Work
 
-- Add clear install documentation for three modes:
-  - global skill only
-  - global/local CLI while unpublished
-  - per-project package install/link
-- Add a short "capture baseline" guide for a fresh idea, an existing codebase, and a single feature.
 - Keep improving skill instructions so agents know how to choose between global `benjamin-docs`, `pnpm exec benjamin-docs`, and direct source CLI usage.
 - Decide whether `validate` should report skipped unmanaged docs as an optional warning or stay quiet.
 - Add tests/docs for the current global-shim workaround or replace it with a cleaner local install path.
 - Capture a full baseline for `pup-base` as the first real dogfood project.
+- Test whether a non-code person can succeed with only the README and an agent.
+- Dogfood chat-to-project with a fresh conversation and no existing project folder.
 
 ## V1 Quality Bar
 

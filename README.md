@@ -21,6 +21,62 @@ Long agent sessions create valuable project context: product decisions, rejected
 - local validation before docs are shared or exported
 - agent skill guidance so future sessions can update docs without drifting
 
+## For Non-Programmers
+
+You can use `benjamin-docs` even if you are planning an app, product, service, or creative project before any code exists.
+
+Think of it as a project notebook that your AI agent keeps inside your project folder. The agent does the writing; the CLI creates the folders, checks that the notes are valid, and gives the next prompt to use.
+
+You need:
+
+- a place on your computer where the agent can create a project folder
+- an AI coding agent that can run terminal commands and edit files
+- a local checkout or installed copy of this repo while the package is unpublished
+
+If all you have is the current chat, start by asking your agent:
+
+```text
+Use benjamin-docs to create a project from this chat.
+Ask me where to create the folder, initialize it as a planning-only project,
+write a simple top-level README.md, then capture the current context
+in plain language.
+```
+
+After that, ask:
+
+```text
+Show me the benjamin-docs project brief, roadmap, open questions,
+and handoff. Explain what each file is for.
+```
+
+Nothing is uploaded or published by the CLI. The docs stay in your project folder unless you choose to share them.
+
+## Create A Project From A Chat
+
+This is the simplest first use case: you do not have a repo, codebase, or project folder yet. You only have a useful conversation.
+
+Ask your agent:
+
+```text
+Use benjamin-docs to create a project from this chat.
+Ask me for the project name and where to put it.
+Create the folder, initialize benjamin-docs there, add a simple README.md,
+and turn this conversation into a project brief, roadmap, open questions,
+and handoff.
+```
+
+The agent should:
+
+- ask for a project name and location if they are not clear
+- create the project folder
+- run `benjamin-docs init --mode planning` inside that folder
+- write a top-level `README.md` that explains what the project is and where to start
+- update the Benjamin docs under `benjamin-docs/` from the chat context
+- run `benjamin-docs validate`
+- show you what was created and what is still uncertain
+
+The CLI creates and validates the docs workspace. The agent turns the chat into useful project memory.
+
 ## Package Name
 
 The package and CLI are named `benjamin-docs`.
@@ -69,7 +125,9 @@ node dist/src/cli.js validate
 
 ## Use In Another Local Project
 
-Until the package is published, install it from a local checkout:
+Until the package is published, choose the smallest CLI setup that fits the job.
+
+If you want the CLI as a per-project dev dependency, install it from a local checkout:
 
 ```bash
 cd /path/to/your-project
@@ -91,6 +149,18 @@ cd /path/to/your-project
 node /path/to/benjamin-docs/dist/src/cli.js init
 ```
 
+If you want a temporary global CLI while working from source:
+
+```bash
+cd /path/to/benjamin-docs
+pnpm install
+pnpm build
+pnpm add -g .
+benjamin-docs introduce
+```
+
+Re-run `pnpm build` after source changes. Remove the global setup once the package has a normal published install path.
+
 ## Install The Agent Skill Locally
 
 The skill teaches an agent how to capture planning/build conversations into the docs created by the CLI.
@@ -108,6 +178,16 @@ Then ask your agent:
 Capture this conversation with benjamin-docs.
 ```
 
+For a first planning session, a clearer prompt is:
+
+```text
+Use the benjamin-docs skill.
+If there is no project folder yet, ask me where to create one.
+Initialize it as a planning-only project, add a simple README.md,
+and capture what we know, what we decided, what is still unclear,
+and what I should do next. Keep it understandable for a non-technical reader.
+```
+
 ## Local Development
 
 ```bash
@@ -116,7 +196,7 @@ pnpm build
 node dist/src/cli.js introduce
 ```
 
-After this repo's package is installed or linked locally into a project, use `pnpm exec benjamin-docs ...` to run that local package.
+After this repo's package is installed locally into a project, use `pnpm exec benjamin-docs ...` to run that local package.
 
 ## Checks
 
@@ -183,6 +263,11 @@ The agent should update the relevant docs, run validation, and report what chang
 Good capture prompts:
 
 ```text
+Use benjamin-docs to create a project from this chat.
+Ask me where to create the folder, then initialize it and capture the project.
+```
+
+```text
 Capture this planning conversation with benjamin-docs.
 ```
 
@@ -195,6 +280,53 @@ under benjamin-docs/. Mark uncertain items.
 ```text
 Create a benjamin-docs feature scope for billing-reminders
 and capture the plan, decisions, risks, and handoff.
+```
+
+## Capture A Baseline
+
+A baseline capture turns the current state of a project into durable docs. It is the first useful pass after `init`, and it should capture decisions, rejected options, risks, open questions, and next actions instead of saving a raw transcript.
+
+For a new idea or planning-only project:
+
+```bash
+benjamin-docs init --mode planning
+```
+
+```text
+Capture the baseline for this new idea with benjamin-docs.
+Update the project brief, roadmap, open questions, and handoff docs.
+Mark assumptions clearly and challenge any overbuilt V1 scope.
+```
+
+For an existing codebase:
+
+```bash
+benjamin-docs init --mode codebase
+```
+
+```text
+Capture the current codebase baseline with benjamin-docs.
+Read the README, package/config files, existing docs, and major source areas.
+Update the project, engineering, and handoff docs under benjamin-docs/.
+Include important code references, risks, and uncertain findings.
+```
+
+For one feature:
+
+```bash
+benjamin-docs init --mode feature --feature billing-reminders
+```
+
+```text
+Capture the billing-reminders feature with benjamin-docs.
+Update the feature brief, plan, decisions, and handoff.
+Include user goals, constraints, rejected options, test ideas, and next actions.
+```
+
+After any baseline capture:
+
+```bash
+benjamin-docs validate
 ```
 
 ## Design Boundaries

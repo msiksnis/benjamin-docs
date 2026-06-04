@@ -31,7 +31,8 @@ function planningPrompt(docsRoot: string): string {
     "Capture the current project plan with benjamin-docs.",
     `Update ${docsRoot}/project/brief.md, ${docsRoot}/project/roadmap.md,`,
     `${docsRoot}/project/open-questions.md, and ${docsRoot}/handoff/agent-brief.md.`,
-    "Summarize decisions, rejected options, risks, and next steps. Mark uncertain items clearly.",
+    "Use plain language. Summarize decisions, rejected options, risks, and next steps.",
+    "Mark uncertain items clearly.",
   ].join("\n");
 }
 
@@ -42,6 +43,7 @@ function codebasePrompt(docsRoot: string): string {
     `${docsRoot}/project/brief.md, ${docsRoot}/project/roadmap.md,`,
     `${docsRoot}/project/open-questions.md, ${docsRoot}/engineering/architecture.md,`,
     `${docsRoot}/engineering/code-map.md, and ${docsRoot}/handoff/agent-brief.md.`,
+    "Keep project docs understandable for non-technical readers.",
     "Mark uncertain items, call out risks, and add useful code anchors where relevant.",
   ].join("\n");
 }
@@ -58,6 +60,7 @@ function featurePrompt(docsRoot: string, feature: string, codebaseMode: boolean)
     `${docsRoot}/handoff/agent-brief.md, and the feature docs under`,
     `${docsRoot}/features/${feature}/.`,
     "Include decisions, rejected options, risks, implementation notes, and next steps.",
+    "Keep the brief and handoff understandable for non-technical readers.",
     "Mark uncertain items clearly.",
   ].join("\n");
 }

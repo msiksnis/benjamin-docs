@@ -5,11 +5,37 @@ description: Capture planning and build conversations into repo-local project me
 
 # benjamin-docs
 
-Use this skill when the user asks to capture, document, summarize, hand off, export, or preserve a planning or development conversation with `benjamin-docs`.
+Use this skill when the user asks to capture, document, summarize, hand off, export, preserve a planning or development conversation, or create a project from a chat with `benjamin-docs`.
 
 ## Purpose
 
-`benjamin-docs` turns long-running project conversations into durable Markdown docs inside the project repo. It is useful before code exists, inside existing codebases, and for individual feature scopes.
+`benjamin-docs` turns long-running project conversations into durable Markdown docs inside a project folder. It is useful when the user only has a chat, before code exists, inside existing codebases, and for individual feature scopes.
+
+## Chat-To-Project Workflow
+
+Use this workflow when the user asks to create a project from the current chat, turn this chat into a project, start a new project with `benjamin-docs`, or similar.
+
+1. Confirm the target project name and local parent folder if either is unclear. Ask a concise question before creating files.
+2. Create the project folder.
+3. Run the local CLI command inside that folder with `init --mode planning`.
+4. Read `.benjamin-docs/config.json` and use its `docsRoot` value, usually `benjamin-docs`.
+5. Create a simple top-level `README.md` for the new project unless one already exists. Keep it plain-language and include:
+   - project name
+   - one-paragraph summary
+   - where to start in `benjamin-docs/`
+   - current status
+   - next actions
+6. Populate the starter Benjamin docs from the current chat context:
+   - `project/brief.md`
+   - `project/roadmap.md`
+   - `project/open-questions.md`
+   - `handoff/human-brief.md`
+   - `handoff/agent-brief.md`
+7. Do not invent certainty. Mark assumptions and unresolved questions clearly.
+8. Run the local CLI command with `validate`.
+9. Report the created project path, changed files, key decisions captured, and unresolved questions.
+
+Do not overwrite an existing top-level `README.md` unless the user explicitly asks. If the target folder already contains a project, switch to the normal capture workflow instead of treating it as a brand-new chat-created project.
 
 ## Workflow
 
