@@ -13,9 +13,8 @@ source: session-capture
 
 ## Public Readiness
 
-- When should the package stop being `private` and become publishable to npm?
-- Should the first public npm version be `0.1.0`, or should the repo stay source-only until the install story is cleaner?
-- Should the README document a global CLI workaround while unpublished, or avoid it because it is local-environment-specific?
+- First public package should be `benjamin-docs@0.1.0`.
+- Public install docs should lead with pnpm and not show npm install commands.
 - Should `validate` report unmanaged legacy Markdown files as skipped, or stay quiet unless there is a path/symlink safety issue?
 
 ## Skill Distribution

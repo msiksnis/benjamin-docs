@@ -1,7 +1,6 @@
 {
   "name": "benjamin-docs",
   "version": "0.1.0",
-  "private": true,
   "description": "Repo-local project memory for humans and AI agents.",
   "keywords": [
     "ai",
@@ -33,7 +32,9 @@
     "build": "tsc -p tsconfig.json",
     "test": "node --test dist/test/**/*.test.js",
     "typecheck": "tsc --noEmit",
-    "check": "pnpm typecheck && pnpm build && pnpm test"
+    "check": "pnpm typecheck && pnpm build && pnpm test",
+    "release:check": "pnpm check && node dist/src/cli.js validate && npm pack --dry-run",
+    "prepublishOnly": "pnpm run release:check"
   },
   "engines": {
     "node": ">=22"

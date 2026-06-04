@@ -6,7 +6,7 @@ Repo-local project memory for humans and AI agents.
 
 ## Status
 
-Early MVP. The CLI is usable locally, but the package is intentionally not published to npm yet.
+Early MVP. The CLI is prepared for its first public `0.1.0` package release as `benjamin-docs`.
 
 The current goal is to make the open-source repo useful, understandable, and safe to try before adding hosted publishing or SaaS features.
 
@@ -55,7 +55,7 @@ You need:
 
 - a place on your computer where the agent can create a project folder, such as `~/Documents/Benjamin Docs/Project Name`
 - an AI coding agent that can run terminal commands and edit files
-- a local checkout or installed copy of this repo while the package is unpublished
+- the `benjamin-docs` CLI installed with pnpm, or a local source checkout while developing
 
 If all you have is the current chat, start by asking your agent:
 
@@ -104,34 +104,27 @@ The agent should:
 
 The CLI creates and validates the docs workspace. The agent turns the chat into useful project memory.
 
-## Package Name
+## Install The CLI
 
-The package and CLI are named `benjamin-docs`.
-
-This repo's package is marked `private` in `package.json` during the MVP so it cannot be published accidentally. Use it for local build, link, and package dry-run testing until publishing is intentional.
-
-## Quick Start From Source
+Install globally with pnpm:
 
 ```bash
-git clone https://github.com/msiksnis/benjamin-docs.git
-cd benjamin-docs
-pnpm install
-pnpm build
-node dist/src/cli.js introduce
+pnpm add -g benjamin-docs
+benjamin-docs introduce
 ```
 
-Initialize docs in the current repo:
+Initialize docs in the current project folder:
 
 ```bash
-node dist/src/cli.js init
-node dist/src/cli.js status
-node dist/src/cli.js validate
+benjamin-docs init
+benjamin-docs status
+benjamin-docs validate
 ```
 
 `init` prints the recommended agent prompt. Run `next` later if you want to see that prompt again.
 
 ```bash
-node dist/src/cli.js next
+benjamin-docs next
 ```
 
 In an interactive terminal, `init` asks what you are setting up. In scripts or agent workflows, pass a mode explicitly.
@@ -139,54 +132,25 @@ In an interactive terminal, `init` asks what you are setting up. In scripts or a
 For an existing codebase:
 
 ```bash
-node dist/src/cli.js init --mode codebase
-node dist/src/cli.js validate
+benjamin-docs init --mode codebase
+benjamin-docs validate
 ```
 
 For a single feature:
 
 ```bash
-node dist/src/cli.js init --mode feature --feature billing-reminders
-node dist/src/cli.js validate
+benjamin-docs init --mode feature --feature billing-reminders
+benjamin-docs validate
 ```
 
-## Use In Another Local Project
-
-Until the package is published, choose the smallest CLI setup that fits the job.
-
-If you want the CLI as a per-project dev dependency, install it from a local checkout:
+If you prefer a project-local dev dependency:
 
 ```bash
 cd /path/to/your-project
-pnpm add -D file:/path/to/benjamin-docs
+pnpm add -D benjamin-docs
 pnpm exec benjamin-docs init
 pnpm exec benjamin-docs validate
 ```
-
-Inside a pnpm workspace, use `-w` when installing at the workspace root:
-
-```bash
-pnpm add -Dw file:/path/to/benjamin-docs
-```
-
-If you only want to run the source CLI without installing it into the target project:
-
-```bash
-cd /path/to/your-project
-node /path/to/benjamin-docs/dist/src/cli.js init
-```
-
-If you want a temporary global CLI while working from source:
-
-```bash
-cd /path/to/benjamin-docs
-pnpm install
-pnpm build
-pnpm add -g .
-benjamin-docs introduce
-```
-
-Re-run `pnpm build` after source changes. Remove the global setup once the package has a normal published install path.
 
 ## Install The Agent Skill Locally
 
@@ -219,12 +183,19 @@ and what I should do next. Keep it understandable for a non-technical reader.
 ## Local Development
 
 ```bash
+git clone https://github.com/msiksnis/benjamin-docs.git
+cd benjamin-docs
 pnpm install
 pnpm build
 node dist/src/cli.js introduce
 ```
 
-After this repo's package is installed locally into a project, use `pnpm exec benjamin-docs ...` to run that local package.
+To test the source CLI inside another local project without installing the package:
+
+```bash
+cd /path/to/your-project
+node /path/to/benjamin-docs/dist/src/cli.js init
+```
 
 ## Checks
 
@@ -234,25 +205,32 @@ node dist/src/cli.js validate
 npm pack --dry-run
 ```
 
+Before publishing:
+
+```bash
+pnpm run release:check
+pnpm publish
+```
+
 ## Common Commands
 
 ```bash
-node dist/src/cli.js introduce
-node dist/src/cli.js help
-node dist/src/cli.js --version
-node dist/src/cli.js init
-node dist/src/cli.js init --mode codebase
-node dist/src/cli.js init --mode feature --feature booking-capacity
-node dist/src/cli.js next
-node dist/src/cli.js status
-node dist/src/cli.js validate
-node dist/src/cli.js scope create feature booking-capacity
-node dist/src/cli.js anchor add booking-capacity-rules src/features/booking/capacity.ts
-node dist/src/cli.js export --audience developer
-node dist/src/cli.js promote --to codebase
+benjamin-docs introduce
+benjamin-docs help
+benjamin-docs --version
+benjamin-docs init
+benjamin-docs init --mode codebase
+benjamin-docs init --mode feature --feature booking-capacity
+benjamin-docs next
+benjamin-docs status
+benjamin-docs validate
+benjamin-docs scope create feature booking-capacity
+benjamin-docs anchor add booking-capacity-rules src/features/booking/capacity.ts
+benjamin-docs export --audience developer
+benjamin-docs promote --to codebase
 ```
 
-The same commands are available as `benjamin-docs ...` when the package is installed or otherwise exposed on `PATH`.
+In a source checkout, use `node dist/src/cli.js ...` after `pnpm build`.
 
 ## What It Creates
 

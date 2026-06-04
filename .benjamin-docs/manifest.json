@@ -16,6 +16,7 @@
     "benjamin-docs/features/session-capture/plan.md",
     "benjamin-docs/features/session-capture/decisions.md",
     "benjamin-docs/features/session-capture/handoff.md",
-    "benjamin-docs/releases/changelog.md"
+    "benjamin-docs/releases/changelog.md",
+    "benjamin-docs/releases/npm-publish-checklist.md"
   ]
 }

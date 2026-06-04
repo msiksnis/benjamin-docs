@@ -21,7 +21,7 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: private during MVP, not published to npm yet
+- Package status: prepared for first public `0.1.0` package release
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -45,12 +45,13 @@ The project has been renamed fully from the earlier working name `agent-docs`; d
 - The tool must work before code exists, after code exists, and for a single feature scope.
 - Agents should not only agree with user plans. The skill should preserve intent while naming weak assumptions, unclear decisions, overbuilt V1 scope, and better alternatives.
 - Public README baseline capture guidance now covers a new idea, an existing codebase, and one feature scope.
-- Public README setup guidance now distinguishes skill-only use, per-project local installs, direct source CLI use, and temporary global CLI use while unpublished.
+- Public README setup guidance now leads with pnpm global install and keeps source checkout details under local development.
 - The second stranger test focused on a non-code person; README and CLI copy now explain `benjamin-docs` as a local project notebook an AI agent keeps in the project folder.
 - Generated `next` prompts now ask for plain language or non-technical readability where appropriate.
 - The chat-to-project workflow is a core V1 scenario: when the user only has a chat, the agent should ask for a project location, create the folder, run `benjamin-docs init --mode planning`, write a top-level README, and capture the chat into Benjamin docs.
 - Chat-created projects should default to `~/Documents/Benjamin Docs/<Project Name>` with human-readable names, e.g. `~/Documents/Benjamin Docs/Atelier Edits`; avoid agent-specific or dated session folders unless requested.
 - Chat-to-project confirmation copy should stay mobile-friendly: short sections, bullets for created files and captured content, and `Reply "yes" to create it`.
+- Package is now prepared for public `benjamin-docs@0.1.0`; README uses pnpm install commands only.
 - Use pnpm for this project.
 
 ## Public Repo Setup
@@ -84,7 +85,7 @@ That shim runs:
 node /Users/marty/Important/benjamin-docs/dist/src/cli.js "$@"
 ```
 
-This is a temporary local setup while the package remains unpublished/private. Once published, replace it with normal package install behavior.
+This was a temporary local setup while the package was unpublished. Once published, normal pnpm global install should replace this local shim.
 
 ## Important Product Finding From `pup-base`
 
@@ -131,5 +132,6 @@ When continuing this project:
 - Dogfood the baseline capture workflow in real projects, starting with `pup-base`.
 - Test whether a non-code person can succeed with only the README and an agent.
 - Dogfood chat-to-project with a fresh conversation and no existing project folder.
+- Publish `benjamin-docs@0.1.0`, then verify global pnpm install in a clean environment.
 - Consider a command that prints recommended next capture prompts.
 - Later: publish package only after package contents, security posture, and install story are tightened.

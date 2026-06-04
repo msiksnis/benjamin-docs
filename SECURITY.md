@@ -8,7 +8,7 @@
 
 Please do not open a public issue for a vulnerability.
 
-Report security concerns privately through GitHub Security Advisories once the public repository is available:
+Report security concerns privately through GitHub Security Advisories:
 
 https://github.com/msiksnis/benjamin-docs/security/advisories/new
 

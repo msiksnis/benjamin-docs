@@ -26,13 +26,14 @@ source: session-capture
 - Move the default managed docs root to `benjamin-docs/` so legacy project docs under `docs/` stay separate.
 - Fix existing-repo validation so legacy unmanaged Markdown does not block validation.
 - Add a concise baseline capture guide for new ideas, existing codebases, and single feature scopes.
-- Clarify unpublished setup paths for agent-skill-only use, per-project local package installs, direct source CLI use, and temporary global CLI use.
+- Clarify pnpm-first install paths for global CLI use, project-local installs, and source checkout development.
 - Improve the non-code stranger path with a plain-language README section, gentler CLI introduction/help copy, and generated prompts that ask for non-technical readability.
 - Restore chat-to-project as a core V1 workflow: a user can ask an agent to create a new local project from the current chat, including a top-level README and initialized Benjamin docs.
+- Prepare `benjamin-docs@0.1.0` for public package publishing with pnpm-first install docs and release checks.
 
 ## Current Local Setup
 
-- The source package is still private and unpublished.
+- The source package is prepared for public `0.1.0` publishing.
 - A global Codex skill is installed at `/Users/marty/.codex/skills/benjamin-docs/SKILL.md`.
 - A temporary global CLI shim is installed at `/Users/marty/Library/pnpm/benjamin-docs`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
@@ -42,10 +43,10 @@ source: session-capture
 
 - Keep improving skill instructions so agents know how to choose between global `benjamin-docs`, `pnpm exec benjamin-docs`, and direct source CLI usage.
 - Decide whether `validate` should report skipped unmanaged docs as an optional warning or stay quiet.
-- Add tests/docs for the current global-shim workaround or replace it with a cleaner local install path.
 - Capture a full baseline for `pup-base` as the first real dogfood project.
 - Test whether a non-code person can succeed with only the README and an agent.
 - Dogfood chat-to-project with a fresh conversation and no existing project folder.
+- Publish `benjamin-docs@0.1.0`, then verify `pnpm add -g benjamin-docs` in a clean environment.
 
 ## V1 Quality Bar
 
@@ -68,8 +69,7 @@ source: session-capture
   - `benjamin-docs export --audience developer`
 - Consider `benjamin-docs doctor` for setup checks.
 - Consider `benjamin-docs next` or `benjamin-docs prompts` for suggested capture prompts.
-- Consider a safer distribution path for global CLI usage before npm publishing.
-- Add a concise release checklist before first npm publish.
+- Consider adding automated skill installation after the first package release.
 
 ## Deferred SaaS
 

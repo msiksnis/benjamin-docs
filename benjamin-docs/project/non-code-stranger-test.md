@@ -42,4 +42,4 @@ Do not turn this into SaaS planning yet. The V1 public-readiness goal is local c
 
 - Test whether a non-code person can succeed with only the README and an agent.
 - Consider a short `benjamin-docs introduce --plain` or `benjamin-docs guide` only if the default introduction becomes too long.
-- Keep README examples honest while the package remains unpublished.
+- Keep README examples honest around the first public package release.
