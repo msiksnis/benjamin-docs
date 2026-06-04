@@ -41,9 +41,14 @@ Initialize docs in the current repo:
 
 ```bash
 node dist/src/cli.js init
-node dist/src/cli.js next
 node dist/src/cli.js status
 node dist/src/cli.js validate
+```
+
+`init` prints the recommended agent prompt. Run `next` later if you want to see that prompt again.
+
+```bash
+node dist/src/cli.js next
 ```
 
 In an interactive terminal, `init` asks what you are setting up. In scripts or agent workflows, pass a mode explicitly.
@@ -52,7 +57,6 @@ For an existing codebase:
 
 ```bash
 node dist/src/cli.js init --mode codebase
-node dist/src/cli.js next
 node dist/src/cli.js validate
 ```
 
@@ -60,7 +64,6 @@ For a single feature:
 
 ```bash
 node dist/src/cli.js init --mode feature --feature billing-reminders
-node dist/src/cli.js next
 node dist/src/cli.js validate
 ```
 
@@ -70,10 +73,15 @@ Until the package is published, install it from a local checkout:
 
 ```bash
 cd /path/to/your-project
-pnpm add -Dw file:/path/to/benjamin-docs
+pnpm add -D file:/path/to/benjamin-docs
 pnpm exec benjamin-docs init
-pnpm exec benjamin-docs next
 pnpm exec benjamin-docs validate
+```
+
+Inside a pnpm workspace, use `-w` when installing at the workspace root:
+
+```bash
+pnpm add -Dw file:/path/to/benjamin-docs
 ```
 
 If you only want to run the source CLI without installing it into the target project:
