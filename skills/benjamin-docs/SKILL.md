@@ -15,25 +15,41 @@ Use this skill when the user asks to capture, document, summarize, hand off, exp
 
 Use this workflow when the user asks to create a project from the current chat, turn this chat into a project, start a new project with `benjamin-docs`, or similar.
 
-1. Confirm the target project name and local parent folder if either is unclear. Ask a concise question before creating files.
-2. Create the project folder.
-3. Run the local CLI command inside that folder with `init --mode planning`.
-4. Read `.benjamin-docs/config.json` and use its `docsRoot` value, usually `benjamin-docs`.
-5. Create a simple top-level `README.md` for the new project unless one already exists. Keep it plain-language and include:
+1. Infer a human-readable project name from the chat when one is obvious. Preserve normal title casing and spaces for the folder name, for example `Atelier Edits`.
+2. Suggest `~/Documents/Benjamin Docs/<Project Name>` as the default location unless the user gave a different location. Do not suggest agent-specific or dated session folders such as Codex, Claude, Cursor, or `YYYY-MM-DD` paths unless the user explicitly asks for them.
+3. Confirm the target project name and local folder before creating files. Ask in plain language and avoid mentioning skill internals.
+   Example:
+   ```text
+   I can create a new local project from this chat.
+
+   Project name: Atelier Edits
+   Suggested folder: ~/Documents/Benjamin Docs/Atelier Edits
+
+   I will create:
+   - README.md
+   - benjamin-docs/
+   - .benjamin-docs/
+
+   Reply "yes" to use this folder, or send a different path/name.
+   ```
+4. Create the project folder.
+5. Run the local CLI command inside that folder with `init --mode planning`.
+6. Read `.benjamin-docs/config.json` and use its `docsRoot` value, usually `benjamin-docs`.
+7. Create a simple top-level `README.md` for the new project unless one already exists. Keep it plain-language and include:
    - project name
    - one-paragraph summary
    - where to start in `benjamin-docs/`
    - current status
    - next actions
-6. Populate the starter Benjamin docs from the current chat context:
+8. Populate the starter Benjamin docs from the current chat context:
    - `project/brief.md`
    - `project/roadmap.md`
    - `project/open-questions.md`
    - `handoff/human-brief.md`
    - `handoff/agent-brief.md`
-7. Do not invent certainty. Mark assumptions and unresolved questions clearly.
-8. Run the local CLI command with `validate`.
-9. Report the created project path, changed files, key decisions captured, and unresolved questions.
+9. Do not invent certainty. Mark assumptions and unresolved questions clearly.
+10. Run the local CLI command with `validate`.
+11. Report the created project path, changed files, key decisions captured, and unresolved questions.
 
 Do not overwrite an existing top-level `README.md` unless the user explicitly asks. If the target folder already contains a project, switch to the normal capture workflow instead of treating it as a brand-new chat-created project.
 

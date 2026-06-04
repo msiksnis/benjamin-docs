@@ -23,6 +23,7 @@ export function getHelpText(): string {
     "If you are here with an AI agent:",
     "  1. Run: benjamin-docs introduce",
     "  2. If you only have a chat, ask the agent to create a project folder from this chat.",
+    "     A good default is ~/Documents/Benjamin Docs/<Project Name>.",
     "  3. Otherwise run: benjamin-docs init",
     "  4. Ask: Capture the current project baseline with benjamin-docs in plain language.",
     "",
@@ -59,7 +60,7 @@ export function getIntroductionText(): string {
     "",
     "Your docs are not uploaded or published by the CLI. The repo-local docs are the source of truth.",
     "",
-    "If you only have a chat, ask your AI agent to create a new project from the chat with benjamin-docs.",
+    "If you only have a chat, ask your AI agent to create a new project from the chat with benjamin-docs. A good default location is ~/Documents/Benjamin Docs/<Project Name>.",
     "",
     "If you already have a project folder, ask your AI agent to run `benjamin-docs init`, then capture the current project baseline in plain language.",
   ].join("\n");

@@ -49,6 +49,7 @@ The project has been renamed fully from the earlier working name `agent-docs`; d
 - The second stranger test focused on a non-code person; README and CLI copy now explain `benjamin-docs` as a local project notebook an AI agent keeps in the project folder.
 - Generated `next` prompts now ask for plain language or non-technical readability where appropriate.
 - The chat-to-project workflow is a core V1 scenario: when the user only has a chat, the agent should ask for a project location, create the folder, run `benjamin-docs init --mode planning`, write a top-level README, and capture the chat into Benjamin docs.
+- Chat-created projects should default to `~/Documents/Benjamin Docs/<Project Name>` with human-readable names, e.g. `~/Documents/Benjamin Docs/Atelier Edits`; avoid agent-specific or dated session folders unless requested.
 - Use pnpm for this project.
 
 ## Public Repo Setup

@@ -29,7 +29,7 @@ Think of it as a project notebook that your AI agent keeps inside your project f
 
 You need:
 
-- a place on your computer where the agent can create a project folder
+- a place on your computer where the agent can create a project folder, such as `~/Documents/Benjamin Docs/Project Name`
 - an AI coding agent that can run terminal commands and edit files
 - a local checkout or installed copy of this repo while the package is unpublished
 
@@ -37,9 +37,9 @@ If all you have is the current chat, start by asking your agent:
 
 ```text
 Use benjamin-docs to create a project from this chat.
-Ask me where to create the folder, initialize it as a planning-only project,
-write a simple top-level README.md, then capture the current context
-in plain language.
+Suggest ~/Documents/Benjamin Docs/<Project Name> as the folder,
+initialize it as a planning-only project, write a simple top-level README.md,
+then capture the current context in plain language.
 ```
 
 After that, ask:
@@ -59,7 +59,7 @@ Ask your agent:
 
 ```text
 Use benjamin-docs to create a project from this chat.
-Ask me for the project name and where to put it.
+Suggest ~/Documents/Benjamin Docs/<Project Name> unless I choose a different place.
 Create the folder, initialize benjamin-docs there, add a simple README.md,
 and turn this conversation into a project brief, roadmap, open questions,
 and handoff.
@@ -67,7 +67,9 @@ and handoff.
 
 The agent should:
 
-- ask for a project name and location if they are not clear
+- infer a human-readable project name when the chat makes one obvious
+- suggest `~/Documents/Benjamin Docs/<Project Name>` as the default location
+- ask for confirmation before creating files
 - create the project folder
 - run `benjamin-docs init --mode planning` inside that folder
 - write a top-level `README.md` that explains what the project is and where to start
@@ -183,6 +185,7 @@ For a first planning session, a clearer prompt is:
 ```text
 Use the benjamin-docs skill.
 If there is no project folder yet, ask me where to create one.
+Suggest ~/Documents/Benjamin Docs/<Project Name> by default.
 Initialize it as a planning-only project, add a simple README.md,
 and capture what we know, what we decided, what is still unclear,
 and what I should do next. Keep it understandable for a non-technical reader.
@@ -264,7 +267,7 @@ Good capture prompts:
 
 ```text
 Use benjamin-docs to create a project from this chat.
-Ask me where to create the folder, then initialize it and capture the project.
+Suggest ~/Documents/Benjamin Docs/<Project Name>, then initialize it and capture the project.
 ```
 
 ```text

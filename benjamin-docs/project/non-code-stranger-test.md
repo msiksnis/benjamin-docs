@@ -31,6 +31,8 @@ The CLI `introduce` and `help` text were accurate, but they assumed the user alr
 - Update generated `next` prompts to ask for plain language and non-technical readability where appropriate.
 - Promote chat-to-project as the first non-code workflow: the user may have only a chat, not an existing project folder.
 - Include a simple top-level `README.md` in projects created from chat.
+- Use `~/Documents/Benjamin Docs/<Project Name>` as the default chat-created project location, preserving human-readable folder names such as `Atelier Edits`.
+- Avoid agent-specific or dated folders unless the user asks for them.
 
 ## Boundary
 

@@ -21,6 +21,20 @@ Use benjamin-docs to create a project from this chat.
 
 The agent should ask where to create the project, create the folder, run `benjamin-docs init --mode planning`, and synthesize the current chat into durable docs.
 
+Default location should be human-friendly and agent-agnostic:
+
+```text
+~/Documents/Benjamin Docs/<Project Name>
+```
+
+For example:
+
+```text
+~/Documents/Benjamin Docs/Atelier Edits
+```
+
+Avoid agent-specific or dated session folders such as Codex, Claude, Cursor, or `YYYY-MM-DD` paths unless the user explicitly asks for them.
+
 ## Product Boundary
 
 The CLI should not pretend it can read chat context by itself. V1 keeps the split clear:
