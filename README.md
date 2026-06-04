@@ -70,6 +70,7 @@ The agent should:
 - infer a human-readable project name when the chat makes one obvious
 - suggest `~/Documents/Benjamin Docs/<Project Name>` as the default location
 - ask for confirmation before creating files
+- summarize what it will capture in short bullets
 - create the project folder
 - run `benjamin-docs init --mode planning` inside that folder
 - write a top-level `README.md` that explains what the project is and where to start

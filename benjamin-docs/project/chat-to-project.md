@@ -66,6 +66,17 @@ The initial capture should update:
 
 The capture should include decisions, rejected options, risks, assumptions, open questions, and next actions. It should not dump the raw chat.
 
+## Confirmation Copy
+
+The confirmation message should be easy to scan on mobile:
+
+- use short sections
+- list created files as bullets
+- list what will be captured as bullets
+- say `Reply "yes" to create it, or send a different path/name.`
+
+Avoid dense paragraphs for the capture summary.
+
 ## Follow-Up
 
 - Dogfood this with a fresh chat that has no existing project folder.

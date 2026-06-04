@@ -30,7 +30,14 @@ Use this workflow when the user asks to create a project from the current chat, 
    - benjamin-docs/
    - .benjamin-docs/
 
-   Reply "yes" to use this folder, or send a different path/name.
+   I will capture:
+   - the main project idea
+   - important references and constraints
+   - decisions and open questions
+   - roadmap and next actions
+   - human and agent handoff notes
+
+   Reply "yes" to create it, or send a different path/name.
    ```
 4. Create the project folder.
 5. Run the local CLI command inside that folder with `init --mode planning`.
@@ -52,6 +59,8 @@ Use this workflow when the user asks to create a project from the current chat, 
 11. Report the created project path, changed files, key decisions captured, and unresolved questions.
 
 Do not overwrite an existing top-level `README.md` unless the user explicitly asks. If the target folder already contains a project, switch to the normal capture workflow instead of treating it as a brand-new chat-created project.
+
+When confirming a chat-created project, keep the message mobile-friendly. Prefer short sections and bullets over dense paragraphs, especially for what will be captured.
 
 ## Workflow
 
