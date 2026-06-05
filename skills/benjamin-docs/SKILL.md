@@ -71,6 +71,7 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
    - In this repo, run `pnpm build` when needed and use `node dist/src/cli.js`.
    - In another repo, use `pnpm exec benjamin-docs` only when this repo's package has been installed or linked locally.
    - If neither command is available, ask the user whether to install/link the CLI or use the source repo directly.
+   - If setup is unclear, run `benjamin-docs doctor` before changing project docs.
 2. Check whether `.benjamin-docs/config.json` exists.
 3. If it does not exist, run the local CLI command with `init`, then run `next` to get the recommended capture prompt.
 4. Read `.benjamin-docs/config.json` and use its `docsRoot` value as the Benjamin docs workspace. The default is `benjamin-docs`.

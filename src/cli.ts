@@ -2,6 +2,7 @@
 import { emitKeypressEvents } from "node:readline";
 import { createInterface } from "node:readline/promises";
 import { addAnchor } from "./anchors.js";
+import { runDoctor } from "./doctor.js";
 import { exportAudience } from "./export.js";
 import { initProject, promoteToCodebase, type InitProjectOptions } from "./init.js";
 import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
@@ -35,6 +36,12 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
     const result = installSkill(options);
     console.log(formatInstallSkillResult(result));
     return 0;
+  }
+
+  if (command === "doctor") {
+    const result = runDoctor({ cwd, commandPath: process.argv[1] });
+    console.log(result.output);
+    return result.ok ? 0 : 1;
   }
 
   if (command === "init") {

@@ -49,6 +49,18 @@ export interface InstallSkillResult {
   }>;
 }
 
+export type SkillCheckStatus = "ok" | "missing" | "stale";
+
+export interface SkillCheckResult {
+  homeDir: string;
+  targets: Array<{
+    id: Exclude<SkillTargetId, "all">;
+    label: string;
+    path: string;
+    status: SkillCheckStatus;
+  }>;
+}
+
 export function installSkill(options: InstallSkillOptions = {}): InstallSkillResult {
   const homeDir = resolve(options.homeDir ?? process.env.BENJAMIN_DOCS_HOME ?? homedir());
   const target = options.target ?? "all";
@@ -75,6 +87,25 @@ export function installSkill(options: InstallSkillOptions = {}): InstallSkillRes
   return { skillSourcePath, homeDir, dryRun: options.dryRun === true, targets };
 }
 
+export function checkInstalledSkills(homeDirOption?: string): SkillCheckResult {
+  const homeDir = resolve(homeDirOption ?? process.env.BENJAMIN_DOCS_HOME ?? homedir());
+  const skill = readBundledSkill();
+  const targets = TARGETS.map((entry) => {
+    const path = resolveSkillPath(homeDir, entry.relativePath);
+    const existing = readExistingSkill(path);
+    const status: SkillCheckStatus = existing === undefined ? "missing" : existing === skill ? "ok" : "stale";
+
+    return {
+      id: entry.id,
+      label: entry.label,
+      path,
+      status,
+    };
+  });
+
+  return { homeDir, targets };
+}
+
 export function formatInstallSkillResult(result: InstallSkillResult): string {
   const verb = result.dryRun ? "Skill install plan" : "Installed benjamin-docs skill";
   const lines = [verb, ""];
@@ -98,9 +129,21 @@ export function knownSkillTargets(): Array<{ id: Exclude<SkillTargetId, "all">; 
   return TARGETS.map((target) => ({ ...target }));
 }
 
+export function formatHomePath(homeDir: string, path: string): string {
+  const relativePathFromHome = relative(homeDir, path);
+  if (relativePathFromHome && !relativePathFromHome.startsWith(`..${sep}`) && relativePathFromHome !== "..") {
+    return `~/${relativePathFromHome}`;
+  }
+  return path;
+}
+
 function getBundledSkillPath(): string {
   const currentDir = dirname(fileURLToPath(import.meta.url));
   return join(currentDir, "..", "..", "skills", SKILL_NAME, "SKILL.md");
+}
+
+function readBundledSkill(): string {
+  return readFileSync(getBundledSkillPath(), "utf8");
 }
 
 function resolveTargets(target: SkillTargetId): Array<(typeof TARGETS)[number]> {
@@ -134,12 +177,4 @@ function statusFor(existing: string | undefined, next: string, dryRun: boolean):
   if (existing === undefined) return dryRun ? "would-install" : "installed";
   if (existing === next) return dryRun ? "would-keep" : "unchanged";
   return dryRun ? "would-update" : "updated";
-}
-
-function formatHomePath(homeDir: string, path: string): string {
-  const relativePathFromHome = relative(homeDir, path);
-  if (relativePathFromHome && !relativePathFromHome.startsWith(`..${sep}`) && relativePathFromHome !== "..") {
-    return `~/${relativePathFromHome}`;
-  }
-  return path;
 }

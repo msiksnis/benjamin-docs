@@ -116,6 +116,7 @@ Existing `docs/` folders are left alone unless you explicitly configure otherwis
 ```bash
 benjamin-docs introduce
 benjamin-docs install-skill
+benjamin-docs doctor
 benjamin-docs init
 benjamin-docs next
 benjamin-docs status

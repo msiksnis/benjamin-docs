@@ -11,6 +11,11 @@ source: manual
 
 # Changelog
 
+## 0.1.3
+
+- Shortened `benjamin-docs introduce` to match the public README and clarify which commands run in terminal.
+- Added `benjamin-docs doctor` to check CLI version, installed skill targets, project initialization, docs root, and validation status.
+
 ## 0.1.2
 
 - Shortened the public README for GitHub and npm so humans can understand install, usage, and purpose quickly.

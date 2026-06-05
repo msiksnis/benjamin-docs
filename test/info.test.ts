@@ -42,15 +42,13 @@ describe("info commands", () => {
       const output = runCli(["introduce"], dir);
 
       assert.match(output, /project memory/i);
-      assert.match(output, /humans/i);
-      assert.match(output, /AI agents/i);
-      assert.match(output, /local notebook/i);
-      assert.match(output, /not uploaded/i);
-      assert.match(output, /only have a chat/i);
+      assert.match(output, /In terminal, run:/);
+      assert.match(output, /From any chat, ask your agent:/);
+      assert.match(output, /No cloud\. No dashboard\. No transcript dump\./);
       assert.match(output, /Use the benjamin-docs skill to create a project from this chat/);
-      assert.match(output, /Documents\/Benjamin Docs/);
-      assert.match(output, /already have a project folder/i);
-      assert.match(output, /source of truth/i);
+      assert.match(output, /benjamin-docs init/);
+      assert.match(output, /Capture the current project baseline with benjamin-docs/);
+      assert.doesNotMatch(output, /local notebook/i);
     });
   });
 
