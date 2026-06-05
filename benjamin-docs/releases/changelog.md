@@ -11,6 +11,10 @@ source: manual
 
 # Changelog
 
+## 0.1.2
+
+- Shortened the public README for GitHub and npm so humans can understand install, usage, and purpose quickly.
+
 ## 0.1.1
 
 - Clarified first-chat prompts to say "Use the benjamin-docs skill..." so agents route directly to the chat-to-project workflow.
