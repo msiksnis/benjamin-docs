@@ -76,7 +76,7 @@ The agent should suggest:
 ~/Documents/Benjamin Docs/<Project Name>
 ```
 
-After you confirm, it creates a local project with:
+It should ask before creating files. After you confirm, it creates a local project with:
 
 ```text
 README.md
