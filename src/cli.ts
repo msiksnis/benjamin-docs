@@ -8,6 +8,7 @@ import { initProject, promoteToCodebase, type InitProjectOptions } from "./init.
 import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
 import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
 import { formatNextMessage, getNextPrompt } from "./next.js";
+import { formatPackageSkillResult, packageSkill, type PackageSkillOptions } from "./package-skill.js";
 import { createScope } from "./scopes.js";
 import { getStatus } from "./status.js";
 import type { FocusType } from "./types.js";
@@ -42,6 +43,12 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
     const result = runDoctor({ cwd, commandPath: process.argv[1] });
     console.log(result.output);
     return result.ok ? 0 : 1;
+  }
+
+  if (command === "package-skill") {
+    const result = packageSkill(parsePackageSkillArgs(argv.slice(1)));
+    console.log(formatPackageSkillResult(result));
+    return 0;
   }
 
   if (command === "init") {
@@ -220,6 +227,26 @@ function parseSkillTarget(value: string): SkillTargetId {
   const ids = knownSkillTargets().map((target) => target.id);
   if (ids.includes(value as Exclude<SkillTargetId, "all">)) return value as SkillTargetId;
   throw new Error(`Usage: benjamin-docs install-skill --target <all|${ids.join("|")}>`);
+}
+
+function parsePackageSkillArgs(args: string[]): PackageSkillOptions {
+  const options: PackageSkillOptions = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === "--out") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs package-skill --out <file-or-folder>");
+      options.out = value;
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown package-skill option: ${arg}`);
+  }
+
+  return options;
 }
 
 async function promptForInitOptions(): Promise<InitProjectOptions> {

@@ -4,6 +4,7 @@ import { CONFIG_DIR, CONFIG_FILE, MANIFEST_FILE, SCOPES_FILE } from "./constants
 import { readJson, rootPath } from "./fsx.js";
 import { getPackageVersion } from "./info.js";
 import { checkInstalledSkills, formatHomePath, SKILL_NAME } from "./install-skill.js";
+import { getDefaultSkillZipPath, skillZipExists } from "./package-skill.js";
 import { normalizeConfig } from "./project-config.js";
 import type { BenjaminDocsConfig } from "./types.js";
 import { validateProject } from "./validate.js";
@@ -23,6 +24,7 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
   const cwd = resolve(options.cwd ?? process.cwd());
   const commandPath = options.commandPath ?? process.argv[1] ?? "unknown";
   const skills = checkInstalledSkills(options.homeDir);
+  const skillZipPath = getDefaultSkillZipPath(skills.homeDir);
   const project = inspectProject(cwd);
   const lines = [
     "benjamin-docs doctor",
@@ -63,11 +65,18 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
   lines.push("");
   lines.push("Claude Desktop");
   lines.push(`  upload folder: ${formatHomePath(skills.homeDir, join(skills.homeDir, ".claude", "skills", SKILL_NAME))}`);
+  lines.push(`  upload zip: ${skillZipExists(skills.homeDir) ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath)}`);
 
   if (skills.targets.some((target) => target.status !== "ok")) {
     lines.push("");
     lines.push("Fix");
     lines.push("  benjamin-docs install-skill");
+  }
+
+  if (!skillZipExists(skills.homeDir)) {
+    lines.push("");
+    lines.push("Claude Desktop fix");
+    lines.push("  benjamin-docs package-skill");
   }
 
   return {

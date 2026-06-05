@@ -32,6 +32,7 @@ export function getHelpText(): string {
     "  benjamin-docs introduce",
     "  benjamin-docs install-skill",
     "  benjamin-docs doctor",
+    "  benjamin-docs package-skill",
     "  benjamin-docs init",
     "  benjamin-docs init --mode codebase",
     "  benjamin-docs init --mode feature --feature booking-capacity",
@@ -47,6 +48,7 @@ export function getHelpText(): string {
     "  benjamin-docs introduce",
     "  benjamin-docs install-skill",
     "  benjamin-docs doctor",
+    "  benjamin-docs package-skill",
     "  benjamin-docs init",
     "  benjamin-docs next",
   ].join("\n");

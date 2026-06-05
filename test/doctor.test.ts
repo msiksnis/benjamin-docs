@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runCliResult, withTempDir } from "./helpers.js";
 
@@ -10,12 +10,15 @@ describe("doctor", () => {
       const result = runCliResult(["doctor"], dir, { BENJAMIN_DOCS_HOME: dir });
 
       assert.equal(result.status, 0);
+      const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as { version: string };
       assert.match(result.stdout, /benjamin-docs doctor/);
-      assert.match(result.stdout, /version: 0\.1\.3/);
+      assert.match(result.stdout, new RegExp(`version: ${pkg.version.replaceAll(".", "\\.")}`));
       assert.match(result.stdout, /missing\s+Codex/);
       assert.match(result.stdout, /status: not initialized/);
       assert.match(result.stdout, /Fix\n  benjamin-docs install-skill/);
       assert.match(result.stdout, /Claude Desktop/);
+      assert.match(result.stdout, /upload zip: missing ~\/Downloads\/benjamin-docs-skill\.zip/);
+      assert.match(result.stdout, /Claude Desktop fix\n  benjamin-docs package-skill/);
       assert.doesNotMatch(result.stdout, /\nNext\n/);
     });
   });
@@ -35,6 +38,7 @@ describe("doctor", () => {
       assert.match(result.stdout, /docs root: benjamin-docs\//);
       assert.match(result.stdout, /validation: passed/);
       assert.doesNotMatch(result.stdout, /Fix\n/);
+      assert.match(result.stdout, /Claude Desktop fix\n  benjamin-docs package-skill/);
     });
   });
 

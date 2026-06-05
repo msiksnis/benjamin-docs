@@ -11,6 +11,11 @@ source: manual
 
 # Changelog
 
+## 0.1.4
+
+- Added `benjamin-docs package-skill` to create a Claude Desktop / Claude.ai upload ZIP.
+- Updated `benjamin-docs doctor` to report whether the default Claude Desktop skill ZIP exists.
+
 ## 0.1.3
 
 - Shortened `benjamin-docs introduce` to match the public README and clarify which commands run in terminal.
