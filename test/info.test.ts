@@ -21,7 +21,7 @@ describe("info commands", () => {
       assert.match(output, /benjamin-docs --version/);
       assert.match(output, /What it does/);
       assert.match(output, /plain language/);
-      assert.match(output, /create a project folder from this chat/);
+      assert.match(output, /Use the benjamin-docs skill to create a project from this chat/);
       assert.match(output, /Documents\/Benjamin Docs/);
       assert.match(output, /benjamin-docs init/);
       assert.match(output, /benjamin-docs validate/);
@@ -47,6 +47,7 @@ describe("info commands", () => {
       assert.match(output, /local notebook/i);
       assert.match(output, /not uploaded/i);
       assert.match(output, /only have a chat/i);
+      assert.match(output, /Use the benjamin-docs skill to create a project from this chat/);
       assert.match(output, /Documents\/Benjamin Docs/);
       assert.match(output, /already have a project folder/i);
       assert.match(output, /source of truth/i);

@@ -26,7 +26,7 @@ Long agent sessions create valuable project context: product decisions, rejected
 If a conversation already contains a useful project idea, ask your agent:
 
 ```text
-Use benjamin-docs to create a project from this chat.
+Use the benjamin-docs skill to create a project from this chat.
 ```
 
 The agent should suggest a local folder like:
@@ -56,11 +56,12 @@ You need:
 - a place on your computer where the agent can create a project folder, such as `~/Documents/Benjamin Docs/Project Name`
 - an AI coding agent that can run terminal commands and edit files
 - the `benjamin-docs` CLI installed with pnpm, or a local source checkout while developing
+- the `benjamin-docs` skill installed for your agent
 
 If all you have is the current chat, start by asking your agent:
 
 ```text
-Use benjamin-docs to create a project from this chat.
+Use the benjamin-docs skill to create a project from this chat.
 Suggest ~/Documents/Benjamin Docs/<Project Name> as the folder,
 initialize it as a planning-only project, write a simple top-level README.md,
 then capture the current context in plain language.
@@ -82,7 +83,7 @@ This is the simplest first use case: you do not have a repo, codebase, or projec
 Ask your agent:
 
 ```text
-Use benjamin-docs to create a project from this chat.
+Use the benjamin-docs skill to create a project from this chat.
 Suggest ~/Documents/Benjamin Docs/<Project Name> unless I choose a different place.
 Create the folder, initialize benjamin-docs there, add a simple README.md,
 and turn this conversation into a project brief, roadmap, open questions,
@@ -110,8 +111,20 @@ Install globally with pnpm:
 
 ```bash
 pnpm add -g benjamin-docs
+benjamin-docs install-skill
 benjamin-docs introduce
 ```
+
+`install-skill` installs or updates the bundled skill in common local agent locations:
+
+```text
+~/.agents/skills/benjamin-docs/SKILL.md
+~/.codex/skills/benjamin-docs/SKILL.md
+~/.claude/skills/benjamin-docs/SKILL.md
+~/.cursor/skills/benjamin-docs/SKILL.md
+```
+
+Claude Desktop / Claude.ai custom skills are uploaded through Claude's Skills UI. After running `install-skill`, use the generated `~/.claude/skills/benjamin-docs/` folder as the upload source.
 
 Initialize docs in the current project folder:
 
@@ -156,11 +169,18 @@ pnpm exec benjamin-docs validate
 
 The skill teaches an agent how to capture planning/build conversations into the docs created by the CLI.
 
-For Codex local skills:
+Install or update it from the published package:
 
 ```bash
-mkdir -p ~/.codex/skills/benjamin-docs
-cp skills/benjamin-docs/SKILL.md ~/.codex/skills/benjamin-docs/SKILL.md
+benjamin-docs install-skill
+```
+
+Install one target only:
+
+```bash
+benjamin-docs install-skill --target codex
+benjamin-docs install-skill --target cursor
+benjamin-docs install-skill --target claude-code
 ```
 
 Then ask your agent:
@@ -216,6 +236,7 @@ pnpm publish
 
 ```bash
 benjamin-docs introduce
+benjamin-docs install-skill
 benjamin-docs help
 benjamin-docs --version
 benjamin-docs init
@@ -258,6 +279,12 @@ Existing project docs in `docs/` are left alone. They may be useful context, but
 
 The CLI owns structure and validation. Codex or Claude skills own synthesis from the current conversation.
 
+If the agent does not recognize `benjamin-docs`, run:
+
+```bash
+benjamin-docs install-skill
+```
+
 Ask your agent:
 
 ```text
@@ -269,7 +296,7 @@ The agent should update the relevant docs, run validation, and report what chang
 Good capture prompts:
 
 ```text
-Use benjamin-docs to create a project from this chat.
+Use the benjamin-docs skill to create a project from this chat.
 Suggest ~/Documents/Benjamin Docs/<Project Name>, then initialize it and capture the project.
 ```
 

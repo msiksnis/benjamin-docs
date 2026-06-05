@@ -5,6 +5,7 @@ import { addAnchor } from "./anchors.js";
 import { exportAudience } from "./export.js";
 import { initProject, promoteToCodebase, type InitProjectOptions } from "./init.js";
 import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
+import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
 import { formatNextMessage, getNextPrompt } from "./next.js";
 import { createScope } from "./scopes.js";
 import { getStatus } from "./status.js";
@@ -26,6 +27,13 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "introduce") {
     console.log(getIntroductionText());
+    return 0;
+  }
+
+  if (command === "install-skill") {
+    const options = parseInstallSkillArgs(argv.slice(1));
+    const result = installSkill(options);
+    console.log(formatInstallSkillResult(result));
     return 0;
   }
 
@@ -171,6 +179,40 @@ function parseSetup(value: string): FocusType {
   if (value === "codebase") return "codebase";
   if (value === "feature") return "feature";
   throw new Error("Usage: benjamin-docs init --mode <planning|codebase|feature>");
+}
+
+function parseInstallSkillArgs(args: string[]): InstallSkillOptions {
+  const options: InstallSkillOptions = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === "--dry-run") {
+      options.dryRun = true;
+      continue;
+    }
+
+    if (arg === "--target") {
+      const value = args[index + 1];
+      if (!value) throw new Error(`Usage: benjamin-docs install-skill --target <all|${knownSkillTargets().map((target) => target.id).join("|")}>`);
+      options.target = parseSkillTarget(value);
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown install-skill option: ${arg}`);
+  }
+
+  return options;
+}
+
+function parseSkillTarget(value: string): SkillTargetId {
+  if (value === "all") return "all";
+  if (value === "shared") return "agents";
+  if (value === "claude") return "claude-code";
+  const ids = knownSkillTargets().map((target) => target.id);
+  if (ids.includes(value as Exclude<SkillTargetId, "all">)) return value as SkillTargetId;
+  throw new Error(`Usage: benjamin-docs install-skill --target <all|${ids.join("|")}>`);
 }
 
 async function promptForInitOptions(): Promise<InitProjectOptions> {

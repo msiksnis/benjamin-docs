@@ -11,6 +11,12 @@ source: manual
 
 # Changelog
 
+## 0.1.1
+
+- Clarified first-chat prompts to say "Use the benjamin-docs skill..." so agents route directly to the chat-to-project workflow.
+- Updated `benjamin-docs introduce` and help text to show the skill-based prompt for chat-only project creation.
+- Added `benjamin-docs install-skill` to install or update the bundled skill for shared Agent Skills, Codex, Claude Code, and Cursor local skill folders.
+
 ## 0.1.0
 
 Initial public package release candidate.

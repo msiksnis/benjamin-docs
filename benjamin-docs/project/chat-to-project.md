@@ -16,7 +16,7 @@ source: session-capture
 One core `benjamin-docs` workflow is turning a useful chat into a local project. The user may not have a repo, codebase, or project folder yet. They should be able to ask an agent:
 
 ```text
-Use benjamin-docs to create a project from this chat.
+Use the benjamin-docs skill to create a project from this chat.
 ```
 
 The agent should ask where to create the project, create the folder, run `benjamin-docs init --mode planning`, and synthesize the current chat into durable docs.
@@ -41,6 +41,7 @@ The CLI should not pretend it can read chat context by itself. V1 keeps the spli
 
 - The globally available CLI creates and validates the local docs workspace.
 - The globally available skill tells the agent how to turn chat context into project memory.
+- The `install-skill` command installs or updates the bundled skill in common local agent locations, while keeping setup explicit instead of relying on package postinstall scripts.
 
 This keeps V1 local, dependency-light, and honest.
 

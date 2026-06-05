@@ -18,19 +18,19 @@ export function withTempDir<T>(fn: (dir: string) => T): T {
   }
 }
 
-export function runCli(args: string[], cwd: string): string {
+export function runCli(args: string[], cwd: string, env: Record<string, string> = {}): string {
   return execFileSync("node", [join(process.cwd(), "dist/src/cli.js"), ...args], {
     cwd,
     encoding: "utf8",
-    env: { ...process.env, NO_COLOR: "1" },
+    env: { ...process.env, NO_COLOR: "1", ...env },
   });
 }
 
-export function runCliResult(args: string[], cwd: string): CliResult {
+export function runCliResult(args: string[], cwd: string, env: Record<string, string> = {}): CliResult {
   const result = spawnSync("node", [join(process.cwd(), "dist/src/cli.js"), ...args], {
     cwd,
     encoding: "utf8",
-    env: { ...process.env, NO_COLOR: "1" },
+    env: { ...process.env, NO_COLOR: "1", ...env },
   });
 
   return {

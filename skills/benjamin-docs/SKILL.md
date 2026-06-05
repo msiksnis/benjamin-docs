@@ -7,6 +7,8 @@ description: Capture planning and build conversations into repo-local project me
 
 Use this skill when the user asks to capture, document, summarize, hand off, export, preserve a planning or development conversation, or create a project from a chat with `benjamin-docs`.
 
+If the user says "Use the benjamin-docs skill to create a project from this chat" or similar, start the Chat-To-Project Workflow directly.
+
 ## Purpose
 
 `benjamin-docs` turns long-running project conversations into durable Markdown docs inside a project folder. It is useful when the user only has a chat, before code exists, inside existing codebases, and for individual feature scopes.
