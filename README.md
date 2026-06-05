@@ -2,6 +2,8 @@
 
 Local project memory for humans and AI agents.
 
+[npm package](https://www.npmjs.com/package/benjamin-docs)
+
 `benjamin-docs` turns useful chats into project docs.
 
 It keeps decisions, plans, open questions, and handoff notes in Markdown files inside your project.
@@ -26,6 +28,19 @@ Projects drift.
 pnpm add -g benjamin-docs
 benjamin-docs install-skill
 benjamin-docs introduce
+```
+
+Also works as a project dependency:
+
+```bash
+pnpm add benjamin-docs
+```
+
+Need npm or one-off runs?
+
+```bash
+npm install -g benjamin-docs
+npx benjamin-docs
 ```
 
 `install-skill` installs the bundled agent skill for common local tools:
@@ -139,7 +154,9 @@ Before publishing:
 
 ```bash
 pnpm run release:check
-pnpm publish
+tmpdir=$(mktemp -d)
+pnpm pack --pack-destination "$tmpdir"
+npm publish "$tmpdir"/benjamin-docs-*.tgz --access public
 ```
 
 ## Contributing

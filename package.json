@@ -1,11 +1,18 @@
 {
   "name": "benjamin-docs",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Repo-local project memory for humans and AI agents.",
   "keywords": [
     "ai",
     "agents",
+    "agent-skill",
+    "codex",
+    "claude",
+    "cursor",
     "documentation",
+    "handoff",
+    "knowledge-base",
+    "project-docs",
     "project-memory",
     "cli"
   ],
@@ -19,7 +26,7 @@
   },
   "type": "module",
   "bin": {
-    "benjamin-docs": "./dist/src/cli.js"
+    "benjamin-docs": "dist/src/cli.js"
   },
   "packageManager": "pnpm@11.5.1",
   "files": [
