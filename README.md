@@ -43,7 +43,7 @@ npm install -g benjamin-docs
 npx benjamin-docs
 ```
 
-`install-skill` installs the bundled agent skill for common local tools:
+`install-skill` installs the bundled agent skill for local agents:
 
 ```text
 ~/.agents/skills/benjamin-docs/
@@ -52,11 +52,15 @@ npx benjamin-docs
 ~/.cursor/skills/benjamin-docs/
 ```
 
-Claude Desktop / Claude.ai uses uploaded skills. After install, upload:
+Codex, Cursor, and Claude Code can use the shared `~/.agents/skills` install.
 
-```text
-~/.claude/skills/benjamin-docs/
+Claude Desktop / Claude.ai uses uploaded skills:
+
+```bash
+benjamin-docs package-skill
 ```
+
+Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
 
 ## Use It From Any Chat
 
