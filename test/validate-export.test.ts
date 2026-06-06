@@ -384,6 +384,18 @@ describe("status and export", () => {
     });
   });
 
+  it("includes the human handoff in the codebase baseline prompt", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase"], dir);
+      const output = runCli(["next"], dir);
+
+      assert.match(output, /Capture the current project baseline/);
+      assert.match(output, /benjamin-docs\/handoff\/human-brief\.md/);
+      assert.match(output, /benjamin-docs\/handoff\/agent-brief\.md/);
+      assert.match(output, /human-brief\.md a short plain-language summary/);
+    });
+  });
+
   it("reports a clear status error for uninitialized projects", () => {
     withTempDir((dir) => {
       const result = runCliResult(["status"], dir);

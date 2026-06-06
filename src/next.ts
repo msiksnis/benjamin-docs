@@ -42,8 +42,10 @@ function codebasePrompt(docsRoot: string): string {
     "Read the existing codebase and any existing docs as context. Then update",
     `${docsRoot}/project/brief.md, ${docsRoot}/project/roadmap.md,`,
     `${docsRoot}/project/open-questions.md, ${docsRoot}/engineering/architecture.md,`,
-    `${docsRoot}/engineering/code-map.md, and ${docsRoot}/handoff/agent-brief.md.`,
+    `${docsRoot}/engineering/code-map.md, ${docsRoot}/handoff/human-brief.md,`,
+    `and ${docsRoot}/handoff/agent-brief.md.`,
     "Keep project docs understandable for non-technical readers.",
+    "Make human-brief.md a short plain-language summary for the owner or teammate.",
     "Mark uncertain items, call out risks, and add useful code anchors where relevant.",
   ].join("\n");
 }
