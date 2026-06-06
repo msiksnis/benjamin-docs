@@ -10,6 +10,7 @@ import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
 import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
 import { formatNextMessage, getNextPrompt } from "./next.js";
 import { formatPackageSkillResult, packageSkill, type PackageSkillOptions } from "./package-skill.js";
+import { reviewProject } from "./review.js";
 import { createScope } from "./scopes.js";
 import { getStatus } from "./status.js";
 import type { FocusType } from "./types.js";
@@ -46,7 +47,14 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "doctor") {
-    const result = runDoctor({ cwd, commandPath: process.argv[1] });
+    const options = parseDoctorArgs(argv.slice(1));
+    const result = runDoctor({ cwd, commandPath: process.argv[1], ...options });
+    console.log(result.output);
+    return result.ok ? 0 : 1;
+  }
+
+  if (command === "review") {
+    const result = reviewProject(cwd);
     console.log(result.output);
     return result.ok ? 0 : 1;
   }
@@ -221,6 +229,21 @@ function parseInstallSkillArgs(args: string[]): InstallSkillOptions {
     }
 
     throw new Error(`Unknown install-skill option: ${arg}`);
+  }
+
+  return options;
+}
+
+function parseDoctorArgs(args: string[]): { strict?: boolean } {
+  const options: { strict?: boolean } = {};
+
+  for (const arg of args) {
+    if (arg === "--strict") {
+      options.strict = true;
+      continue;
+    }
+
+    throw new Error(`Unknown doctor option: ${arg}`);
   }
 
   return options;

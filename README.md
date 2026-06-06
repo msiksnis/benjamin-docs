@@ -116,6 +116,18 @@ For one feature:
 benjamin-docs init --mode feature --feature billing-reminders
 ```
 
+## Check The Docs
+
+```bash
+benjamin-docs validate
+benjamin-docs review
+benjamin-docs doctor --strict
+```
+
+`review` looks for thin or starter-template docs.
+
+`doctor --strict` fails on setup gaps, validation warnings, and validation errors.
+
 ## What It Creates
 
 ```text
@@ -142,6 +154,8 @@ benjamin-docs introduce
 benjamin-docs chat-project
 benjamin-docs install-skill
 benjamin-docs doctor
+benjamin-docs doctor --strict
+benjamin-docs review
 benjamin-docs package-skill
 benjamin-docs init
 benjamin-docs init --mode codebase

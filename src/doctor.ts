@@ -18,6 +18,7 @@ export interface DoctorOptions {
   cwd?: string;
   commandPath?: string;
   homeDir?: string;
+  strict?: boolean;
 }
 
 export function runDoctor(options: DoctorOptions = {}): DoctorResult {
@@ -26,8 +27,9 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
   const skills = checkInstalledSkills(options.homeDir);
   const skillZipPath = getDefaultSkillZipPath(skills.homeDir);
   const project = inspectProject(cwd);
+  const strictErrors = options.strict ? strictDoctorErrors(project, skills.targets, skillZipExists(skills.homeDir)) : [];
   const lines = [
-    "benjamin-docs doctor",
+    options.strict ? "benjamin-docs doctor --strict" : "benjamin-docs doctor",
     "",
     "CLI",
     `  version: ${getPackageVersion()}`,
@@ -62,6 +64,12 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
     for (const warning of project.warnings) lines.push(`  - ${warning}`);
   }
 
+  if (strictErrors.length > 0) {
+    lines.push("");
+    lines.push("Strict");
+    for (const error of strictErrors) lines.push(`  - ${error}`);
+  }
+
   lines.push("");
   lines.push("Claude Desktop");
   lines.push(`  upload folder: ${formatHomePath(skills.homeDir, join(skills.homeDir, ".claude", "skills", SKILL_NAME))}`);
@@ -80,9 +88,39 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
   }
 
   return {
-    ok: project.errors.length === 0,
+    ok: project.errors.length === 0 && strictErrors.length === 0,
     output: lines.join("\n"),
   };
+}
+
+function strictDoctorErrors(
+  project: ProjectInspection,
+  targets: ReturnType<typeof checkInstalledSkills>["targets"],
+  hasSkillZip: boolean,
+): string[] {
+  const errors: string[] = [];
+
+  if (targets.some((target) => target.status !== "ok")) {
+    errors.push("Install or refresh local skills with: benjamin-docs install-skill");
+  }
+
+  if (!hasSkillZip) {
+    errors.push("Create the Claude Desktop upload zip with: benjamin-docs package-skill");
+  }
+
+  if (project.status !== "initialized") {
+    errors.push("Project is not initialized. Run: benjamin-docs init");
+  }
+
+  if (project.warnings.length > 0) {
+    errors.push("Validation warnings are present.");
+  }
+
+  if (project.errors.length > 0) {
+    errors.push("Validation errors are present.");
+  }
+
+  return errors;
 }
 
 interface ProjectInspection {

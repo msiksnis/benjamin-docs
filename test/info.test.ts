@@ -26,6 +26,8 @@ describe("info commands", () => {
       assert.match(output, /benjamin-docs chat-project/);
       assert.match(output, /benjamin-docs init/);
       assert.match(output, /benjamin-docs validate/);
+      assert.match(output, /benjamin-docs review/);
+      assert.match(output, /benjamin-docs doctor --strict/);
       assert.match(output, /benjamin-docs export --audience developer/);
       assert.match(output, /benjamin-docs promote --to codebase/);
     });

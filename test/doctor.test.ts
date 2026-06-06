@@ -69,4 +69,31 @@ describe("doctor", () => {
       assert.match(result.stdout, /Errors/);
     });
   });
+
+  it("strict mode fails on setup gaps", () => {
+    withTempDir((dir) => {
+      const result = runCliResult(["doctor", "--strict"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /benjamin-docs doctor --strict/);
+      assert.match(result.stdout, /Strict/);
+      assert.match(result.stdout, /install-skill/);
+      assert.match(result.stdout, /package-skill/);
+      assert.match(result.stdout, /Project is not initialized/);
+    });
+  });
+
+  it("strict mode passes when setup and validation are clean", () => {
+    withTempDir((dir) => {
+      runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["init", "--mode", "codebase"], dir);
+
+      const result = runCliResult(["doctor", "--strict"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /benjamin-docs doctor --strict/);
+      assert.doesNotMatch(result.stdout, /Strict\n/);
+    });
+  });
 });
