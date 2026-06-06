@@ -9,9 +9,12 @@ import { validateProject } from "./validate.js";
 export interface ReviewResult {
   ok: boolean;
   output: string;
+  docsChecked: number;
+  errors: ReviewIssue[];
+  warnings: ReviewIssue[];
 }
 
-interface ReviewIssue {
+export interface ReviewIssue {
   path?: string;
   message: string;
 }
@@ -181,7 +184,7 @@ function formatReview(result: { docsChecked: number; errors: ReviewIssue[]; warn
     lines.push("  Update weak docs, then run: benjamin-docs validate && benjamin-docs review");
   }
 
-  return { ok, output: lines.join("\n") };
+  return { ok, output: lines.join("\n"), docsChecked: result.docsChecked, errors: result.errors, warnings: result.warnings };
 }
 
 function formatIssue(issue: ReviewIssue): string {

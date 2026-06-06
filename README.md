@@ -103,6 +103,12 @@ Then ask your agent:
 Capture the current project baseline with benjamin-docs.
 ```
 
+When the docs are captured:
+
+```bash
+benjamin-docs ready
+```
+
 For a planning-only folder:
 
 ```bash
@@ -122,11 +128,14 @@ benjamin-docs init --mode feature --feature billing-reminders
 benjamin-docs validate
 benjamin-docs review
 benjamin-docs doctor --strict
+benjamin-docs ready
 ```
 
 `review` looks for thin or starter-template docs.
 
 `doctor --strict` fails on setup gaps, validation warnings, and validation errors.
+
+`ready` runs the full gate: setup, validation, and docs quality.
 
 ## What It Creates
 
@@ -156,6 +165,7 @@ benjamin-docs install-skill
 benjamin-docs doctor
 benjamin-docs doctor --strict
 benjamin-docs review
+benjamin-docs ready
 benjamin-docs package-skill
 benjamin-docs init
 benjamin-docs init --mode codebase

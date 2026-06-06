@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: draft
 visibility: private
-updated: 2026-06-04
+updated: 2026-06-06
 source: session-capture
 ---
 
@@ -40,6 +40,7 @@ The baseline guide belongs in the README for public discoverability, with this r
 
 ## Follow-Up
 
-- Dogfood the existing-codebase prompt in `/Users/marty/Important/pet-software/pup-base`.
-- Test at least one planning-only baseline before publishing.
+- Done: dogfooded the existing-codebase prompt in `/Users/marty/Important/kit/benjamin`, initialized the real repo, and made it pass `benjamin-docs ready`.
+- Test at least one planning-only baseline after public install, so the tool is not biased toward existing codebases only.
 - Revisit whether `benjamin-docs next` should expose these baseline prompt variants.
+- Decision: `doctor --strict` stays focused on setup/validation. `ready` is the command that means docs are genuinely ready.

@@ -10,6 +10,7 @@ import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
 import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
 import { formatNextMessage, getNextPrompt } from "./next.js";
 import { formatPackageSkillResult, packageSkill, type PackageSkillOptions } from "./package-skill.js";
+import { checkReady } from "./ready.js";
 import { reviewProject } from "./review.js";
 import { createScope } from "./scopes.js";
 import { getStatus } from "./status.js";
@@ -55,6 +56,12 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "review") {
     const result = reviewProject(cwd);
+    console.log(result.output);
+    return result.ok ? 0 : 1;
+  }
+
+  if (command === "ready") {
+    const result = checkReady({ cwd, commandPath: process.argv[1] });
     console.log(result.output);
     return result.ok ? 0 : 1;
   }

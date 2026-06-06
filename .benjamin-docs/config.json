@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "mode": "planning",
+  "mode": "codebase",
   "docsRoot": "benjamin-docs",
-  "focus": "project"
+  "focus": "codebase"
 }

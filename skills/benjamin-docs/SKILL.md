@@ -69,7 +69,8 @@ Critical rules:
    - `handoff/agent-brief.md`
 11. Do not invent certainty. Mark assumptions and unresolved questions clearly.
 12. Run the local CLI command with `validate`.
-13. Report the created project path, project structure, main docs updated, key decisions captured, and unresolved questions.
+13. When the user wants the project to be handoff-ready, run `ready` too. If `ready` fails, fix weak docs or setup gaps before claiming the project is ready.
+14. Report the created project path, project structure, main docs updated, key decisions captured, unresolved questions, and whether `validate` / `ready` passed.
 
 When reporting completion, do not imply the project is only a few files. Say the project structure was created:
 
@@ -111,7 +112,8 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 9. Existing `docs/` directories may be read as project context, but do not create or update Benjamin-managed docs there unless `.benjamin-docs/config.json` explicitly sets `docsRoot` to `docs`.
 10. Update existing docs instead of dumping a transcript.
 11. Run the local CLI command with `validate`.
-12. Report changed files, key decisions captured, and unresolved questions.
+12. For a baseline capture, handoff, or public-readiness pass, run the local CLI command with `ready`.
+13. Report changed files, key decisions captured, unresolved questions, and whether `validate` / `ready` passed.
 
 ## Capture Quality
 

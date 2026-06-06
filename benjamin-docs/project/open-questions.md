@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: draft
 visibility: private
-updated: 2026-06-04
+updated: 2026-06-06
 source: session-capture
 ---
 
@@ -13,22 +13,24 @@ source: session-capture
 
 ## Public Readiness
 
-- First public package should be `benjamin-docs@0.1.0`.
-- Public install docs should lead with pnpm and not show npm install commands.
+- `benjamin-docs` is now public on npm. Should the README continue showing npm/npx fallback commands, or return to a stricter pnpm-first stance?
 - Should `validate` report unmanaged legacy Markdown files as skipped, or stay quiet unless there is a path/symlink safety issue?
 
 ## Skill Distribution
 
-- What is the cleanest way to install the `benjamin-docs` skill for Codex users?
-- Should the repo include install instructions for Claude skills too, or keep V1 focused on Codex until the format is verified?
-- Should skill installation eventually be automated by the CLI?
+- Should BD keep installing the same skill into shared, Codex, Claude Code, and Cursor folders, or should app-specific installers become explicit subcommands later?
+- Should Claude Desktop upload docs stay in the README, or move into `package-skill` output only?
+- What is the right plugin story for Codex and Claude once plugin formats settle?
 
 ## CLI Scope
 
-- Should V1 add `doctor` for local setup checks before publishing?
-- Should release and handoff scopes get first-class create commands, or should V1 keep those as starter docs only?
+- Decision: keep `doctor --strict` as a setup/validation gate, and use `ready` as the higher-level gate that also fails on `review` warnings.
+- Should release and handoff scopes get first-class create commands, or should BD keep those as starter docs only?
+- Should `review` eventually understand audience quality, stale dates, and missing code anchors, or stay a simple deterministic lint?
 
 ## Dogfooding
 
-- `pup-base` should be used as the first real baseline-capture test.
-- At least one planning-only project should be tested before publishing, so the tool is not biased toward existing codebases only.
+- BD now passes its own `validate`, `review`, and `doctor --strict` checks.
+- `/Users/marty/Important/kit/benjamin` was tested non-destructively through a temp-copy `init --mode codebase` and baseline capture.
+- The real `/Users/marty/Important/kit/benjamin` repo is now initialized with BD and passes `ready`.
+- Which project should be the next real dogfood target after Benjamin?
