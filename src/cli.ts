@@ -2,6 +2,7 @@
 import { emitKeypressEvents } from "node:readline";
 import { createInterface } from "node:readline/promises";
 import { addAnchor } from "./anchors.js";
+import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
 import { runDoctor } from "./doctor.js";
 import { exportAudience } from "./export.js";
 import { initProject, promoteToCodebase, type InitProjectOptions } from "./init.js";
@@ -29,6 +30,11 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "introduce") {
     console.log(getIntroductionText());
+    return 0;
+  }
+
+  if (command === "chat-project") {
+    console.log(getChatProjectGuide(parseChatProjectArgs(argv.slice(1))));
     return 0;
   }
 
@@ -244,6 +250,34 @@ function parsePackageSkillArgs(args: string[]): PackageSkillOptions {
     }
 
     throw new Error(`Unknown package-skill option: ${arg}`);
+  }
+
+  return options;
+}
+
+function parseChatProjectArgs(args: string[]): ChatProjectGuideOptions {
+  const options: ChatProjectGuideOptions = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === "--name") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs chat-project --name <project-name>");
+      options.name = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--path") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs chat-project --path <project-path>");
+      options.path = value;
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown chat-project option: ${arg}`);
   }
 
   return options;

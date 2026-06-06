@@ -84,6 +84,12 @@ benjamin-docs/
 .benjamin-docs/
 ```
 
+For the exact agent prompt:
+
+```bash
+benjamin-docs chat-project
+```
+
 ## Use It In An Existing Project
 
 From the project folder:
@@ -134,6 +140,7 @@ Existing `docs/` folders are left alone unless you explicitly configure otherwis
 
 ```bash
 benjamin-docs introduce
+benjamin-docs chat-project
 benjamin-docs install-skill
 benjamin-docs doctor
 benjamin-docs package-skill

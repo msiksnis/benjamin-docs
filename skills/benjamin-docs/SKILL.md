@@ -27,8 +27,9 @@ Critical rules:
 - Do not write a loose Markdown summary as a fallback. If the CLI cannot be run, stop and explain what is missing.
 
 1. Infer a human-readable project name from the chat when one is obvious. Preserve normal title casing and spaces for the folder name, for example `Atelier Edits`.
-2. Suggest `~/Documents/Benjamin Docs/<Project Name>` as the default location unless the user gave a different explicit location.
-3. Confirm the target project name and local folder before creating files. Ask in plain language and avoid mentioning skill internals.
+2. When the CLI is available, run `benjamin-docs chat-project --name "<Project Name>"` to get the exact confirmation and completion guidance.
+3. Suggest `~/Documents/Benjamin Docs/<Project Name>` as the default location unless the user gave a different explicit location.
+4. Confirm the target project name and local folder before creating files. Ask in plain language and avoid mentioning skill internals.
    Example:
    ```text
    I can create a new local project from this chat.
@@ -50,25 +51,39 @@ Critical rules:
 
    Reply "yes" to create it, or send a different path/name.
    ```
-4. Wait for the user's confirmation. Only create files after the user replies with approval or a different explicit path/name.
-5. Create the project folder.
-6. Run the local CLI command inside that folder with `init --mode planning`.
-7. Read `.benjamin-docs/config.json` and use its `docsRoot` value, usually `benjamin-docs`.
-8. Create a simple top-level `README.md` for the new project unless one already exists. Keep it plain-language and include:
+5. Wait for the user's confirmation. Only create files after the user replies with approval or a different explicit path/name.
+6. Create the project folder.
+7. Run the local CLI command inside that folder with `init --mode planning`.
+8. Read `.benjamin-docs/config.json` and use its `docsRoot` value, usually `benjamin-docs`.
+9. Create a simple top-level `README.md` for the new project unless one already exists. Keep it plain-language and include:
    - project name
    - one-paragraph summary
    - where to start in `benjamin-docs/`
    - current status
    - next actions
-9. Populate the starter Benjamin docs from the current chat context:
+10. Populate the starter Benjamin docs from the current chat context:
    - `project/brief.md`
    - `project/roadmap.md`
    - `project/open-questions.md`
    - `handoff/human-brief.md`
    - `handoff/agent-brief.md`
-10. Do not invent certainty. Mark assumptions and unresolved questions clearly.
-11. Run the local CLI command with `validate`.
-12. Report the created project path, changed files, key decisions captured, and unresolved questions.
+11. Do not invent certainty. Mark assumptions and unresolved questions clearly.
+12. Run the local CLI command with `validate`.
+13. Report the created project path, project structure, main docs updated, key decisions captured, and unresolved questions.
+
+When reporting completion, do not imply the project is only a few files. Say the project structure was created:
+
+- `README.md`
+- `benjamin-docs/` with project, handoff, engineering, features, and releases docs
+- `.benjamin-docs/` with config, manifest, scopes, and anchors metadata
+
+Then list the main docs updated, usually:
+
+- `benjamin-docs/project/brief.md`
+- `benjamin-docs/project/roadmap.md`
+- `benjamin-docs/project/open-questions.md`
+- `benjamin-docs/handoff/human-brief.md`
+- `benjamin-docs/handoff/agent-brief.md`
 
 Do not overwrite an existing top-level `README.md` unless the user explicitly asks. If the target folder already contains a project, switch to the normal capture workflow instead of treating it as a brand-new chat-created project.
 
