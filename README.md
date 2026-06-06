@@ -10,17 +10,15 @@ It keeps decisions, plans, open questions, and handoff notes in Markdown files i
 
 No cloud. No dashboard. No transcript dump.
 
-## What It Solves
+## Why It Exists
 
-AI work gets lost in chat history.
+Chats are great for thinking.
 
-You explain the same context again.
+They are bad at becoming project memory.
 
-Future agents miss decisions.
+`benjamin-docs` saves the useful parts: decisions, plans, open questions, and handoff notes.
 
-Projects drift.
-
-`benjamin-docs` gives the project a small local notebook that agents can keep up to date.
+So the next person or agent can start with context instead of asking you to explain everything again.
 
 ## Install
 
@@ -92,11 +90,11 @@ benjamin-docs chat-project
 
 ## Use It In An Existing Project
 
-From the project folder:
+For an existing codebase:
 
 ```bash
-benjamin-docs init
-benjamin-docs validate
+benjamin-docs init --mode codebase
+benjamin-docs next
 ```
 
 Then ask your agent:
@@ -105,10 +103,11 @@ Then ask your agent:
 Capture the current project baseline with benjamin-docs.
 ```
 
-For an existing codebase:
+For a planning-only folder:
 
 ```bash
-benjamin-docs init --mode codebase
+benjamin-docs init --mode planning
+benjamin-docs next
 ```
 
 For one feature:
@@ -145,6 +144,8 @@ benjamin-docs install-skill
 benjamin-docs doctor
 benjamin-docs package-skill
 benjamin-docs init
+benjamin-docs init --mode codebase
+benjamin-docs init --mode feature --feature <slug>
 benjamin-docs next
 benjamin-docs status
 benjamin-docs validate
