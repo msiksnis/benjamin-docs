@@ -101,6 +101,24 @@ describe("ready", () => {
     });
   });
 
+  it("fails when child agent guidance exists under unmarked root guidance", () => {
+    withTempDir((dir) => {
+      runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+      writeReadyBaseline(dir);
+      writeFileSync(join(dir, "AGENTS.md"), "# Existing Agent Rules\n\nKeep local policy.\n", "utf8");
+
+      const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /status: not ready/);
+      assert.match(result.stdout, /fail\s+agent guidance/);
+      assert.match(result.stdout, /Child AGENTS\.md exists but is missing from root index: benjamin-docs\/AGENTS\.md/);
+      assert.match(result.stdout, /warning: Existing AGENTS\.md/);
+    });
+  });
+
   it("fails when child agent guidance exists without a root AGENTS.md index", () => {
     withTempDir((dir) => {
       runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });

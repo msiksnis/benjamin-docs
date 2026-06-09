@@ -79,6 +79,22 @@ describe("agent contracts", () => {
     });
   });
 
+  it("reports unmarked root guidance with an existing child contract as broken", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+      writeFileSync(join(dir, "AGENTS.md"), "# Existing Agent Rules\n\nKeep local policy.\n", "utf8");
+
+      const result = checkAgentContracts(dir);
+
+      assert.equal(existsSync(join(dir, "benjamin-docs/AGENTS.md")), true);
+      assert.equal(result.enabled, true);
+      assert.equal(result.ok, false);
+      assert.match(result.summary, /needs attention/);
+      assert.match(result.errors.join("\n"), /Child AGENTS\.md exists but is missing from root index: benjamin-docs\/AGENTS\.md/);
+      assert.match(result.warnings.join("\n"), /no Benjamin Docs markers/);
+    });
+  });
+
   it("reports a missing configured docs root", () => {
     withTempDir((dir) => {
       runCli(["init", "--mode", "codebase", "--agent-contract"], dir);

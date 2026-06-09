@@ -127,11 +127,16 @@ export function checkAgentContracts(root: string): AgentContractCheckResult {
   const content = readFileSync(rootAgentsPath, "utf8");
   const markerState = getMarkerState(content);
   if (!markerState.hasStart && !markerState.hasEnd) {
+    const unindexedChildErrors = checkChildContractsWithoutRootIndex(root);
+
     return {
-      ok: true,
+      ok: unindexedChildErrors.length === 0,
       enabled: true,
-      summary: "Existing AGENTS.md has no Benjamin Docs section.",
-      errors: [],
+      summary:
+        unindexedChildErrors.length === 0
+          ? "Existing AGENTS.md has no Benjamin Docs section."
+          : "Benjamin Docs agent guidance needs attention.",
+      errors: unindexedChildErrors,
       warnings: ["Existing AGENTS.md is preserved because it has no Benjamin Docs markers."],
     };
   }
@@ -284,6 +289,14 @@ function checkIndexedChildContracts(root: string, childPaths: string[]): string[
   }
 
   return errors;
+}
+
+function checkChildContractsWithoutRootIndex(root: string): string[] {
+  try {
+    return checkExpectedChildContractIndex(root, readConfig(root).docsRoot, []);
+  } catch {
+    return [];
+  }
 }
 
 function checkOrphanedChildContracts(root: string): string[] {
