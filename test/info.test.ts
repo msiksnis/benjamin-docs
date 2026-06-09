@@ -56,7 +56,11 @@ describe("info commands", () => {
       assert.match(output, /Use the benjamin-docs skill to create a project from this chat/);
       assert.match(output, /benjamin-docs chat-project/);
       assert.match(output, /benjamin-docs init/);
+      assert.match(output, /benjamin-docs ready/);
+      assert.match(output, /benjamin-docs help/);
+      assert.match(output, /benjamin-docs commands/);
       assert.match(output, /Capture the current project baseline with benjamin-docs/);
+      assert.doesNotMatch(output, /benjamin-docs validate/);
       assert.doesNotMatch(output, /local notebook/i);
     });
   });
@@ -70,6 +74,10 @@ describe("info commands", () => {
       assert.match(output, /Suggested folder: ~\/Documents\/Benjamin Docs\/Daily Handover Printable PDF/);
       assert.match(output, /Reply "yes" to create it/);
       assert.match(output, /benjamin-docs init --mode planning/);
+      assert.match(output, /benjamin-docs ready/);
+      assert.match(output, /If ready fails/);
+      assert.match(output, /validate, review, or doctor --strict/);
+      assert.doesNotMatch(output, /Run: benjamin-docs validate/);
       assert.match(output, /benjamin-docs\/ with project, handoff, engineering, features, and releases docs/);
       assert.match(output, /\.benjamin-docs\/ with config, manifest, scopes, and anchors metadata/);
       assert.match(output, /Do not use temporary chat workspaces/);
