@@ -145,7 +145,11 @@ export function checkAgentContracts(root: string): AgentContractCheckResult {
     errors.push(`AGENTS.md Benjamin Docs section must reference configured docs root ${docsRoot}.`);
   }
 
-  errors.push(...checkIndexedChildContracts(root, section));
+  const indexedChildPaths = childContractIndexPaths(section);
+  errors.push(...checkIndexedChildContracts(root, indexedChildPaths));
+  if (docsRoot) {
+    errors.push(...checkExpectedChildContractIndex(root, docsRoot, indexedChildPaths));
+  }
 
   return {
     ok: errors.length === 0,
@@ -217,10 +221,10 @@ function getMarkerState(content: string): MarkerState {
   };
 }
 
-function checkIndexedChildContracts(root: string, section: string): string[] {
+function checkIndexedChildContracts(root: string, childPaths: string[]): string[] {
   const errors: string[] = [];
 
-  for (const childPath of childContractIndexPaths(section)) {
+  for (const childPath of childPaths) {
     let parts: string[];
     try {
       parts = childIndexPathParts(childPath);
@@ -242,6 +246,24 @@ function checkIndexedChildContracts(root: string, section: string): string[] {
   }
 
   return errors;
+}
+
+function checkExpectedChildContractIndex(root: string, docsRoot: string, indexedChildPaths: string[]): string[] {
+  const expectedChildPath = `${docsRoot}/AGENTS.md`;
+  if (indexedChildPaths.includes(expectedChildPath)) return [];
+
+  let parts: string[];
+  try {
+    parts = childIndexPathParts(expectedChildPath);
+    assertGeneratedPathSafe(root, parts, AGENT_GUIDANCE_LABEL, "file");
+  } catch (error) {
+    return [`Unable to check expected child contract ${expectedChildPath}: ${errorMessage(error)}.`];
+  }
+
+  const childStat = lstatIfExists(rootPath(root, ...parts));
+  if (!childStat?.isFile()) return [];
+
+  return [`Child AGENTS.md exists but is missing from root index: ${expectedChildPath}.`];
 }
 
 function childContractIndexPaths(section: string): string[] {
