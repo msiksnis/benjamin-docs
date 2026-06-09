@@ -85,7 +85,7 @@ export function checkAgentContracts(root: string): AgentContractCheckResult {
   if (!markerState.hasStart && !markerState.hasEnd) {
     return {
       ok: true,
-      enabled: false,
+      enabled: true,
       summary: "Existing AGENTS.md has no Benjamin Docs section.",
       errors: [],
       warnings: ["Existing AGENTS.md is preserved because it has no Benjamin Docs markers."],

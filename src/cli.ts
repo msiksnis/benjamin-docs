@@ -221,7 +221,7 @@ function parseInitArgs(args: string[]): InitProjectOptions {
       continue;
     }
 
-    if (arg === "--agent-contract" || arg === "--agent-guidance") {
+    if (arg === "--agent-contract") {
       options.agentContract = true;
       continue;
     }
