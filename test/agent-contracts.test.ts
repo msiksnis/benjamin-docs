@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { checkAgentContracts } from "../src/agent-contracts.js";
 import { runCli, runCliResult, withTempDir } from "./helpers.js";
@@ -66,6 +67,85 @@ describe("agent contracts", () => {
     });
   });
 
+  it("fails safely when root AGENTS.md is a symlink during install", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
+      try {
+        const outsideAgentsPath = join(outsideDir, "AGENTS.md");
+        writeFileSync(outsideAgentsPath, "# External Rules\n\nDo not touch this.\n", "utf8");
+        symlinkSync(outsideAgentsPath, join(dir, "AGENTS.md"), "file");
+
+        const result = runCliResult(["init", "--mode", "codebase", "--agent-contract"], dir);
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Agent guidance path must not be a symlink: AGENTS\.md/);
+        assert.equal(readFileSync(outsideAgentsPath, "utf8"), "# External Rules\n\nDo not touch this.\n");
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it("returns a structured error when root AGENTS.md is a symlink during check", () => {
+    withTempDir((dir) => {
+      const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
+      try {
+        const outsideAgentsPath = join(outsideDir, "AGENTS.md");
+        writeFileSync(outsideAgentsPath, "# External Rules\n\nDo not read this.\n", "utf8");
+        symlinkSync(outsideAgentsPath, join(dir, "AGENTS.md"), "file");
+
+        const result = checkAgentContracts(dir);
+
+        assert.equal(result.enabled, true);
+        assert.equal(result.ok, false);
+        assert.match(result.summary, /cannot be checked safely/);
+        assert.match(result.errors.join("\n"), /Agent guidance path must not be a symlink: AGENTS\.md/);
+        assert.deepEqual(result.warnings, []);
+      } finally {
+        rmSync(outsideDir, { recursive: true, force: true });
+      }
+    });
+  });
+
+  it("preserves duplicate Benjamin marker sections during install", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase"], dir);
+      const agentsPath = join(dir, "AGENTS.md");
+      const malformed = [
+        "# Existing Agent Rules",
+        "",
+        "<!-- benjamin-docs:start -->",
+        "First section.",
+        "<!-- benjamin-docs:end -->",
+        "",
+        "<!-- benjamin-docs:start -->",
+        "Second section.",
+        "<!-- benjamin-docs:end -->",
+        "",
+      ].join("\n");
+      writeFileSync(agentsPath, malformed, "utf8");
+
+      const output = runCli(["init", "--mode", "codebase", "--agent-contract"], dir);
+
+      assert.equal(readFileSync(agentsPath, "utf8"), malformed);
+      assert.match(output, /Agent guidance: preserved existing AGENTS\.md/);
+    });
+  });
+
+  it("preserves one-sided Benjamin markers during install", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase"], dir);
+      const agentsPath = join(dir, "AGENTS.md");
+      const malformed = "# Existing Agent Rules\n\n<!-- benjamin-docs:start -->\nIncomplete section.\n";
+      writeFileSync(agentsPath, malformed, "utf8");
+
+      const output = runCli(["init", "--mode", "codebase", "--agent-contract"], dir);
+
+      assert.equal(readFileSync(agentsPath, "utf8"), malformed);
+      assert.match(output, /Agent guidance: preserved existing AGENTS\.md/);
+    });
+  });
+
   it("creates conservative child contracts when requested", () => {
     withTempDir((dir) => {
       runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
@@ -78,6 +158,19 @@ describe("agent contracts", () => {
       assert.match(root, /Child Agent Contract Index/);
       assert.match(root, /benjamin-docs\/AGENTS\.md/);
       assert.match(child, /Benjamin-managed project memory/);
+    });
+  });
+
+  it("reports a missing indexed child contract", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+      rmSync(join(dir, "benjamin-docs/AGENTS.md"));
+
+      const result = checkAgentContracts(dir);
+
+      assert.equal(result.enabled, true);
+      assert.equal(result.ok, false);
+      assert.match(result.errors.join("\n"), /missing child contract: benjamin-docs\/AGENTS\.md/);
     });
   });
 

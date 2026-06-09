@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
+import { isAbsolute, win32 } from "node:path";
 import { readConfig } from "./project-config.js";
-import { lstatIfExists, rootPath, writeGeneratedText, writeGeneratedTextIfMissing } from "./fsx.js";
+import { assertGeneratedPathSafe, lstatIfExists, rootPath, writeGeneratedText, writeGeneratedTextIfMissing } from "./fsx.js";
 
 const ROOT_AGENTS_PATH = "AGENTS.md";
 const START_MARKER = "<!-- benjamin-docs:start -->";
@@ -25,10 +26,22 @@ export interface AgentContractCheckResult {
   warnings: string[];
 }
 
+interface MarkerState {
+  hasStart: boolean;
+  hasEnd: boolean;
+  balanced: boolean;
+  startIndex: number;
+  endIndex: number;
+}
+
 export function installAgentContracts(root: string, options: AgentContractOptions = {}): AgentContractResult {
   const config = readConfig(root);
   const written: string[] = [];
   const messages: string[] = [];
+  const rootAgentsPath = rootPath(root, ROOT_AGENTS_PATH);
+  const existing = lstatIfExists(rootAgentsPath);
+  if (existing) assertGeneratedPathSafe(root, [ROOT_AGENTS_PATH], AGENT_GUIDANCE_LABEL, "file");
+
   const childPaths = options.children ? discoverChildContractPaths(root, config.docsRoot) : [];
 
   for (const childPath of childPaths) {
@@ -38,8 +51,6 @@ export function installAgentContracts(root: string, options: AgentContractOption
     }
   }
 
-  const rootAgentsPath = rootPath(root, ROOT_AGENTS_PATH);
-  const existing = lstatIfExists(rootAgentsPath);
   const rootSection = rootContractSection(config.docsRoot, childPaths);
 
   if (!existing) {
@@ -50,13 +61,14 @@ export function installAgentContracts(root: string, options: AgentContractOption
   }
 
   const content = readFileSync(rootAgentsPath, "utf8");
-  const replacement = replaceMarkedSection(content, rootSection);
-  if (!replacement) {
+  const markerState = getMarkerState(content);
+  if (!markerState.balanced) {
     messages.push("Agent guidance: preserved existing AGENTS.md.");
     messages.push("Consider adding a Benjamin Docs section or splitting long guidance into child AGENTS.md files.");
     return { written, messages, preservedExisting: true };
   }
 
+  const replacement = replaceMarkedSection(content, markerState, rootSection);
   if (replacement !== content) {
     writeGeneratedText(root, ROOT_AGENTS_PATH, replacement, AGENT_GUIDANCE_LABEL);
     written.push(ROOT_AGENTS_PATH);
@@ -76,6 +88,18 @@ export function checkAgentContracts(root: string): AgentContractCheckResult {
       enabled: false,
       summary: "Benjamin Docs agent guidance is not installed.",
       errors: [],
+      warnings: [],
+    };
+  }
+
+  try {
+    assertGeneratedPathSafe(root, [ROOT_AGENTS_PATH], AGENT_GUIDANCE_LABEL, "file");
+  } catch (error) {
+    return {
+      ok: false,
+      enabled: true,
+      summary: "Benjamin Docs agent guidance cannot be checked safely.",
+      errors: [errorMessage(error)],
       warnings: [],
     };
   }
@@ -120,6 +144,8 @@ export function checkAgentContracts(root: string): AgentContractCheckResult {
   if (docsRoot && !section.includes(`${docsRoot}/`)) {
     errors.push(`AGENTS.md Benjamin Docs section must reference configured docs root ${docsRoot}.`);
   }
+
+  errors.push(...checkIndexedChildContracts(root, section));
 
   return {
     ok: errors.length === 0,
@@ -172,23 +198,11 @@ function discoverChildContractPaths(root: string, docsRoot: string): string[] {
   return [`${docsRoot}/AGENTS.md`];
 }
 
-function replaceMarkedSection(content: string, replacement: string): string | undefined {
-  const startIndex = content.indexOf(START_MARKER);
-  if (startIndex === -1) return undefined;
-
-  const endIndex = content.indexOf(END_MARKER, startIndex + START_MARKER.length);
-  if (endIndex === -1) return undefined;
-
-  return `${content.slice(0, startIndex)}${replacement}${content.slice(endIndex + END_MARKER.length)}`;
+function replaceMarkedSection(content: string, markerState: MarkerState, replacement: string): string {
+  return `${content.slice(0, markerState.startIndex)}${replacement}${content.slice(markerState.endIndex + END_MARKER.length)}`;
 }
 
-function getMarkerState(content: string): {
-  hasStart: boolean;
-  hasEnd: boolean;
-  balanced: boolean;
-  startIndex: number;
-  endIndex: number;
-} {
+function getMarkerState(content: string): MarkerState {
   const startMatches = content.match(new RegExp(escapeRegExp(START_MARKER), "g")) ?? [];
   const endMatches = content.match(new RegExp(escapeRegExp(END_MARKER), "g")) ?? [];
   const startIndex = content.indexOf(START_MARKER);
@@ -201,6 +215,63 @@ function getMarkerState(content: string): {
     startIndex,
     endIndex,
   };
+}
+
+function checkIndexedChildContracts(root: string, section: string): string[] {
+  const errors: string[] = [];
+
+  for (const childPath of childContractIndexPaths(section)) {
+    let parts: string[];
+    try {
+      parts = childIndexPathParts(childPath);
+      assertGeneratedPathSafe(root, parts, AGENT_GUIDANCE_LABEL, "file");
+    } catch (error) {
+      errors.push(`AGENTS.md references unsafe child contract: ${childPath} (${errorMessage(error)}).`);
+      continue;
+    }
+
+    const childStat = lstatIfExists(rootPath(root, ...parts));
+    if (!childStat) {
+      errors.push(`AGENTS.md references missing child contract: ${childPath}.`);
+      continue;
+    }
+
+    if (!childStat.isFile()) {
+      errors.push(`AGENTS.md references child contract that is not a regular file: ${childPath}.`);
+    }
+  }
+
+  return errors;
+}
+
+function childContractIndexPaths(section: string): string[] {
+  const lines = section.split(/\r?\n/);
+  const headerIndex = lines.findIndex((line) => line.trim() === "### Child Agent Contract Index");
+  if (headerIndex === -1) return [];
+
+  const paths: string[] = [];
+  for (const line of lines.slice(headerIndex + 1)) {
+    const trimmed = line.trim();
+    if (/^#{1,6}\s+/.test(trimmed)) break;
+
+    const match = trimmed.match(/^- `([^`]+)`$/);
+    if (match?.[1]) paths.push(match[1]);
+  }
+
+  return paths;
+}
+
+function childIndexPathParts(relativePath: string): string[] {
+  if (!relativePath || relativePath.includes("\\") || isAbsolute(relativePath) || win32.isAbsolute(relativePath)) {
+    throw new Error(`child contract path must be a relative project path: ${relativePath}`);
+  }
+
+  const parts = relativePath.split("/");
+  if (parts.some((part) => part === "" || part === "." || part === ".." || isAbsolute(part) || win32.isAbsolute(part))) {
+    throw new Error(`child contract path must be a relative project path: ${relativePath}`);
+  }
+
+  return parts;
 }
 
 function escapeRegExp(value: string): string {
