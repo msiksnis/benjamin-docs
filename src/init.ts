@@ -18,6 +18,8 @@ export interface InitProjectOptions {
   setup?: FocusType;
   feature?: string;
   docsRoot?: string;
+  agentContract?: boolean;
+  childContracts?: boolean;
 }
 
 export interface InitProjectResult {

@@ -4,6 +4,7 @@ import { emitKeypressEvents } from "node:readline";
 import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 import { addAnchor } from "./anchors.js";
+import { installAgentContracts } from "./agent-contracts.js";
 import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
 import { getCommandsText } from "./commands.js";
 import { runDoctor } from "./doctor.js";
@@ -88,6 +89,10 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
     const options = await resolveInitOptions(argv.slice(1));
     const result = initProject(cwd, options);
     console.log(`Initialized benjamin-docs. ${result.written.length} files created.`);
+    if (options.agentContract) {
+      const agentResult = installAgentContracts(cwd, { children: options.childContracts });
+      for (const message of agentResult.messages) console.log(message);
+    }
     console.log("");
     console.log(formatNextMessage(getNextPrompt(cwd)));
     return 0;
@@ -180,10 +185,11 @@ async function resolveInitOptions(args: string[]): Promise<InitProjectOptions> {
   if (parsed.setup) return parsed;
 
   if (process.stdin.isTTY && process.stdout.isTTY) {
-    return promptForInitOptions();
+    const prompted = await promptForInitOptions();
+    return { ...prompted, ...parsed };
   }
 
-  return { setup: "project" };
+  return { ...parsed, setup: "project" };
 }
 
 function parseInitArgs(args: string[]): InitProjectOptions {
@@ -212,6 +218,17 @@ function parseInitArgs(args: string[]): InitProjectOptions {
       if (!value) throw new Error("Usage: benjamin-docs init --docs-root <path>");
       options.docsRoot = value;
       index += 1;
+      continue;
+    }
+
+    if (arg === "--agent-contract" || arg === "--agent-guidance") {
+      options.agentContract = true;
+      continue;
+    }
+
+    if (arg === "--children") {
+      options.childContracts = true;
+      options.agentContract = true;
       continue;
     }
 
