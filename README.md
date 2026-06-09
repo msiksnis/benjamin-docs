@@ -25,7 +25,7 @@ So the next person or agent can start with context instead of asking you to expl
 ```bash
 pnpm add -g benjamin-docs
 benjamin-docs install-skill
-benjamin-docs introduce
+benjamin-docs help
 ```
 
 Also works as a project dependency:
@@ -60,7 +60,31 @@ benjamin-docs package-skill
 
 Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
 
-## Use It From Any Chat
+## Main Commands
+
+Start here:
+
+```bash
+benjamin-docs init
+benjamin-docs ready
+benjamin-docs help
+```
+
+`init` creates project memory. `ready` checks setup, validation, and docs quality. `help` shows the simple path.
+
+For the full command drawer:
+
+```bash
+benjamin-docs commands
+```
+
+Frequent users can use the short alias:
+
+```bash
+bd ready
+```
+
+## Turn A Chat Into Project Memory
 
 If you only have a chat and no project folder yet, ask your agent:
 
@@ -82,7 +106,7 @@ benjamin-docs/
 .benjamin-docs/
 ```
 
-For the exact agent prompt:
+The skill runs planning setup, writes the starter project memory, and checks whether the project is ready. For the exact agent prompt:
 
 ```bash
 benjamin-docs chat-project
@@ -93,8 +117,7 @@ benjamin-docs chat-project
 For an existing codebase:
 
 ```bash
-benjamin-docs init --mode codebase
-benjamin-docs next
+benjamin-docs init
 ```
 
 Then ask your agent:
@@ -109,33 +132,31 @@ When the docs are captured:
 benjamin-docs ready
 ```
 
-For a planning-only folder:
+Use mode flags only when you want to be specific:
 
 ```bash
 benjamin-docs init --mode planning
+benjamin-docs init --mode codebase
 benjamin-docs next
 ```
 
-For one feature:
+When you want future agents to work from repo-local guidance:
 
 ```bash
-benjamin-docs init --mode feature --feature billing-reminders
+benjamin-docs init --agent-contract
 ```
 
-## Check The Docs
+Existing `AGENTS.md` files are preserved. Treat existing agent instructions as user-owned guidance and approve any rewrite deliberately.
+
+## Check Readiness
 
 ```bash
-benjamin-docs validate
-benjamin-docs review
-benjamin-docs doctor --strict
 benjamin-docs ready
 ```
 
-`review` looks for thin or starter-template docs.
-
-`doctor --strict` fails on setup gaps, validation warnings, and validation errors.
-
 `ready` runs the full gate: setup, validation, and docs quality.
+
+If `ready` fails, use `benjamin-docs commands` to find lower-level diagnostics such as validation, review, or doctor checks.
 
 ## What It Creates
 
@@ -156,26 +177,9 @@ benjamin-docs/
 
 Existing `docs/` folders are left alone unless you explicitly configure otherwise.
 
-## Useful Commands
+## More Commands
 
-```bash
-benjamin-docs introduce
-benjamin-docs chat-project
-benjamin-docs install-skill
-benjamin-docs doctor
-benjamin-docs doctor --strict
-benjamin-docs review
-benjamin-docs ready
-benjamin-docs package-skill
-benjamin-docs init
-benjamin-docs init --mode codebase
-benjamin-docs init --mode feature --feature <slug>
-benjamin-docs next
-benjamin-docs status
-benjamin-docs validate
-benjamin-docs scope create feature <slug>
-benjamin-docs export --audience developer
-```
+Use `benjamin-docs commands` when you need advanced setup, diagnostics, exports, scope commands, or skill packaging.
 
 ## Local Development
 

@@ -68,9 +68,9 @@ Critical rules:
    - `handoff/human-brief.md`
    - `handoff/agent-brief.md`
 11. Do not invent certainty. Mark assumptions and unresolved questions clearly.
-12. Run the local CLI command with `validate`.
-13. When the user wants the project to be handoff-ready, run `ready` too. If `ready` fails, fix weak docs or setup gaps before claiming the project is ready.
-14. Report the created project path, project structure, main docs updated, key decisions captured, unresolved questions, and whether `validate` / `ready` passed.
+12. Run the local CLI command with `ready` as the completion gate for the created project.
+13. If `ready` fails, use lower-level checks such as `validate`, `review`, or `doctor --strict` only to diagnose the failed result, then fix weak docs or setup gaps before claiming the project is ready.
+14. Report the created project path, project structure, main docs updated, key decisions captured, unresolved questions, and whether `ready` passed. Mention lower-level checks only if you ran them.
 
 When reporting completion, do not imply the project is only a few files. Say the project structure was created:
 
@@ -111,9 +111,26 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 8. Write durable Benjamin-managed docs only under the configured docs root, usually `benjamin-docs/`.
 9. Existing `docs/` directories may be read as project context, but do not create or update Benjamin-managed docs there unless `.benjamin-docs/config.json` explicitly sets `docsRoot` to `docs`.
 10. Update existing docs instead of dumping a transcript.
-11. Run the local CLI command with `validate`.
-12. For a baseline capture, handoff, or public-readiness pass, run the local CLI command with `ready`.
-13. Report changed files, key decisions captured, unresolved questions, and whether `validate` / `ready` passed.
+11. For a baseline capture, handoff, or any request asking whether the project is ready, run the local CLI command with `ready` as the primary gate.
+12. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
+13. For small captures where readiness is not relevant, run `validate` to confirm Markdown and frontmatter are valid.
+14. Report changed files, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
+
+## Agent Guidance / AGENTS.md
+
+When initializing or updating a codebase, app, feature, or change project and the user wants future agents to work from project memory, prefer:
+
+```bash
+benjamin-docs init --agent-contract
+```
+
+Never overwrite an existing `AGENTS.md`.
+
+Treat existing agent instructions as user-owned source material. If `AGENTS.md` exists without a Benjamin-owned section, preserve it and suggest one of these paths:
+
+- add a Benjamin Docs section
+- split long guidance into child `AGENTS.md` files
+- rewrite existing guidance only with explicit user approval
 
 ## Capture Quality
 
