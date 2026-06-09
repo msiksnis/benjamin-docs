@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runCliResult, withTempDir } from "./helpers.js";
 
@@ -98,6 +98,23 @@ describe("ready", () => {
       assert.equal(result.status, 0);
       assert.match(result.stdout, /ok\s+agent guidance/);
       assert.match(result.stdout, /warning: Existing AGENTS\.md/);
+    });
+  });
+
+  it("fails when child agent guidance exists without a root AGENTS.md index", () => {
+    withTempDir((dir) => {
+      runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+      writeReadyBaseline(dir);
+      rmSync(join(dir, "AGENTS.md"));
+
+      const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /status: not ready/);
+      assert.match(result.stdout, /fail\s+agent guidance/);
+      assert.match(result.stdout, /Child AGENTS\.md exists but root AGENTS\.md is missing: benjamin-docs\/AGENTS\.md/);
     });
   });
 });

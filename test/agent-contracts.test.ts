@@ -230,6 +230,20 @@ describe("agent contracts", () => {
     });
   });
 
+  it("reports an existing child contract when the root AGENTS.md is missing", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+      rmSync(join(dir, "AGENTS.md"));
+
+      const result = checkAgentContracts(dir);
+
+      assert.equal(existsSync(join(dir, "benjamin-docs/AGENTS.md")), true);
+      assert.equal(result.enabled, true);
+      assert.equal(result.ok, false);
+      assert.match(result.errors.join("\n"), /Child AGENTS\.md exists but root AGENTS\.md is missing: benjamin-docs\/AGENTS\.md/);
+    });
+  });
+
   it("rejects the unsupported agent guidance alias", () => {
     withTempDir((dir) => {
       const result = runCliResult(["init", "--agent-guidance"], dir);

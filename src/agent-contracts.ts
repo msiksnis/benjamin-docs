@@ -92,6 +92,17 @@ export function installAgentContracts(root: string, options: AgentContractOption
 export function checkAgentContracts(root: string): AgentContractCheckResult {
   const rootAgentsPath = rootPath(root, ROOT_AGENTS_PATH);
   if (!lstatIfExists(rootAgentsPath)) {
+    const orphanedChildErrors = checkOrphanedChildContracts(root);
+    if (orphanedChildErrors.length > 0) {
+      return {
+        ok: false,
+        enabled: true,
+        summary: "Benjamin Docs agent guidance needs attention.",
+        errors: orphanedChildErrors,
+        warnings: [],
+      };
+    }
+
     return {
       ok: true,
       enabled: false,
@@ -273,6 +284,35 @@ function checkIndexedChildContracts(root: string, childPaths: string[]): string[
   }
 
   return errors;
+}
+
+function checkOrphanedChildContracts(root: string): string[] {
+  let docsRoot: string;
+  try {
+    docsRoot = readConfig(root).docsRoot;
+  } catch {
+    return [];
+  }
+
+  const expectedChildPath = `${docsRoot}/AGENTS.md`;
+  let parts: string[];
+  try {
+    parts = childIndexPathParts(expectedChildPath);
+  } catch (error) {
+    return [`Unable to check expected child contract ${expectedChildPath}: ${errorMessage(error)}.`];
+  }
+
+  try {
+    assertGeneratedPathSafe(root, parts, AGENT_GUIDANCE_LABEL, "file");
+  } catch (error) {
+    return [`Child AGENTS.md exists but root AGENTS.md is missing: ${expectedChildPath} (${errorMessage(error)}).`];
+  }
+
+  const childStat = lstatIfExists(rootPath(root, ...parts));
+  if (!childStat) return [];
+  if (!childStat.isFile()) return [`Child AGENTS.md exists but is not a regular file: ${expectedChildPath}.`];
+
+  return [`Child AGENTS.md exists but root AGENTS.md is missing: ${expectedChildPath}.`];
 }
 
 function checkConfiguredDocsRoot(root: string, docsRoot: string): string[] {
