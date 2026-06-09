@@ -228,11 +228,14 @@ function parseInitArgs(args: string[]): InitProjectOptions {
 
     if (arg === "--children") {
       options.childContracts = true;
-      options.agentContract = true;
       continue;
     }
 
     throw new Error(`Unknown init option: ${arg}`);
+  }
+
+  if (options.childContracts && !options.agentContract) {
+    throw new Error("Usage: benjamin-docs init --agent-contract --children");
   }
 
   return options;

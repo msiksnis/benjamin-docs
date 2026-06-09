@@ -42,7 +42,10 @@ export function installAgentContracts(root: string, options: AgentContractOption
   const existing = lstatIfExists(rootAgentsPath);
   if (existing) assertGeneratedPathSafe(root, [ROOT_AGENTS_PATH], AGENT_GUIDANCE_LABEL, "file");
 
-  const childPaths = options.children ? discoverChildContractPaths(root, config.docsRoot) : [];
+  const childPaths = uniquePaths([
+    ...(options.children ? discoverChildContractPaths(root, config.docsRoot) : []),
+    ...discoverExistingChildContractPaths(root, config.docsRoot),
+  ]);
 
   for (const childPath of childPaths) {
     if (writeGeneratedTextIfMissing(root, childPath, childContractContent(config.docsRoot), AGENT_GUIDANCE_LABEL)) {
@@ -137,6 +140,10 @@ export function checkAgentContracts(root: string): AgentContractCheckResult {
     errors.push(`Unable to read .benjamin-docs/config.json: ${errorMessage(error)}`);
   }
 
+  if (docsRoot) {
+    errors.push(...checkConfiguredDocsRoot(root, docsRoot));
+  }
+
   if (!section.includes(".benjamin-docs/config.json")) {
     errors.push("AGENTS.md Benjamin Docs section must reference .benjamin-docs/config.json.");
   }
@@ -202,6 +209,20 @@ function discoverChildContractPaths(root: string, docsRoot: string): string[] {
   return [`${docsRoot}/AGENTS.md`];
 }
 
+function discoverExistingChildContractPaths(root: string, docsRoot: string): string[] {
+  const childPath = `${docsRoot}/AGENTS.md`;
+  let parts: string[];
+  try {
+    parts = childIndexPathParts(childPath);
+    assertGeneratedPathSafe(root, parts, AGENT_GUIDANCE_LABEL, "file");
+  } catch {
+    return [];
+  }
+
+  const childStat = lstatIfExists(rootPath(root, ...parts));
+  return childStat?.isFile() ? [childPath] : [];
+}
+
 function replaceMarkedSection(content: string, markerState: MarkerState, replacement: string): string {
   return `${content.slice(0, markerState.startIndex)}${replacement}${content.slice(markerState.endIndex + END_MARKER.length)}`;
 }
@@ -246,6 +267,21 @@ function checkIndexedChildContracts(root: string, childPaths: string[]): string[
   }
 
   return errors;
+}
+
+function checkConfiguredDocsRoot(root: string, docsRoot: string): string[] {
+  let parts: string[];
+  try {
+    parts = childIndexPathParts(docsRoot);
+    assertGeneratedPathSafe(root, parts, "Configured docs root", "any");
+  } catch (error) {
+    return [`Configured docs root is unsafe: ${docsRoot}/ (${errorMessage(error)}).`];
+  }
+
+  const docsRootStat = lstatIfExists(rootPath(root, ...parts));
+  if (!docsRootStat) return [`Configured docs root is missing: ${docsRoot}/.`];
+  if (!docsRootStat.isDirectory()) return [`Configured docs root is not a directory: ${docsRoot}/.`];
+  return [];
 }
 
 function checkExpectedChildContractIndex(root: string, docsRoot: string, indexedChildPaths: string[]): string[] {
@@ -294,6 +330,10 @@ function childIndexPathParts(relativePath: string): string[] {
   }
 
   return parts;
+}
+
+function uniquePaths(paths: string[]): string[] {
+  return [...new Set(paths)];
 }
 
 function escapeRegExp(value: string): string {

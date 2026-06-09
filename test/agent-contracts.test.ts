@@ -67,6 +67,19 @@ describe("agent contracts", () => {
     });
   });
 
+  it("reports a missing configured docs root", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase", "--agent-contract"], dir);
+      rmSync(join(dir, "benjamin-docs"), { recursive: true, force: true });
+
+      const result = checkAgentContracts(dir);
+
+      assert.equal(result.enabled, true);
+      assert.equal(result.ok, false);
+      assert.match(result.errors.join("\n"), /Configured docs root is missing: benjamin-docs\//);
+    });
+  });
+
   it("fails safely when root AGENTS.md is a symlink during install", () => {
     withTempDir((dir) => {
       const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));
@@ -161,6 +174,21 @@ describe("agent contracts", () => {
     });
   });
 
+  it("keeps existing child contract indexed on repeat init without children flag", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+      runCli(["init", "--mode", "codebase", "--agent-contract"], dir);
+
+      const root = readFileSync(join(dir, "AGENTS.md"), "utf8");
+      const result = checkAgentContracts(dir);
+
+      assert.match(root, /benjamin-docs\/AGENTS\.md/);
+      assert.equal(result.enabled, true);
+      assert.equal(result.ok, true);
+      assert.deepEqual(result.errors, []);
+    });
+  });
+
   it("reports a missing indexed child contract", () => {
     withTempDir((dir) => {
       runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
@@ -196,6 +224,15 @@ describe("agent contracts", () => {
 
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Unknown init option: --agent-guidance/);
+    });
+  });
+
+  it("rejects children without agent contract", () => {
+    withTempDir((dir) => {
+      const result = runCliResult(["init", "--children"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Usage: benjamin-docs init --agent-contract --children/);
     });
   });
 });
