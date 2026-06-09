@@ -113,8 +113,7 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 10. Update existing docs instead of dumping a transcript.
 11. For a baseline capture, handoff, or any request asking whether the project is ready, run the local CLI command with `ready` as the primary gate.
 12. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
-13. For small captures where readiness is not relevant, run `validate` to confirm Markdown and frontmatter are valid.
-14. Report changed files, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
+13. Report changed files, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
 
 ## Agent Guidance / AGENTS.md
 
