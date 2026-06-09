@@ -18,6 +18,16 @@ describe("init", () => {
     ]);
   });
 
+  it("offers agent guidance from codebase and feature init choices", async () => {
+    const cliPath = pathToFileURL(join(process.cwd(), "dist/src/cli.js")).href;
+    const cli = await import(cliPath);
+
+    assert.equal(cli.shouldOfferAgentGuidance("project"), false);
+    assert.equal(cli.shouldOfferAgentGuidance("codebase"), true);
+    assert.equal(cli.shouldOfferAgentGuidance("feature"), true);
+    assert.equal(cli.agentGuidancePromptLabel(), "Add AI agent guidance for this project? Recommended.");
+  });
+
   it("creates docs and metadata in an empty planning repo", () => {
     withTempDir((dir) => {
       const output = runCli(["init"], dir);

@@ -42,6 +42,18 @@ export function installAgentContracts(root: string, options: AgentContractOption
   const existing = lstatIfExists(rootAgentsPath);
   if (existing) assertGeneratedPathSafe(root, [ROOT_AGENTS_PATH], AGENT_GUIDANCE_LABEL, "file");
 
+  let existingContent = "";
+  let existingMarkerState: MarkerState | undefined;
+  if (existing) {
+    existingContent = readFileSync(rootAgentsPath, "utf8");
+    existingMarkerState = getMarkerState(existingContent);
+    if (!existingMarkerState.balanced) {
+      messages.push("Agent guidance: preserved existing AGENTS.md.");
+      messages.push("Consider adding a Benjamin Docs section or splitting long guidance into child AGENTS.md files.");
+      return { written, messages, preservedExisting: true };
+    }
+  }
+
   const childPaths = uniquePaths([
     ...(options.children ? discoverChildContractPaths(root, config.docsRoot) : []),
     ...discoverExistingChildContractPaths(root, config.docsRoot),
@@ -63,16 +75,10 @@ export function installAgentContracts(root: string, options: AgentContractOption
     return { written, messages, preservedExisting: false };
   }
 
-  const content = readFileSync(rootAgentsPath, "utf8");
-  const markerState = getMarkerState(content);
-  if (!markerState.balanced) {
-    messages.push("Agent guidance: preserved existing AGENTS.md.");
-    messages.push("Consider adding a Benjamin Docs section or splitting long guidance into child AGENTS.md files.");
-    return { written, messages, preservedExisting: true };
-  }
+  if (!existingMarkerState) throw new Error("Internal error: existing AGENTS.md marker state was not read.");
 
-  const replacement = replaceMarkedSection(content, markerState, rootSection);
-  if (replacement !== content) {
+  const replacement = replaceMarkedSection(existingContent, existingMarkerState, rootSection);
+  if (replacement !== existingContent) {
     writeGeneratedText(root, ROOT_AGENTS_PATH, replacement, AGENT_GUIDANCE_LABEL);
     written.push(ROOT_AGENTS_PATH);
     messages.push("Agent guidance: updated AGENTS.md.");

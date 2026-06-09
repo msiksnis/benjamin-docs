@@ -53,6 +53,18 @@ describe("agent contracts", () => {
     });
   });
 
+  it("does not create child contracts when preserving an existing unmarked AGENTS.md", () => {
+    withTempDir((dir) => {
+      writeFileSync(join(dir, "AGENTS.md"), "# Existing Agent Rules\n\nKeep root guidance intact.\n", "utf8");
+
+      const output = runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+
+      assert.equal(readFileSync(join(dir, "AGENTS.md"), "utf8"), "# Existing Agent Rules\n\nKeep root guidance intact.\n");
+      assert.equal(existsSync(join(dir, "benjamin-docs/AGENTS.md")), false);
+      assert.match(output, /Agent guidance: preserved existing AGENTS\.md/);
+    });
+  });
+
   it("reports existing unmarked AGENTS.md as enabled but ok", () => {
     withTempDir((dir) => {
       writeFileSync(join(dir, "AGENTS.md"), "# Existing Agent Rules\n\nDo not overwrite this.\n", "utf8");

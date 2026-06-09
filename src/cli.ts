@@ -25,6 +25,14 @@ export function initChoiceLabels(): string[] {
   return ["A new project or idea", "A codebase or app", "One feature, change, or plan"];
 }
 
+export function shouldOfferAgentGuidance(setup: FocusType): boolean {
+  return setup === "codebase" || setup === "feature";
+}
+
+export function agentGuidancePromptLabel(): string {
+  return "Add AI agent guidance for this project? Recommended.";
+}
+
 export async function main(argv: string[] = process.argv.slice(2), cwd: string = process.cwd()): Promise<number> {
   const [command] = argv;
 
@@ -355,14 +363,38 @@ async function promptForInitOptions(): Promise<InitProjectOptions> {
   const selected = await selectChoice("What are you setting up?", choices.map((choice) => choice.label));
   const setup = choices[selected]?.setup ?? "project";
 
-  if (setup !== "feature") return { setup };
+  const options: InitProjectOptions = { setup };
 
+  if (setup === "feature") {
+    options.feature = await promptLine("Feature slug: ");
+  }
+
+  if (shouldOfferAgentGuidance(setup)) {
+    options.agentContract = await confirmChoice(agentGuidancePromptLabel(), true);
+  }
+
+  return options;
+}
+
+async function promptLine(question: string): Promise<string> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   try {
-    const feature = (await rl.question("Feature slug: ")).trim();
-    return { setup, feature };
+    return (await rl.question(question)).trim();
   } finally {
     rl.close();
+  }
+}
+
+async function confirmChoice(question: string, defaultValue: boolean): Promise<boolean> {
+  const suffix = defaultValue ? " [Y/n]: " : " [y/N]: ";
+
+  while (true) {
+    const answer = (await promptLine(`${question}${suffix}`)).trim().toLowerCase();
+    if (!answer) return defaultValue;
+    if (answer === "y" || answer === "yes") return true;
+    if (answer === "n" || answer === "no") return false;
+
+    process.stdout.write("Please answer yes or no.\n");
   }
 }
 
