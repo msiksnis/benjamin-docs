@@ -78,6 +78,8 @@ For the full command drawer:
 benjamin-docs commands
 ```
 
+In an interactive terminal, choose with Up/Down or type a number, then press Enter to run the selected command.
+
 Frequent users can use the short alias:
 
 ```bash

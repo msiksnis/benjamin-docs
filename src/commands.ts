@@ -1,43 +1,52 @@
 export interface CommandEntry {
   command: string;
   description: string;
+  args: string[];
 }
 
 export const mainCommands: CommandEntry[] = [
-  { command: "benjamin-docs init", description: "Set up local project memory and optional agent guidance." },
-  { command: "benjamin-docs ready", description: "Check whether project memory is handoff-ready." },
-  { command: "benjamin-docs help", description: "Show the short getting-started guide." },
+  { command: "benjamin-docs init", args: ["init"], description: "Set up local project memory and optional agent guidance." },
+  { command: "benjamin-docs ready", args: ["ready"], description: "Check whether project memory is handoff-ready." },
+  { command: "benjamin-docs help", args: ["help"], description: "Show the short getting-started guide." },
 ];
 
 export const advancedCommands: CommandEntry[] = [
-  { command: "benjamin-docs status", description: "Show current Benjamin Docs setup." },
-  { command: "benjamin-docs next", description: "Print the next recommended agent prompt." },
-  { command: "benjamin-docs validate", description: "Check structure, frontmatter, links, scopes, and anchors." },
-  { command: "benjamin-docs review", description: "Check for thin or starter-template docs." },
-  { command: "benjamin-docs doctor", description: "Check local setup and skill packaging." },
-  { command: "benjamin-docs doctor --strict", description: "Run setup checks as a strict gate." },
-  { command: "benjamin-docs export --audience developer", description: "Build a local audience-specific Markdown bundle." },
-  { command: "benjamin-docs scope create feature <slug>", description: "Create feature docs and metadata." },
-  { command: "benjamin-docs anchor add <id> <file>", description: "Link a stable code anchor to docs." },
-  { command: "benjamin-docs install-skill", description: "Install the bundled agent skill locally." },
-  { command: "benjamin-docs package-skill", description: "Package the skill for Claude upload." },
-  { command: "benjamin-docs chat-project", description: "Print exact guidance for chat-to-project workflows." },
+  { command: "benjamin-docs status", args: ["status"], description: "Show current Benjamin Docs setup." },
+  { command: "benjamin-docs next", args: ["next"], description: "Print the next recommended agent prompt." },
+  { command: "benjamin-docs validate", args: ["validate"], description: "Check structure, frontmatter, links, scopes, and anchors." },
+  { command: "benjamin-docs review", args: ["review"], description: "Check for thin or starter-template docs." },
+  { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
+  { command: "benjamin-docs doctor --strict", args: ["doctor", "--strict"], description: "Run setup checks as a strict gate." },
+  { command: "benjamin-docs export --audience developer", args: ["export", "--audience", "developer"], description: "Build a local audience-specific Markdown bundle." },
+  { command: "benjamin-docs scope create feature <slug>", args: ["scope", "create", "feature", "<slug>"], description: "Create feature docs and metadata." },
+  { command: "benjamin-docs anchor add <id> <file>", args: ["anchor", "add", "<id>", "<file>"], description: "Link a stable code anchor to docs." },
+  { command: "benjamin-docs install-skill", args: ["install-skill"], description: "Install the bundled agent skill locally." },
+  { command: "benjamin-docs package-skill", args: ["package-skill"], description: "Package the skill for Claude upload." },
+  { command: "benjamin-docs chat-project", args: ["chat-project"], description: "Print exact guidance for chat-to-project workflows." },
 ];
 
+export function allCommands(): CommandEntry[] {
+  return [...mainCommands, ...advancedCommands];
+}
+
 export function getCommandsText(): string {
+  const mainOffset = 0;
+  const advancedOffset = mainCommands.length;
+
   return [
     "benjamin-docs commands",
     "",
     "Main commands",
-    ...mainCommands.map(formatEntry),
+    ...mainCommands.map((entry, index) => formatEntry(entry, mainOffset + index + 1)),
     "",
     "Advanced commands",
-    ...advancedCommands.map(formatEntry),
+    ...advancedCommands.map((entry, index) => formatEntry(entry, advancedOffset + index + 1)),
     "",
+    "Tip: in an interactive terminal, use Up/Down or type a number, then press Enter.",
     "Tip: use the short alias `bd` when it is installed, for example `bd init`.",
   ].join("\n");
 }
 
-function formatEntry(entry: CommandEntry): string {
-  return `  ${entry.command.padEnd(48)} ${entry.description}`;
+function formatEntry(entry: CommandEntry, number: number): string {
+  return `  ${`${number}.`.padStart(4)} ${entry.command.padEnd(48)} ${entry.description}`;
 }

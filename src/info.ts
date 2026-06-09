@@ -29,7 +29,7 @@ export function getHelpText(): string {
     "Then ask your agent:",
     "  Capture the current project baseline with benjamin-docs in plain language.",
     "",
-    "For every command, run:",
+    "For every command, run the interactive drawer:",
     "  benjamin-docs commands",
   ].join("\n");
 }
@@ -63,7 +63,7 @@ export function getIntroductionText(): string {
     "  benjamin-docs ready",
     "  benjamin-docs help",
     "",
-    "For the full command drawer, run:",
+    "For the full interactive command drawer, run:",
     "  benjamin-docs commands",
     "",
     "Then ask your agent:",

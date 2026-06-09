@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { addAnchor } from "./anchors.js";
 import { installAgentContracts } from "./agent-contracts.js";
 import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
-import { getCommandsText } from "./commands.js";
+import { allCommands, getCommandsText, type CommandEntry } from "./commands.js";
 import { runDoctor } from "./doctor.js";
 import { exportAudience } from "./export.js";
 import { initProject, promoteToCodebase, type InitProjectOptions } from "./init.js";
@@ -47,6 +47,10 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "commands") {
+    if (process.stdin.isTTY && process.stdout.isTTY) {
+      return runCommandDrawer(cwd);
+    }
+
     console.log(getCommandsText());
     return 0;
   }
@@ -361,7 +365,7 @@ async function promptForInitOptions(): Promise<InitProjectOptions> {
     { label: labels[2] ?? "One feature, change, or plan", setup: "feature" },
   ];
   const selected = await selectChoice("What are you setting up?", choices.map((choice) => choice.label));
-  const setup = choices[selected]?.setup ?? "project";
+  const setup = choices[selected ?? 0]?.setup ?? "project";
 
   const options: InitProjectOptions = { setup };
 
@@ -376,12 +380,71 @@ async function promptForInitOptions(): Promise<InitProjectOptions> {
   return options;
 }
 
+async function runCommandDrawer(cwd: string): Promise<number> {
+  const selected = await promptForCommandEntry();
+  if (!selected) {
+    console.log("No command selected.");
+    return 0;
+  }
+
+  const args = await resolveCommandEntryArgs(selected);
+  console.log(`$ ${formatShellCommand(args)}`);
+  console.log("");
+
+  return main(args, cwd);
+}
+
+async function promptForCommandEntry(): Promise<CommandEntry | undefined> {
+  const entries = allCommands();
+  const choices = entries.map((entry) => `${entry.command.padEnd(48)} ${entry.description}`);
+  const selected = await selectChoice("benjamin-docs commands", choices, {
+    allowCancel: true,
+    hint: "Use Up/Down, j/k, or type a number. Press Enter to run. Press q or Esc to cancel.",
+  });
+
+  return selected === undefined ? undefined : entries[selected];
+}
+
+async function resolveCommandEntryArgs(entry: CommandEntry): Promise<string[]> {
+  const args: string[] = [];
+
+  for (const arg of entry.args) {
+    if (arg === "<slug>") {
+      args.push(await promptRequiredLine("Feature slug: "));
+      continue;
+    }
+
+    if (arg === "<id>") {
+      args.push(await promptRequiredLine("Anchor id: "));
+      continue;
+    }
+
+    if (arg === "<file>") {
+      args.push(await promptRequiredLine("Anchor file path: "));
+      continue;
+    }
+
+    args.push(arg);
+  }
+
+  return args;
+}
+
 async function promptLine(question: string): Promise<string> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   try {
     return (await rl.question(question)).trim();
   } finally {
     rl.close();
+  }
+}
+
+async function promptRequiredLine(question: string): Promise<string> {
+  while (true) {
+    const answer = await promptLine(question);
+    if (answer) return answer;
+
+    process.stdout.write("Please enter a value.\n");
   }
 }
 
@@ -398,8 +461,15 @@ async function confirmChoice(question: string, defaultValue: boolean): Promise<b
   }
 }
 
-async function selectChoice(question: string, choices: string[]): Promise<number> {
+interface SelectChoiceOptions {
+  allowCancel?: boolean;
+  hint?: string;
+}
+
+async function selectChoice(question: string, choices: string[], options: SelectChoiceOptions = {}): Promise<number | undefined> {
   let selected = 0;
+  let numberBuffer = "";
+  let numberBufferTimer: ReturnType<typeof setTimeout> | undefined;
   const input = process.stdin;
 
   emitKeypressEvents(input);
@@ -409,16 +479,28 @@ async function selectChoice(question: string, choices: string[]): Promise<number
     process.stdout.write("\x1Bc");
     process.stdout.write(`${question}\n\n`);
     choices.forEach((choice, index) => {
-      process.stdout.write(`${index === selected ? "> " : "  "}${choice}\n`);
+      const number = `${index + 1}.`.padStart(4);
+      process.stdout.write(`${index === selected ? "> " : "  "}${number} ${choice}\n`);
     });
-    process.stdout.write("\nNavigate to select. Press Enter to continue.\n");
+    process.stdout.write(`\n${options.hint ?? "Use Up/Down, j/k, or type a number. Press Enter to continue."}\n`);
+    if (numberBuffer) process.stdout.write(`Number: ${numberBuffer}\n`);
   };
 
   return new Promise((resolve) => {
     const cleanup = (): void => {
+      if (numberBufferTimer) clearTimeout(numberBufferTimer);
       input.setRawMode(false);
       input.off("keypress", onKeypress);
+      input.pause();
       process.stdout.write("\n");
+    };
+
+    const resetNumberBufferSoon = (): void => {
+      if (numberBufferTimer) clearTimeout(numberBufferTimer);
+      numberBufferTimer = setTimeout(() => {
+        numberBuffer = "";
+        render();
+      }, 1000);
     };
 
     const onKeypress = (str: string, key: { name?: string; ctrl?: boolean }): void => {
@@ -427,24 +509,42 @@ async function selectChoice(question: string, choices: string[]): Promise<number
         process.exit(130);
       }
 
+      if (options.allowCancel && (key.name === "escape" || str === "q")) {
+        cleanup();
+        resolve(undefined);
+        return;
+      }
+
       if (key.name === "up" || str === "k") {
+        numberBuffer = "";
         selected = selected === 0 ? choices.length - 1 : selected - 1;
         render();
         return;
       }
 
       if (key.name === "down" || str === "j") {
+        numberBuffer = "";
         selected = selected === choices.length - 1 ? 0 : selected + 1;
         render();
         return;
       }
 
-      if (/^[1-9]$/.test(str)) {
-        const index = Number(str) - 1;
+      if (/^\d$/.test(str)) {
+        const maxDigits = String(choices.length).length;
+        numberBuffer = `${numberBuffer}${str}`.slice(-maxDigits);
+        let index = Number(numberBuffer) - 1;
+
+        if (index < 0 || index >= choices.length) {
+          numberBuffer = str === "0" ? "" : str;
+          index = Number(numberBuffer) - 1;
+        }
+
         if (index >= 0 && index < choices.length) {
           selected = index;
-          render();
         }
+
+        resetNumberBufferSoon();
+        render();
         return;
       }
 
@@ -457,6 +557,15 @@ async function selectChoice(question: string, choices: string[]): Promise<number
     input.on("keypress", onKeypress);
     render();
   });
+}
+
+function formatShellCommand(args: string[]): string {
+  return ["benjamin-docs", ...args].map(formatShellArg).join(" ");
+}
+
+function formatShellArg(arg: string): string {
+  if (/^[A-Za-z0-9_./:=@%+-]+$/.test(arg)) return arg;
+  return `'${arg.replaceAll("'", "'\\''")}'`;
 }
 
 function isDirectInvocation(): boolean {
