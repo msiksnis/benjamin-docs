@@ -26,7 +26,8 @@
   },
   "type": "module",
   "bin": {
-    "benjamin-docs": "dist/src/cli.js"
+    "benjamin-docs": "dist/src/cli.js",
+    "bd": "dist/src/cli.js"
   },
   "packageManager": "pnpm@11.5.1",
   "files": [

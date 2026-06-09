@@ -14,6 +14,13 @@ describe("info commands", () => {
     });
   });
 
+  it("publishes the short bd bin alias", () => {
+    const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8"));
+
+    assert.equal(pkg.bin["benjamin-docs"], "dist/src/cli.js");
+    assert.equal(pkg.bin.bd, "dist/src/cli.js");
+  });
+
   it("prints concise help with the main command surface", () => {
     withTempDir((dir) => {
       const output = runCli(["help"], dir);

@@ -3,9 +3,21 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { withTempDir, runCli, runCliResult } from "./helpers.js";
 
 describe("init", () => {
+  it("uses broad setup labels for interactive init choices", async () => {
+    const cliPath = pathToFileURL(join(process.cwd(), "dist/src/cli.js")).href;
+    const cli = await import(cliPath);
+
+    assert.deepEqual(cli.initChoiceLabels(), [
+      "A new project or idea",
+      "A codebase or app",
+      "One feature, change, or plan",
+    ]);
+  });
+
   it("creates docs and metadata in an empty planning repo", () => {
     withTempDir((dir) => {
       const output = runCli(["init"], dir);

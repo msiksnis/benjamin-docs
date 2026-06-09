@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import { realpathSync } from "node:fs";
 import { emitKeypressEvents } from "node:readline";
 import { createInterface } from "node:readline/promises";
+import { fileURLToPath } from "node:url";
 import { addAnchor } from "./anchors.js";
 import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
 import { getCommandsText } from "./commands.js";
@@ -17,6 +19,10 @@ import { createScope } from "./scopes.js";
 import { getStatus } from "./status.js";
 import type { FocusType } from "./types.js";
 import { validateProject } from "./validate.js";
+
+export function initChoiceLabels(): string[] {
+  return ["A new project or idea", "A codebase or app", "One feature, change, or plan"];
+}
 
 export async function main(argv: string[] = process.argv.slice(2), cwd: string = process.cwd()): Promise<number> {
   const [command] = argv;
@@ -320,10 +326,11 @@ function parseChatProjectArgs(args: string[]): ChatProjectGuideOptions {
 }
 
 async function promptForInitOptions(): Promise<InitProjectOptions> {
+  const labels = initChoiceLabels();
   const choices: Array<{ label: string; setup: FocusType }> = [
-    { label: "Planning a new project", setup: "project" },
-    { label: "Documenting an existing codebase", setup: "codebase" },
-    { label: "Planning/documenting one feature", setup: "feature" },
+    { label: labels[0] ?? "A new project or idea", setup: "project" },
+    { label: labels[1] ?? "A codebase or app", setup: "codebase" },
+    { label: labels[2] ?? "One feature, change, or plan", setup: "feature" },
   ];
   const selected = await selectChoice("What are you setting up?", choices.map((choice) => choice.label));
   const setup = choices[selected]?.setup ?? "project";
@@ -400,11 +407,24 @@ async function selectChoice(question: string, choices: string[]): Promise<number
   });
 }
 
-main()
-  .then((code) => {
-    process.exitCode = code;
-  })
-  .catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : String(error));
-    process.exitCode = 1;
-  });
+function isDirectInvocation(): boolean {
+  const invokedPath = process.argv[1];
+  if (!invokedPath) return false;
+
+  try {
+    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(invokedPath);
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectInvocation()) {
+  main()
+    .then((code) => {
+      process.exitCode = code;
+    })
+    .catch((error: unknown) => {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exitCode = 1;
+    });
+}
