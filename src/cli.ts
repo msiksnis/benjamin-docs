@@ -3,6 +3,7 @@ import { emitKeypressEvents } from "node:readline";
 import { createInterface } from "node:readline/promises";
 import { addAnchor } from "./anchors.js";
 import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
+import { getCommandsText } from "./commands.js";
 import { runDoctor } from "./doctor.js";
 import { exportAudience } from "./export.js";
 import { initProject, promoteToCodebase, type InitProjectOptions } from "./init.js";
@@ -27,6 +28,11 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "--version" || command === "-v") {
     console.log(getPackageVersion());
+    return 0;
+  }
+
+  if (command === "commands") {
+    console.log(getCommandsText());
     return 0;
   }
 

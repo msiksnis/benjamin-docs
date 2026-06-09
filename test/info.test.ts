@@ -14,30 +14,27 @@ describe("info commands", () => {
     });
   });
 
-  it("prints help with command examples", () => {
+  it("prints concise help with the main command surface", () => {
     withTempDir((dir) => {
       const output = runCli(["help"], dir);
 
-      assert.match(output, /benjamin-docs --version/);
-      assert.match(output, /What it does/);
-      assert.match(output, /plain language/);
-      assert.match(output, /Use the benjamin-docs skill to create a project from this chat/);
-      assert.match(output, /Documents\/Benjamin Docs/);
-      assert.match(output, /benjamin-docs chat-project/);
+      assert.match(output, /benjamin-docs/);
+      assert.match(output, /Repo-local project memory/);
       assert.match(output, /benjamin-docs init/);
-      assert.match(output, /benjamin-docs validate/);
-      assert.match(output, /benjamin-docs review/);
       assert.match(output, /benjamin-docs ready/);
-      assert.match(output, /benjamin-docs doctor --strict/);
-      assert.match(output, /benjamin-docs export --audience developer/);
-      assert.match(output, /benjamin-docs promote --to codebase/);
+      assert.match(output, /benjamin-docs help/);
+      assert.match(output, /Use the benjamin-docs skill to create a project from this chat/);
+      assert.match(output, /benjamin-docs commands/);
+      assert.doesNotMatch(output, /benjamin-docs validate/);
+      assert.doesNotMatch(output, /benjamin-docs doctor --strict/);
+      assert.doesNotMatch(output, /benjamin-docs export --audience developer/);
     });
   });
 
   it("prints help for help flags", () => {
     withTempDir((dir) => {
-      assert.match(runCli(["--help"], dir), /benjamin-docs introduce/);
-      assert.match(runCli(["-h"], dir), /benjamin-docs introduce/);
+      assert.match(runCli(["--help"], dir), /benjamin-docs ready/);
+      assert.match(runCli(["-h"], dir), /benjamin-docs ready/);
     });
   });
 
@@ -88,7 +85,8 @@ describe("info commands", () => {
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Unknown command: unknown/);
       assert.match(result.stderr, /benjamin-docs init/);
-      assert.match(result.stderr, /benjamin-docs validate/);
+      assert.match(result.stderr, /benjamin-docs commands/);
+      assert.doesNotMatch(result.stderr, /benjamin-docs validate/);
     });
   });
 });
