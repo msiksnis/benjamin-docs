@@ -1,3 +1,4 @@
+import { checkAgentContracts } from "./agent-contracts.js";
 import { runDoctor } from "./doctor.js";
 import { reviewProject, type ReviewIssue } from "./review.js";
 import { validateProject } from "./validate.js";
@@ -17,11 +18,23 @@ export function checkReady(options: ReadyOptions = {}): ReadyResult {
   const validation = validateProject(cwd);
   const review = reviewProject(cwd);
   const doctor = runDoctor({ cwd, commandPath: options.commandPath, strict: true });
+  const agentContracts = checkAgentContracts(cwd);
 
   const validationOk = validation.errors.length === 0 && validation.warnings.length === 0;
   const reviewOk = review.errors.length === 0 && review.warnings.length === 0;
   const doctorOk = doctor.ok;
-  const ok = validationOk && reviewOk && doctorOk;
+  const agentContractsOk = agentContracts.ok;
+  const ok = validationOk && reviewOk && doctorOk && (!agentContracts.enabled || agentContractsOk);
+
+  const checks = [
+    formatCheck("validate", validationOk, summarizeValidation(validation)),
+    formatCheck("review", reviewOk, summarizeReview(review)),
+    formatCheck("doctor --strict", doctorOk, doctorOk ? "setup ok" : "setup gaps found"),
+  ];
+
+  if (agentContracts.enabled) {
+    checks.push(formatCheck("agent guidance", agentContractsOk, agentContracts.summary));
+  }
 
   const lines = [
     "benjamin-docs ready",
@@ -29,9 +42,7 @@ export function checkReady(options: ReadyOptions = {}): ReadyResult {
     `status: ${ok ? "ready" : "not ready"}`,
     "",
     "Checks",
-    formatCheck("validate", validationOk, summarizeValidation(validation)),
-    formatCheck("review", reviewOk, summarizeReview(review)),
-    formatCheck("doctor --strict", doctorOk, doctorOk ? "setup ok" : "setup gaps found"),
+    ...checks,
   ];
 
   if (validation.errors.length > 0 || validation.warnings.length > 0) {
@@ -52,6 +63,13 @@ export function checkReady(options: ReadyOptions = {}): ReadyResult {
     lines.push("");
     lines.push("Doctor");
     lines.push(indent(doctor.output));
+  }
+
+  if (agentContracts.enabled && (agentContracts.errors.length > 0 || agentContracts.warnings.length > 0)) {
+    lines.push("");
+    lines.push("Agent Guidance");
+    for (const error of agentContracts.errors) lines.push(`  - error: ${error}`);
+    for (const warning of agentContracts.warnings) lines.push(`  - warning: ${warning}`);
   }
 
   lines.push("");
