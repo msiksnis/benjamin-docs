@@ -417,6 +417,18 @@ describe("status and export", () => {
     });
   });
 
+  it("ignores child agent guidance during export", () => {
+    withTempDir((dir) => {
+      runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+      const output = runCli(["export", "--audience", "agent"], dir);
+
+      assert.match(output, /Exported agent bundle/);
+      assert.equal(existsSync(join(dir, "benjamin-docs/AGENTS.md")), true);
+      assert.equal(existsSync(join(dir, "exports/agent/AGENTS.md")), false);
+      assert.equal(existsSync(join(dir, "exports/agent/handoff/agent-brief.md")), true);
+    });
+  });
+
   it("rejects symlinked export bundle directories before writing", () => {
     withTempDir((dir) => {
       const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-export-"));

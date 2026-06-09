@@ -1,10 +1,9 @@
-import { existsSync, lstatSync, readdirSync, readFileSync, rmSync } from "node:fs";
-import { relative, sep } from "node:path";
-import { KNOWN_AUDIENCES } from "./constants.js";
-import { assertGeneratedPathSafe, ensureGeneratedDir, lstatIfExists, rootPath, writeGeneratedText } from "./fsx.js";
+import { readFileSync, rmSync } from "node:fs";
+import { CONFIG_DIR, KNOWN_AUDIENCES, MANIFEST_FILE } from "./constants.js";
+import { assertGeneratedPathSafe, ensureGeneratedDir, lstatIfExists, readGeneratedJson, rootPath, writeGeneratedText } from "./fsx.js";
 import { parseMarkdown } from "./frontmatter.js";
 import { readConfig } from "./project-config.js";
-import type { Audience } from "./types.js";
+import type { Audience, ManifestFile } from "./types.js";
 import { validateProject } from "./validate.js";
 
 export function exportAudience(root: string, audience: string): string[] {
@@ -16,17 +15,17 @@ export function exportAudience(root: string, audience: string): string[] {
 
   const config = readConfig(root);
   const docsRoot = rootPath(root, config.docsRoot);
-  const docs = findMarkdownFiles(docsRoot);
+  const manifest = readGeneratedJson<ManifestFile>(root, `${CONFIG_DIR}/${MANIFEST_FILE}`, "Metadata path");
+  const docs = findManagedMarkdownFiles(config.docsRoot, manifest, docsRoot);
   const bundleRelativeRoot = `exports/${selectedAudience}`;
   prepareCleanBundleDirectory(root, selectedAudience);
   const written: string[] = [];
 
-  for (const docPath of docs) {
+  for (const { docPath, relativePath } of docs) {
     const content = readFileSync(docPath, "utf8");
     const parsed = parseMarkdown(content);
     if (!parsed.frontmatter.audience.includes(selectedAudience)) continue;
 
-    const relativePath = relative(docsRoot, docPath).split(sep).join("/");
     const targetRelativePath = `${bundleRelativeRoot}/${relativePath}`;
     const targetPath = rootPath(root, ...targetRelativePath.split("/"));
     writeGeneratedText(root, targetRelativePath, content);
@@ -59,22 +58,14 @@ function prepareCleanBundleDirectory(root: string, audience: Audience): string {
   return bundleRoot;
 }
 
-function findMarkdownFiles(dir: string): string[] {
-  if (!existsSync(dir)) return [];
+function findManagedMarkdownFiles(docsRootName: string, manifest: ManifestFile, docsRoot: string): Array<{ docPath: string; relativePath: string }> {
+  const docsRootPrefix = `${docsRootName}/`;
 
-  const files: string[] = [];
-  for (const entry of readdirSync(dir)) {
-    const fullPath = rootPath(dir, entry);
-    const stat = lstatSync(fullPath);
-
-    if (stat.isSymbolicLink()) {
-      if (fullPath.endsWith(".md")) files.push(fullPath);
-      continue;
-    }
-
-    if (stat.isDirectory()) files.push(...findMarkdownFiles(fullPath));
-    if (stat.isFile() && fullPath.endsWith(".md")) files.push(fullPath);
-  }
-
-  return files.sort();
+  return manifest.docs
+    .filter((doc) => doc.startsWith(docsRootPrefix) && doc.endsWith(".md"))
+    .map((doc) => ({
+      docPath: rootPath(docsRoot, ...doc.slice(docsRootPrefix.length).split("/")),
+      relativePath: doc.slice(docsRootPrefix.length),
+    }))
+    .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
 }
