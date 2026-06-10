@@ -47,7 +47,7 @@ export function installAgentContracts(root: string, options: AgentContractOption
   if (existing) {
     existingContent = readFileSync(rootAgentsPath, "utf8");
     existingMarkerState = getMarkerState(existingContent);
-    if (!existingMarkerState.balanced) {
+    if ((existingMarkerState.hasStart || existingMarkerState.hasEnd) && !existingMarkerState.balanced) {
       messages.push("Agent guidance: preserved existing AGENTS.md.");
       messages.push("Consider adding a Benjamin Docs section or splitting long guidance into child AGENTS.md files.");
       return { written, messages, preservedExisting: true };
@@ -77,11 +77,15 @@ export function installAgentContracts(root: string, options: AgentContractOption
 
   if (!existingMarkerState) throw new Error("Internal error: existing AGENTS.md marker state was not read.");
 
-  const replacement = replaceMarkedSection(existingContent, existingMarkerState, rootSection);
+  const replacement = upsertMarkedSection(existingContent, existingMarkerState, rootSection);
   if (replacement !== existingContent) {
     writeGeneratedText(root, ROOT_AGENTS_PATH, replacement, AGENT_GUIDANCE_LABEL);
     written.push(ROOT_AGENTS_PATH);
-    messages.push("Agent guidance: updated AGENTS.md.");
+    messages.push(
+      existingMarkerState.hasStart || existingMarkerState.hasEnd
+        ? "Agent guidance: updated AGENTS.md."
+        : "Agent guidance: added Benjamin Docs section to existing AGENTS.md.",
+    );
   } else {
     messages.push("Agent guidance: AGENTS.md already up to date.");
   }
@@ -249,6 +253,15 @@ function discoverExistingChildContractPaths(root: string, docsRoot: string): str
 
 function replaceMarkedSection(content: string, markerState: MarkerState, replacement: string): string {
   return `${content.slice(0, markerState.startIndex)}${replacement}${content.slice(markerState.endIndex + END_MARKER.length)}`;
+}
+
+function upsertMarkedSection(content: string, markerState: MarkerState, replacement: string): string {
+  if (!markerState.hasStart && !markerState.hasEnd) {
+    const trimmed = content.replace(/\s+$/u, "");
+    return `${trimmed}\n\n${replacement}\n`;
+  }
+
+  return replaceMarkedSection(content, markerState, replacement);
 }
 
 function getMarkerState(content: string): MarkerState {

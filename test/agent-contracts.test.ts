@@ -40,28 +40,35 @@ describe("agent contracts", () => {
     });
   });
 
-  it("preserves an existing unmarked AGENTS.md and reports guidance", () => {
+  it("adds a Benjamin section to an existing unmarked AGENTS.md", () => {
     withTempDir((dir) => {
       writeFileSync(join(dir, "AGENTS.md"), "# Existing Agent Rules\n\nDo not overwrite this.\n", "utf8");
 
       const output = runCli(["init", "--mode", "codebase", "--agent-contract"], dir);
       const content = readFileSync(join(dir, "AGENTS.md"), "utf8");
 
-      assert.equal(content, "# Existing Agent Rules\n\nDo not overwrite this.\n");
-      assert.match(output, /Agent guidance: preserved existing AGENTS\.md/);
-      assert.match(output, /Consider adding a Benjamin Docs section/);
+      assert.match(content, /^# Existing Agent Rules\n\nDo not overwrite this\./);
+      assert.match(content, /<!-- benjamin-docs:start -->/);
+      assert.match(content, /Benjamin Docs Project Memory/);
+      assert.match(content, /<!-- benjamin-docs:end -->/);
+      assert.match(output, /Agent guidance: added Benjamin Docs section to existing AGENTS\.md/);
+      assert.doesNotMatch(output, /preserved existing AGENTS\.md/);
     });
   });
 
-  it("does not create child contracts when preserving an existing unmarked AGENTS.md", () => {
+  it("adds child guidance when appending to an existing unmarked AGENTS.md", () => {
     withTempDir((dir) => {
       writeFileSync(join(dir, "AGENTS.md"), "# Existing Agent Rules\n\nKeep root guidance intact.\n", "utf8");
 
       const output = runCli(["init", "--mode", "codebase", "--agent-contract", "--children"], dir);
+      const root = readFileSync(join(dir, "AGENTS.md"), "utf8");
 
-      assert.equal(readFileSync(join(dir, "AGENTS.md"), "utf8"), "# Existing Agent Rules\n\nKeep root guidance intact.\n");
-      assert.equal(existsSync(join(dir, "benjamin-docs/AGENTS.md")), false);
-      assert.match(output, /Agent guidance: preserved existing AGENTS\.md/);
+      assert.match(root, /^# Existing Agent Rules\n\nKeep root guidance intact\./);
+      assert.match(root, /Child Agent Contract Index/);
+      assert.match(root, /benjamin-docs\/AGENTS\.md/);
+      assert.equal(existsSync(join(dir, "benjamin-docs/AGENTS.md")), true);
+      assert.match(output, /Agent guidance: created benjamin-docs\/AGENTS\.md/);
+      assert.match(output, /Agent guidance: added Benjamin Docs section to existing AGENTS\.md/);
     });
   });
 

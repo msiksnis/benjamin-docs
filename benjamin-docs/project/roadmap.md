@@ -65,6 +65,16 @@ Target state:
 - `bd init --help`, `bd anchor --help`, and `bd scope --help` explain advanced usage without errors.
 - `bd introduce`, README, and the bundled skill all point to the same simple first step.
 
+## 0.4.2 Goal
+
+`benjamin-docs@0.4.2` should make older initialized projects upgrade cleanly.
+
+Target state:
+
+- If a project already has Benjamin docs but `AGENTS.md` has no Benjamin markers, `bd init` preserves the existing guide and appends a marked Benjamin section.
+- If child guidance is expected, `bd init` creates `benjamin-docs/AGENTS.md` and indexes it from the appended root section.
+- If `AGENTS.md` has broken or duplicate Benjamin markers, BD remains conservative and asks for manual cleanup.
+
 ## 0.4.0 Goal
 
 `benjamin-docs@0.4.0` should be the high-quality capture milestone.

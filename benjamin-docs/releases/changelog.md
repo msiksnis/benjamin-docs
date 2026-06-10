@@ -11,6 +11,13 @@ source: manual
 
 # Changelog
 
+## 0.4.2
+
+- Fixed the older-project upgrade path when `benjamin-docs/` already exists but root `AGENTS.md` has no Benjamin-owned section.
+- `bd init` now preserves existing unmarked `AGENTS.md` content and appends a clearly marked Benjamin Docs section instead of only suggesting manual cleanup.
+- Child guidance is created and indexed when codebase init requests agent guidance with children.
+- Broken or duplicate Benjamin markers remain conservative: BD preserves the file and asks for manual cleanup instead of guessing.
+
 ## 0.4.1
 
 - Made plain non-interactive `bd init` auto-detect obvious codebases and initialize codebase memory instead of planning mode.

@@ -22,7 +22,7 @@ The source repo is:
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
 - Package status: `0.4.0` published on npm, tagged as `v0.4.0`, and released on GitHub
-- Working package version: `0.4.1` for simple-path polish after the Atelier dogfood pass
+- Working package version: `0.4.2` for older-project upgrade polish after the PupBase dogfood pass
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -63,6 +63,7 @@ The project has been renamed fully from the earlier working name `agent-docs`; d
 - Use pnpm for this project.
 - 0.4.1 polish should make `bd init` smart enough for normal codebase use: plain non-interactive init in an obvious codebase defaults to codebase memory with root and child agent guidance. Use `bd init --no-agent-contract` only when automation explicitly wants no repo-local guidance.
 - `bd anchor list` was added after dogfooding showed that anchors could be created but not inspected through the CLI.
+- 0.4.2 should fix older initialized projects that already have Benjamin docs but have an unmarked root `AGENTS.md`: append a Benjamin-owned section without overwriting the existing guide.
 
 ## 0.4.x Direction
 
