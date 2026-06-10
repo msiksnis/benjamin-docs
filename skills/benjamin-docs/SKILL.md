@@ -115,6 +115,45 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 12. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
 13. Report changed files, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
 
+## Existing Project Baseline Workflow
+
+Use this workflow when the user asks to document an existing app, capture the current project baseline, initialize Benjamin Docs in a codebase, or prepare a repo for future agents.
+
+1. Run the local CLI command with `status`. If the project is not initialized, run `init --mode codebase`. If the user wants repo-local agent guidance, use `init --mode codebase --agent-contract`; add `--children` only when the docs workspace needs its own child guidance.
+2. Read `.benjamin-docs/config.json`, `.benjamin-docs/manifest.json`, root `AGENTS.md` when present, package/config files, README files, and the main source tree map. Prefer `rg --files` for discovery.
+3. Identify what kind of project this is, the main runtime/framework, data sources, external services, build/test commands, and known operational risks.
+4. Update the existing baseline docs instead of creating parallel summaries:
+   - `project/brief.md`
+   - `project/roadmap.md`
+   - `project/open-questions.md`
+   - `handoff/human-brief.md`
+   - `handoff/agent-brief.md`
+   - `engineering/architecture.md`
+   - `engineering/code-map.md`
+   - `features/index.md`
+   - `releases/changelog.md`
+5. Keep generated starter text only when it is still true. Replace placeholder content with concrete project context.
+6. If code references matter, add anchors with `anchor add <id> <file>` instead of only mentioning paths in prose.
+7. Run the local CLI command with `ready`. If it fails, fix the docs or setup gap before claiming the baseline is ready.
+8. Summarize the baseline in terms a future maintainer can act on: what the project is, how to run it, where the important code lives, what is risky, and what should happen next.
+
+Do not describe this as "documenting an existing codebase" when that would be misleading. A project may be new, half-built, or freshly generated. Prefer "capture the current project baseline" in user-facing summaries.
+
+## Updating Existing Benjamin Docs
+
+When Benjamin docs already exist, treat them as project memory, not disposable generated output.
+
+- Read the current doc before editing it.
+- Preserve frontmatter fields unless there is a concrete reason to change them.
+- Preserve useful historical decisions, shipped notes, and open questions.
+- Replace stale starter text, duplicated summaries, and outdated assumptions.
+- Merge new information into the most specific existing doc.
+- Create a new feature scope only when the work is actually a distinct feature, change, experiment, or plan.
+- Do not make the docs look more certain than the evidence supports. Mark assumptions and unknowns clearly.
+- If a doc is long or mixed-purpose, suggest a split before rewriting it wholesale.
+
+When updating docs from a chat, capture the durable decisions and state transitions. Do not preserve conversational order unless the timeline itself is important.
+
 ## Agent Guidance / AGENTS.md
 
 When initializing or updating a codebase, app, feature, or change project and the user wants future agents to work from project memory, prefer:
@@ -131,6 +170,15 @@ Treat existing agent instructions as user-owned source material. If `AGENTS.md` 
 - split long guidance into child `AGENTS.md` files
 - rewrite existing guidance only with explicit user approval
 
+If `AGENTS.md` is already long, contradictory, outdated, or mixes global rules with project-specific details, do not silently rewrite it. Report the issue and propose the smallest useful improvement:
+
+- add a short Benjamin-owned section that points to `benjamin-docs/`
+- move docs-specific guidance into `benjamin-docs/AGENTS.md`
+- split area-specific guidance into child `AGENTS.md` files near the relevant subtree
+- rewrite the file only after the user explicitly approves the rewrite
+
+After changing or installing agent guidance, run `ready` or `doctor --strict` so broken root/child guidance is caught before handoff.
+
 ## Capture Quality
 
 Capture:
@@ -142,8 +190,20 @@ Capture:
 - audience-specific summaries
 - relevant code references when code exists
 - recommended next actions
+- evidence behind risky claims
 
 Do not capture raw transcript unless the user explicitly asks for an archive.
+
+Before calling a capture done, check that a future person or agent can answer:
+
+- What is this project or feature?
+- What changed or was decided?
+- What should happen next?
+- What is still unknown?
+- Where should I look in the repo?
+- What should I avoid breaking?
+
+If those answers are missing, keep editing the docs before running the final readiness gate.
 
 ## Doc Format
 

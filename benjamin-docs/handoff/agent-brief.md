@@ -3,9 +3,9 @@ title: Agent Brief
 scope: handoff
 scope_id: agent-brief
 audience: [agent]
-status: draft
+status: review
 visibility: private
-updated: 2026-06-04
+updated: 2026-06-10
 source: session-capture
 ---
 
@@ -13,7 +13,7 @@ source: session-capture
 
 ## Current State
 
-`benjamin-docs` is an early MVP for repo-local project memory. It turns planning/build conversations into structured Markdown docs in `benjamin-docs/` plus deterministic metadata in `.benjamin-docs/`.
+`benjamin-docs` is a published npm CLI and bundled agent skill for repo-local project memory. It turns planning/build conversations into structured Markdown docs in `benjamin-docs/` plus deterministic metadata in `.benjamin-docs/`.
 
 The source repo is:
 
@@ -21,19 +21,24 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: prepared for first public `0.1.0` package release
+- Package status: `0.3.0` published on npm, tagged as `v0.3.0`, and released on GitHub
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
 ## Implemented So Far
 
 - TypeScript CLI with no runtime dependencies.
-- Commands: `init`, `status`, `validate`, `scope create feature <slug>`, `anchor add <id> <file>`, `export --audience <audience>`, `promote --to codebase`, `introduce`, `help`, `--version`, `-v`.
+- Main commands: `init`, `ready`, `help`.
+- Advanced drawer: `commands`, with numbered interactive selection in real terminals.
+- Advanced commands include `status`, `next`, `validate`, `review`, `doctor`, `export --audience <audience>`, `scope create feature <slug>`, `anchor add <id> <file>`, `install-skill`, `package-skill`, and `chat-project`.
+- Short binary alias: `bd`.
 - Planning-mode docs created by `init`.
 - Codebase-mode docs created by `promote --to codebase`.
 - Feature-scope templates under `benjamin-docs/features/<slug>/`.
 - JSON metadata in `.benjamin-docs/`.
 - Validation for frontmatter, metadata, anchors, links, symlink safety, and project-root containment.
+- `ready` gate that combines validation, docs review, setup checks, and agent guidance health.
+- Root and child `AGENTS.md` support that preserves existing user-owned instructions.
 - Export bundles for audience-specific handoff.
 - A `skills/benjamin-docs/SKILL.md` file for agent session capture and constructive challenge.
 
@@ -51,8 +56,24 @@ The project has been renamed fully from the earlier working name `agent-docs`; d
 - The chat-to-project workflow is a core V1 scenario: when the user only has a chat, the agent should ask for a project location, create the folder, run `benjamin-docs init --mode planning`, write a top-level README, and capture the chat into Benjamin docs.
 - Chat-created projects should default to `~/Documents/Benjamin Docs/<Project Name>` with human-readable names, e.g. `~/Documents/Benjamin Docs/Atelier Edits`; avoid agent-specific or dated session folders unless requested.
 - Chat-to-project confirmation copy should stay mobile-friendly: short sections, bullets for created files and captured content, and `Reply "yes" to create it`.
-- Package is now prepared for public `benjamin-docs@0.1.0`; README uses pnpm install commands only.
+- `benjamin-docs@0.3.0` is published on npm and verified from a fresh temp-project install.
+- `v0.3.0` is pushed to GitHub with release notes.
+- The next milestone should focus on high-quality capture behavior, not more primary CLI commands.
 - Use pnpm for this project.
+
+## 0.4.0 Direction
+
+0.4.0 should make Benjamin Docs reliably turn messy chats, new repos, existing codebases, and single feature plans into useful project memory without the user needing to understand the docs structure.
+
+The priority is agent behavior:
+
+- stronger baseline capture
+- safer updates to existing Benjamin docs
+- better handling of existing or complex `AGENTS.md`
+- clearer handoff docs
+- direct challenge of weak assumptions and missing decisions
+
+Do not expand the primary command surface for 0.4.0 unless dogfooding proves a repeated workflow cannot fit under `init`, `ready`, `help`, or the advanced `commands` drawer.
 
 ## Public Repo Setup
 
@@ -85,7 +106,7 @@ That shim runs:
 node /Users/marty/Important/benjamin-docs/dist/src/cli.js "$@"
 ```
 
-This was a temporary local setup while the package was unpublished. Once published, normal pnpm global install should replace this local shim.
+This was a temporary local setup while the package was unpublished. The current machine now has `benjamin-docs@0.3.0` installed globally from npm through npm and pnpm.
 
 ## Important Product Finding From `pup-base`
 
@@ -110,8 +131,8 @@ When continuing this project:
 2. Run:
    ```bash
    git status --short
-   benjamin-docs status
-   benjamin-docs validate
+   bd status
+   bd ready
    pnpm check
    ```
 3. Read these docs first:
@@ -123,15 +144,11 @@ When continuing this project:
    - `docs/superpowers/plans/2026-06-03-benjamin-docs-mvp.md`
 4. Keep changes small and practical. This project should remain useful before it becomes clever.
 5. If capturing a conversation, update existing docs instead of dumping a transcript.
-6. Run `benjamin-docs validate` and `pnpm check` before reporting completion.
+6. Run `bd ready` and `pnpm check` before reporting completion.
 
 ## Likely Next Work
 
-- Decide how to distribute the skill cleanly for Codex/Claude users.
-- Add docs scripts or shell guidance for common workflows.
-- Dogfood the baseline capture workflow in real projects, starting with `pup-base`.
-- Test whether a non-code person can succeed with only the README and an agent.
-- Dogfood chat-to-project with a fresh conversation and no existing project folder.
-- Publish `benjamin-docs@0.1.0`, then verify global pnpm install in a clean environment.
-- Consider a command that prints recommended next capture prompts.
-- Later: publish package only after package contents, security posture, and install story are tightened.
+- Dogfood the 0.3.0 workflow on more real projects.
+- Improve `skills/benjamin-docs/SKILL.md` whenever dogfooding shows vague, thin, or unsafe capture behavior.
+- Keep `README.md` short and point advanced users to `bd commands`.
+- Consider a 0.3.1 patch only if the updated skill guidance should be distributed before the larger 0.4.0 work.

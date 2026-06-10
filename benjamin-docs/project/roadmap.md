@@ -3,9 +3,9 @@ title: Roadmap
 scope: project
 scope_id: project
 audience: [developer, business, agent]
-status: draft
+status: review
 visibility: private
-updated: 2026-06-06
+updated: 2026-06-10
 source: session-capture
 ---
 
@@ -34,21 +34,43 @@ source: session-capture
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current release candidate: `0.2.0`.
-- The global CLI is installed from npm with pnpm.
+- Current published release: `0.3.0`.
+- The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
+- `v0.3.0` is tagged and released on GitHub.
+- The 0.3.0 npm artifact was verified in a fresh temp project.
 
 ## Immediate Next Work
 
-- Dogfood BD on itself until `benjamin-docs review` passes without warnings.
-- Test first-run behavior on an uninitialized real codebase using a temp copy before writing to the original project.
-- Improve the existing-codebase baseline prompt if agents skip `human-brief.md` or leave starter docs behind.
+- Keep the CLI command surface stable. Do not add more top-level commands unless a repeated real workflow proves the need.
+- Improve the bundled skill so agents produce stronger baseline captures and update existing docs safely.
+- Dogfood 0.3.0 on more real projects and record where the skill produces weak, vague, or overconfident docs.
 - Keep the public README short, direct, and non-enterprise.
-- Watch whether npm/search discovery is delayed or noisy, but do not optimize around fake download counts.
-- Define the `0.2.0` milestone around making the first ten minutes excellent.
+- Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
+
+## 0.4.0 Goal
+
+`benjamin-docs@0.4.0` should be the high-quality capture milestone.
+
+Target state:
+
+- A user can start with a messy chat, a new repo, an existing codebase, or a single feature plan.
+- The agent can turn that context into useful Benjamin docs without the user understanding the docs structure.
+- Existing Benjamin docs and existing `AGENTS.md` files are improved safely, not overwritten.
+- The baseline capture names project purpose, architecture, code map, risks, open questions, next actions, and handoff context.
+- The agent challenges weak assumptions, missing decisions, contradictory goals, and overbuilt plans.
+- `bd ready` is the normal completion gate, and passing it means the project memory is usable by the next human or agent.
+
+Non-goals for 0.4.0:
+
+- More primary commands.
+- Hosted publishing.
+- A web UI.
+- Automatic transcript dumps.
+- Rewriting user-owned agent guidance without approval.
 
 ## V1 Quality Bar
 

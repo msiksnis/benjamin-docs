@@ -3,13 +3,31 @@ title: Changelog
 scope: release
 scope_id: release
 audience: [developer, business, public]
-status: draft
+status: review
 visibility: private
-updated: 2026-06-04
+updated: 2026-06-10
 source: manual
 ---
 
 # Changelog
+
+## Unreleased
+
+- Tightened the bundled agent skill around existing-project baseline capture, safe updates to existing Benjamin docs, and `AGENTS.md` improvement guidance.
+- Saved the 0.4.0 direction as a quality milestone focused on reliable high-quality capture instead of more CLI commands.
+
+## 0.3.0
+
+- Published `benjamin-docs@0.3.0` to npm.
+- Added `benjamin-docs ready` as the high-level handoff gate for setup, validation, docs quality, and agent guidance health.
+- Simplified the public command surface around `init`, `ready`, and `help`, with `commands` as the advanced command drawer.
+- Added the short `bd` binary alias.
+- Added root `AGENTS.md` support with Benjamin-owned sections that preserve existing user-owned agent instructions.
+- Added child agent guidance support for the Benjamin docs workspace.
+- Added safety checks for broken, missing, orphaned, and stale root/child agent guidance.
+- Added an interactive numbered `benjamin-docs commands` drawer for real terminals.
+- Fixed audience export so only manifest-managed docs are exported, avoiding child `AGENTS.md` parsing failures.
+- Verified the release through full package checks, npm publish, GitHub release, and a fresh npm install smoke test.
 
 ## 0.1.4
 
