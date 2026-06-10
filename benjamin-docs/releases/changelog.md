@@ -11,6 +11,18 @@ source: manual
 
 # Changelog
 
+## 0.4.0
+
+- Started the agent-ready project memory milestone.
+- Added a dedicated `agent-ready-project-memory` feature scope with brief, plan, decisions, and handoff docs.
+- Upgraded the bundled skill with feature/change planning and handoff/update workflows.
+- Added a doc-specific Agent-Ready Memory Checklist to the bundled skill.
+- Improved generated templates with continuation-oriented headings.
+- Added deterministic review checks for weak continuation context, including agent handoff commands, code-map paths, architecture signals, roadmap signals, and feature plan/decision/handoff gaps.
+- Strengthened generated `next` prompts to tell agents to read repo-local guidance and `.benjamin-docs/config.json` first.
+- Strengthened generated `AGENTS.md` guidance with concise scope and evidence rules.
+- Dogfooded the new review behavior on `benjamin-docs` and `/Users/marty/Important/atelier-beaute`.
+
 ## 0.3.1
 
 - Tightened the bundled agent skill around existing-project baseline capture, safe updates to existing Benjamin docs, and `AGENTS.md` improvement guidance.
