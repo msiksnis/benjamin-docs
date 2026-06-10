@@ -43,6 +43,8 @@ describe("init", () => {
       assert.equal(existsSync(join(dir, ".benjamin-docs/scopes.json")), true);
       assert.equal(existsSync(join(dir, ".benjamin-docs/anchors.json")), true);
       assert.match(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8"), /"docsRoot": "benjamin-docs"/);
+      assert.match(readFileSync(join(dir, "benjamin-docs/handoff/agent-brief.md"), "utf8"), /## Continuation Proof/);
+      assert.match(readFileSync(join(dir, "benjamin-docs/handoff/agent-brief.md"), "utf8"), /## Commands And Checks/);
       assert.match(output, /Next, ask your agent:/);
       assert.match(output, /Use plain language/);
     });
@@ -73,6 +75,7 @@ describe("init", () => {
       assert.match(output, /Capture the current project baseline/);
       assert.match(output, /benjamin-docs\/engineering\/architecture\.md/);
       assert.match(output, /understandable for non-technical readers/);
+      assert.match(output, /continuation proof/);
     });
   });
 

@@ -33,6 +33,7 @@ function planningPrompt(docsRoot: string): string {
     `${docsRoot}/project/open-questions.md, and ${docsRoot}/handoff/agent-brief.md.`,
     "Read repo-local agent guidance and .benjamin-docs/config.json first when present.",
     "Use plain language. Summarize decisions, rejected options, risks, and next steps.",
+    "Make agent-brief.md a continuation proof: read-first docs, current state, commands/checks, risks/hazards, and next actions.",
     "Mark uncertain items clearly.",
   ].join("\n");
 }
@@ -48,6 +49,7 @@ function codebasePrompt(docsRoot: string): string {
     "Read repo-local agent guidance and .benjamin-docs/config.json first when present.",
     "Keep project docs understandable for non-technical readers.",
     "Make human-brief.md a short plain-language summary for the owner or teammate.",
+    "Make agent-brief.md a continuation proof: read-first docs, current state, commands/checks, risks/hazards, and next actions.",
     "Mark uncertain items, call out risks, and add useful code anchors where relevant.",
   ].join("\n");
 }
@@ -65,6 +67,7 @@ function featurePrompt(docsRoot: string, feature: string, codebaseMode: boolean)
     `${docsRoot}/features/${feature}/.`,
     "Read repo-local agent guidance and .benjamin-docs/config.json first when present.",
     "Include decisions, rejected options, risks, implementation notes, and next steps.",
+    "Make agent-brief.md a continuation proof: read-first docs, current state, commands/checks, risks/hazards, and next actions.",
     "Keep the brief and handoff understandable for non-technical readers.",
     "Mark uncertain items clearly.",
   ].join("\n");

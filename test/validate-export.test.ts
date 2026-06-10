@@ -381,6 +381,7 @@ describe("status and export", () => {
       assert.match(output, /Next, ask your agent:/);
       assert.match(output, /Capture the billing-reminders feature/);
       assert.match(output, /benjamin-docs\/features\/billing-reminders/);
+      assert.match(output, /continuation proof/);
     });
   });
 
@@ -393,6 +394,7 @@ describe("status and export", () => {
       assert.match(output, /benjamin-docs\/handoff\/human-brief\.md/);
       assert.match(output, /benjamin-docs\/handoff\/agent-brief\.md/);
       assert.match(output, /human-brief\.md a short plain-language summary/);
+      assert.match(output, /agent-brief\.md a continuation proof/);
     });
   });
 

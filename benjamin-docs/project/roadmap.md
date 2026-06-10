@@ -35,22 +35,38 @@ source: session-capture
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.4.0`.
+- Current published release: `0.4.2`.
+- Working package version: `0.5.0` for Continuation Proof readiness.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
-- `v0.4.0` is tagged and released on GitHub.
-- The 0.4.0 npm artifact was verified in a fresh temp project and dogfooded on `/Users/marty/Important/atelier-beaute`.
+- `v0.4.2` is tagged and released on GitHub.
+- The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
 
 ## Immediate Next Work
 
 - Keep the CLI command surface stable. Do not add more top-level commands unless a repeated real workflow proves the need.
 - Polish the 0.4.x simple path so `bd init` is enough in normal codebase use.
 - Dogfood 0.4.x on more real projects and record where the skill produces weak, vague, or overconfident docs.
+- Implement 0.5.0 as a continuation-quality milestone: prove that a future human or agent can continue from the docs without the original chat.
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
+
+## 0.5.0 Goal
+
+`benjamin-docs@0.5.0` should make "ready" mean continuation-ready.
+
+Target state:
+
+- No new primary commands.
+- `bd init` still creates the simple project memory path.
+- `handoff/agent-brief.md` becomes the required continuation proof for future agents.
+- `bd review` warns when the agent brief is missing read-first docs, current state, commands/checks, risks/hazards, or next actions.
+- `bd ready` fails when those proof pieces are missing.
+- Starter templates and generated `next` prompts teach both fresh and older projects to add the proof.
+- The bundled skill tells agents to fix weak handoffs before calling a capture complete.
 
 ## 0.4.1 Goal
 

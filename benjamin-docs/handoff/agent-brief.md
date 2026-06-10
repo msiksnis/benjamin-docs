@@ -21,10 +21,36 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.4.0` published on npm, tagged as `v0.4.0`, and released on GitHub
-- Working package version: `0.4.2` for older-project upgrade polish after the PupBase dogfood pass
+- Package status: `0.4.2` published on npm, tagged as `v0.4.2`, and released on GitHub
+- Working package version: `0.5.0` for Continuation Proof readiness
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
+
+## Continuation Proof
+
+Read first:
+
+- `README.md`
+- `benjamin-docs/project/brief.md`
+- `benjamin-docs/project/roadmap.md`
+- `benjamin-docs/project/open-questions.md`
+- `benjamin-docs/handoff/human-brief.md`
+- `docs/superpowers/plans/2026-06-10-continuation-proof.md`
+
+Current state: 0.4.2 is published. The active 0.5.0 work strengthens `review`, templates, `next` prompts, README, and the bundled skill so `bd ready` fails when the agent handoff is not continuation-ready.
+
+Commands/checks to run before handoff:
+
+```bash
+pnpm build
+node --test dist/test/review.test.js dist/test/ready.test.js dist/test/init.test.js dist/test/validate-export.test.js dist/test/scopes-anchors.test.js
+pnpm run release:check
+node dist/src/cli.js ready
+```
+
+Risks/hazards: do not add more primary commands for this milestone, do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths.
+
+Next actions: finish implementing 0.5.0, run the verification gates, smoke-test fresh init behavior, then decide whether to publish.
 
 ## Implemented So Far
 
@@ -57,13 +83,14 @@ The project has been renamed fully from the earlier working name `agent-docs`; d
 - The chat-to-project workflow is a core V1 scenario: when the user only has a chat, the agent should ask for a project location, create the folder, run `benjamin-docs init --mode planning`, write a top-level README, and capture the chat into Benjamin docs.
 - Chat-created projects should default to `~/Documents/Benjamin Docs/<Project Name>` with human-readable names, e.g. `~/Documents/Benjamin Docs/Atelier Edits`; avoid agent-specific or dated session folders unless requested.
 - Chat-to-project confirmation copy should stay mobile-friendly: short sections, bullets for created files and captured content, and `Reply "yes" to create it`.
-- `benjamin-docs@0.3.0` is published on npm and verified from a fresh temp-project install.
-- `v0.3.0` is pushed to GitHub with release notes.
+- `benjamin-docs@0.4.2` is published on npm and verified from fresh temp-project installs.
+- `v0.4.2` is pushed to GitHub with release notes.
 - The next milestone should focus on high-quality capture behavior, not more primary CLI commands.
 - Use pnpm for this project.
 - 0.4.1 polish should make `bd init` smart enough for normal codebase use: plain non-interactive init in an obvious codebase defaults to codebase memory with root and child agent guidance. Use `bd init --no-agent-contract` only when automation explicitly wants no repo-local guidance.
 - `bd anchor list` was added after dogfooding showed that anchors could be created but not inspected through the CLI.
-- 0.4.2 should fix older initialized projects that already have Benjamin docs but have an unmarked root `AGENTS.md`: append a Benjamin-owned section without overwriting the existing guide.
+- 0.4.2 fixed older initialized projects that already have Benjamin docs but have an unmarked root `AGENTS.md`: append a Benjamin-owned section without overwriting the existing guide.
+- 0.5.0 should make continuation readiness explicit: `agent-brief.md` must include read-first docs, current state, commands/checks, risks/hazards, and next actions.
 
 ## 0.4.x Direction
 
@@ -110,7 +137,7 @@ That shim runs:
 node /Users/marty/Important/benjamin-docs/dist/src/cli.js "$@"
 ```
 
-This was a temporary local setup while the package was unpublished. The current machine now has `benjamin-docs@0.3.0` installed globally from npm through npm and pnpm.
+This was a temporary local setup while the package was unpublished. The current machine now has `benjamin-docs@0.4.2` installed globally from npm through npm and pnpm.
 
 ## Important Product Finding From `pup-base`
 
@@ -152,7 +179,7 @@ When continuing this project:
 
 ## Likely Next Work
 
-- Dogfood the 0.3.0 workflow on more real projects.
+- Dogfood the 0.5.0 Continuation Proof workflow on a fresh project and an older initialized project.
 - Improve `skills/benjamin-docs/SKILL.md` whenever dogfooding shows vague, thin, or unsafe capture behavior.
 - Keep `README.md` short and point advanced users to `bd commands`.
-- Consider a 0.3.1 patch only if the updated skill guidance should be distributed before the larger 0.4.0 work.
+- Publish 0.5.0 only after local `ready`, release checks, and smoke tests pass.

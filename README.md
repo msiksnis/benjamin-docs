@@ -70,7 +70,7 @@ benjamin-docs ready
 benjamin-docs help
 ```
 
-`init` creates project memory. `ready` checks setup, validation, and docs quality. `help` shows the simple path.
+`init` creates project memory. `ready` checks setup, validation, docs quality, and continuation readiness. `help` shows the simple path.
 
 For the full command drawer:
 
@@ -152,7 +152,9 @@ benjamin-docs next
 benjamin-docs ready
 ```
 
-`ready` runs the full gate: setup, validation, and docs quality.
+`ready` runs the full gate: setup, validation, docs quality, and continuation readiness.
+
+For agent handoff, `ready` expects `agent-brief.md` to name read-first docs, current state, checks to run, risks or hazards, and next actions.
 
 If `ready` fails, use `benjamin-docs commands` to find lower-level diagnostics such as validation, review, or doctor checks.
 

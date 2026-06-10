@@ -25,6 +25,7 @@ describe("review", () => {
       assert.equal(result.status, 0);
       assert.match(result.stdout, /status: passed with warnings/);
       assert.match(result.stdout, /starter template/);
+      assert.match(result.stdout, /Agent brief should include continuation proof/);
       assert.match(result.stdout, /human-brief\.md/);
       assert.match(result.stdout, /architecture\.md/);
     });
@@ -50,15 +51,7 @@ describe("review", () => {
   it("passes for captured baseline docs", () => {
     withTempDir((dir) => {
       runCliResult(["init", "--mode", "codebase"], dir);
-      writeBaselineDoc(dir, "benjamin-docs/project/brief.md", "Project Brief", capturedBody("This product helps teams preserve project context across AI sessions. It serves owners, developers, and future agents. The important baseline is local-first documentation with clear handoff notes, not hosted publishing or transcript dumping."));
-      writeBaselineDoc(dir, "benjamin-docs/project/roadmap.md", "Roadmap", capturedBody("The current roadmap is to stabilize capture flows, improve existing-codebase onboarding, and keep README guidance short. Near-term work focuses on doc quality checks. Deferred work includes SaaS publishing, dashboards, and hosted collaboration."));
-      writeBaselineDoc(dir, "benjamin-docs/project/open-questions.md", "Open Questions", "## Decisions\n\n- Should review warnings become stricter over time?\n- Which docs should be required for feature captures?\n- Should package publishing stay manual until the project is more stable?\n");
-      writeBaselineDoc(dir, "benjamin-docs/handoff/human-brief.md", "Human Brief", capturedBody("This project is a local project-memory tool. It turns useful planning and build conversations into durable Markdown files. The important thing for a human reader is that docs stay inside the project and are meant to explain decisions, next steps, and open questions plainly."));
-      writeBaselineDoc(dir, "benjamin-docs/handoff/agent-brief.md", "Agent Brief", capturedBody("Future agents should read the README, project brief, roadmap, open questions, architecture, and code map before changing behavior. Preserve local-first behavior, ask before creating chat projects, run benjamin-docs ready and pnpm check after edits, and avoid risky assumptions or hazards when context is missing. Next action is to improve deterministic review without making the CLI harder to use."));
-      writeBaselineDoc(dir, "benjamin-docs/engineering/architecture.md", "Architecture", capturedBody("The CLI is a Node command that writes a docs workspace and metadata into the current project. Metadata lives in .benjamin-docs while human-readable docs live under benjamin-docs. Validation checks frontmatter, manifest entries, anchors, links, and path safety."));
-      writeBaselineDoc(dir, "benjamin-docs/engineering/code-map.md", "Code Map", capturedBody("The main CLI entry is src/cli.ts. Initialization lives in src/init.ts. Validation lives in src/validate.ts. Skill installation lives in src/install-skill.ts. Prompt helpers live in src/next.ts and src/chat-project.ts. Tests live under test."));
-      writeBaselineDoc(dir, "benjamin-docs/features/index.md", "Features Index", capturedBody("Feature scopes are created only when a distinct change needs its own brief, plan, decisions, and handoff. Current work is focused on baseline capture quality. Deferred feature work includes hosted publishing and collaboration."));
-      writeBaselineDoc(dir, "benjamin-docs/releases/changelog.md", "Changelog", capturedBody("Recent changes include initialization, validation, review, readiness checks, agent guidance, skill installation, and package publishing. Release notes should stay concrete and mention behavior that future users or agents need to know."));
+      writeReviewBaseline(dir);
 
       const result = runCliResult(["review"], dir);
 
@@ -67,7 +60,39 @@ describe("review", () => {
       assert.doesNotMatch(result.stdout, /Warnings/);
     });
   });
+
+  it("warns when the agent brief lacks continuation proof", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReviewBaseline(dir);
+      writeBaselineDoc(
+        dir,
+        "benjamin-docs/handoff/agent-brief.md",
+        "Agent Brief",
+        "This handoff gives a broad orientation for future agents working on the local project memory tool. It explains that the repository should keep a small command surface and that the docs should stay plain enough for owners, teammates, and implementation agents. Run benjamin-docs ready and pnpm check after edits. The text is intentionally long enough to be substantial, but it omits several concrete proof pieces the review gate expects.",
+      );
+
+      const result = runCliResult(["review"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /status: passed with warnings/);
+      assert.match(result.stdout, /Agent brief should include continuation proof/);
+      assert.match(result.stdout, /Missing: read-first docs, current state, risks\/hazards, next actions/);
+    });
+  });
 });
+
+function writeReviewBaseline(dir: string): void {
+  writeBaselineDoc(dir, "benjamin-docs/project/brief.md", "Project Brief", capturedBody("This product helps teams preserve project context across AI sessions. It serves owners, developers, and future agents. The important baseline is local-first documentation with clear handoff notes, not hosted publishing or transcript dumping."));
+  writeBaselineDoc(dir, "benjamin-docs/project/roadmap.md", "Roadmap", capturedBody("The current roadmap is to stabilize capture flows, improve existing-codebase onboarding, and keep README guidance short. Near-term work focuses on doc quality checks. Deferred work includes SaaS publishing, dashboards, and hosted collaboration."));
+  writeBaselineDoc(dir, "benjamin-docs/project/open-questions.md", "Open Questions", "## Decisions\n\n- Should review warnings become stricter over time?\n- Which docs should be required for feature captures?\n- Should package publishing stay manual until the project is more stable?\n");
+  writeBaselineDoc(dir, "benjamin-docs/handoff/human-brief.md", "Human Brief", capturedBody("This project is a local project-memory tool. It turns useful planning and build conversations into durable Markdown files. The important thing for a human reader is that docs stay inside the project and are meant to explain decisions, next steps, and open questions plainly."));
+  writeBaselineDoc(dir, "benjamin-docs/handoff/agent-brief.md", "Agent Brief", capturedBody("Future agents should read the README, project brief, roadmap, open questions, architecture, and code map before changing behavior. Preserve local-first behavior, ask before creating chat projects, run benjamin-docs ready and pnpm check after edits, and avoid risky assumptions or hazards when context is missing. Next action is to improve deterministic review without making the CLI harder to use."));
+  writeBaselineDoc(dir, "benjamin-docs/engineering/architecture.md", "Architecture", capturedBody("The CLI is a Node command that writes a docs workspace and metadata into the current project. Metadata lives in .benjamin-docs while human-readable docs live under benjamin-docs. Validation checks frontmatter, manifest entries, anchors, links, and path safety."));
+  writeBaselineDoc(dir, "benjamin-docs/engineering/code-map.md", "Code Map", capturedBody("The main CLI entry is src/cli.ts. Initialization lives in src/init.ts. Validation lives in src/validate.ts. Skill installation lives in src/install-skill.ts. Prompt helpers live in src/next.ts and src/chat-project.ts. Tests live under test."));
+  writeBaselineDoc(dir, "benjamin-docs/features/index.md", "Features Index", capturedBody("Feature scopes are created only when a distinct change needs its own brief, plan, decisions, and handoff. Current work is focused on baseline capture quality. Deferred feature work includes hosted publishing and collaboration."));
+  writeBaselineDoc(dir, "benjamin-docs/releases/changelog.md", "Changelog", capturedBody("Recent changes include initialization, validation, review, readiness checks, agent guidance, skill installation, and package publishing. Release notes should stay concrete and mention behavior that future users or agents need to know."));
+}
 
 function writeBaselineDoc(root: string, path: string, title: string, body: string): void {
   const fullPath = join(root, path);

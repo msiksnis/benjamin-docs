@@ -54,6 +54,28 @@ describe("ready", () => {
     });
   });
 
+  it("fails when the agent brief does not prove continuation", () => {
+    withTempDir((dir) => {
+      runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReadyBaseline(dir);
+      writeBaselineDoc(
+        dir,
+        "benjamin-docs/handoff/agent-brief.md",
+        "Agent Brief",
+        "This handoff gives a broad orientation for future agents working on the local project memory tool. It explains that the repository should keep a small command surface and that the docs should stay plain enough for owners, teammates, and implementation agents. Run benjamin-docs ready and pnpm check after edits. The text is intentionally long enough to be substantial, but it omits several concrete proof pieces the review gate expects.",
+      );
+
+      const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /status: not ready/);
+      assert.match(result.stdout, /fail\s+review/);
+      assert.match(result.stdout, /Agent brief should include continuation proof/);
+    });
+  });
+
   it("includes agent guidance health when AGENTS.md exists", () => {
     withTempDir((dir) => {
       runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });

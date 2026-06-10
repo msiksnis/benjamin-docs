@@ -16,7 +16,7 @@ source: session-capture
 - How strict should deterministic `review` become before it feels like documentation busywork?
 - Which continuation signals should be required for `codebase` mode but optional for planning-only projects with no code yet?
 - Should feature scopes require validation/check sections before `bd ready` can pass?
-- How should BD prove that a fresh agent can continue from docs without reading the original chat?
+- Decision for 0.5.0: BD proves fresh-agent continuation through `handoff/agent-brief.md`. The brief must include read-first docs, current state, commands/checks, risks/hazards, and next actions; `review` warns and `ready` fails when those pieces are missing.
 
 ## Agent Guidance
 
@@ -32,7 +32,7 @@ source: session-capture
 
 ## Dogfooding
 
-- BD now passes its own `bd ready` checks on the published 0.3.1 workflow.
+- BD now passes its own `bd ready` checks on the published 0.4.x workflow.
 - `/Users/marty/Important/atelier-beaute` was used as a disposable real-project test for 0.3.x.
 - Which second real project should be the 0.4.0 dogfood target after `atelier-beaute`?
 - Should dogfooding include a fresh-agent exercise that only sees `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`?

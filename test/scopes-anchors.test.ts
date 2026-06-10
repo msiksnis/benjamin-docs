@@ -16,6 +16,7 @@ describe("scopes and anchors", () => {
       assert.equal(existsSync(join(dir, "benjamin-docs/features/booking-capacity/plan.md")), true);
       assert.equal(existsSync(join(dir, "benjamin-docs/features/booking-capacity/decisions.md")), true);
       assert.equal(existsSync(join(dir, "benjamin-docs/features/booking-capacity/handoff.md")), true);
+      assert.match(readFileSync(join(dir, "benjamin-docs/features/booking-capacity/handoff.md"), "utf8"), /## Continuation Proof/);
 
       const scopes = JSON.parse(readFileSync(join(dir, ".benjamin-docs/scopes.json"), "utf8")) as {
         scopes: Array<{ id: string; kind: string; path: string }>;

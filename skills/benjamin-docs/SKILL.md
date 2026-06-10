@@ -200,7 +200,9 @@ In an obvious codebase, current CLI versions default `init` to codebase memory w
 
 Never overwrite an existing `AGENTS.md`.
 
-Treat existing agent instructions as user-owned source material. If `AGENTS.md` exists without a Benjamin-owned section, preserve it and suggest one of these paths:
+Treat existing agent instructions as user-owned source material. Current CLI versions may append a clearly marked Benjamin-owned section, but all existing content must be preserved.
+
+If `AGENTS.md` is long or complex, still consider and suggest one of these paths:
 
 - add a Benjamin Docs section
 - split long guidance into child `AGENTS.md` files
@@ -240,6 +242,20 @@ Before calling a capture done, check that a future person or agent can answer:
 - What should I avoid breaking?
 
 If those answers are missing, keep editing the docs before running the final readiness gate.
+
+## Continuation Proof
+
+Before claiming that project memory is ready, make `handoff/agent-brief.md` prove that a future agent can continue without the original chat.
+
+Include:
+
+- read-first docs or files
+- current state or status
+- commands, tests, validation steps, or manual checks to run
+- risks, hazards, assumptions, or things to avoid
+- exact next actions
+
+Equivalent wording is fine, but the evidence must be concrete. If one of these pieces is missing, update the handoff before running `ready`.
 
 ## Agent-Ready Memory Checklist
 

@@ -48,6 +48,44 @@ const MIN_WORDS_BY_BASENAME: Record<string, number> = {
   "handoff.md": 45,
 };
 
+const AGENT_BRIEF_CONTINUATION_CHECKS = [
+  {
+    label: "read-first docs",
+    headings: ["read first", "read first docs", "read before changing"],
+    terms: ["read first", "read these", "start with", "before changing", "before editing"],
+  },
+  {
+    label: "current state",
+    headings: ["current state", "current status", "status"],
+    terms: ["current state", "current status", "status", "baseline", "done so far"],
+  },
+  {
+    label: "commands/checks",
+    headings: ["commands and checks", "commands checks", "checks", "validation"],
+    terms: ["bd ", "benjamin-docs", "command", "commands", "check", "checks", "test", "validate", "ready"],
+  },
+  {
+    label: "risks/hazards",
+    headings: ["risks hazards", "risks", "hazards", "risks open questions"],
+    terms: ["risk", "risks", "hazard", "hazards", "avoid", "do not", "watch out"],
+  },
+  {
+    label: "next actions",
+    headings: ["next actions", "next action", "next steps"],
+    terms: ["next action", "next actions", "next step", "next steps", "continue", "remaining"],
+  },
+];
+
+const AGENT_BRIEF_TEMPLATE_LINES = [
+  "use this to orient future ai agents quickly",
+  "fill this in so a future agent can continue without asking the owner to repeat the project",
+  "list the docs and files to read before changing behavior",
+  "summarize what exists now what is done and what is still uncertain",
+  "list commands tests validation steps or manual checks to run before handoff",
+  "list assumptions fragile areas or things future agents should avoid",
+  "list the next concrete actions for a human or agent",
+];
+
 export function reviewProject(root: string): ReviewResult {
   const errors: ReviewIssue[] = [];
   const warnings: ReviewIssue[] = [];
@@ -133,11 +171,12 @@ function reviewDoc(fullPath: string, relativePath: string, warnings: ReviewIssue
 
 function reviewContinuationSignals(body: string, relativePath: string, basename: string, warnings: ReviewIssue[]): void {
   if (basename === "agent-brief.md") {
-    if (!hasAny(body, ["bd ", "benjamin-docs", "pnpm", "npm", "test", "check", "validate", "ready"])) {
-      warnings.push({ path: relativePath, message: "Agent brief should name commands or checks future agents should run." });
-    }
-    if (!hasAny(body, ["next action", "next step", "continue", "handoff", "risk", "hazard", "avoid"])) {
-      warnings.push({ path: relativePath, message: "Agent brief should include next actions, risks, or hazards for continuation." });
+    const missing = AGENT_BRIEF_CONTINUATION_CHECKS.filter((check) => !hasAgentBriefContinuationSignal(body, check)).map((check) => check.label);
+    if (missing.length > 0) {
+      warnings.push({
+        path: relativePath,
+        message: `Agent brief should include continuation proof: read-first docs, current state, commands/checks, risks/hazards, and next actions. Missing: ${missing.join(", ")}.`,
+      });
     }
   }
 
@@ -200,6 +239,69 @@ function wordCount(text: string): number {
 function hasAny(text: string, terms: string[]): boolean {
   const normalized = text.toLowerCase();
   return terms.some((term) => normalized.includes(term));
+}
+
+function hasAgentBriefContinuationSignal(body: string, check: { headings: string[]; terms: string[] }): boolean {
+  const sections = markdownSections(body);
+  const section = sections.find((candidate) => check.headings.includes(normalizePhrase(candidate.heading)));
+  if (section && hasConcreteContinuationContent(section.content)) return true;
+
+  return hasAny(stripAgentBriefTemplateText(body), check.terms);
+}
+
+function markdownSections(text: string): Array<{ heading: string; content: string }> {
+  const sections: Array<{ heading: string; content: string }> = [];
+  let current: { heading: string; lines: string[] } | undefined;
+
+  for (const line of text.split(/\r?\n/)) {
+    const heading = line.match(/^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/);
+    if (heading) {
+      if (current) sections.push({ heading: current.heading, content: current.lines.join("\n") });
+      current = { heading: heading[1] ?? "", lines: [] };
+      continue;
+    }
+
+    current?.lines.push(line);
+  }
+
+  if (current) sections.push({ heading: current.heading, content: current.lines.join("\n") });
+  return sections;
+}
+
+function hasConcreteContinuationContent(content: string): boolean {
+  return content
+    .split(/\r?\n/)
+    .map(cleanContinuationLine)
+    .filter(Boolean)
+    .filter((line) => !isAgentBriefTemplateLine(line))
+    .some((line) => wordCount(line) >= 4 || hasPathLikeReference(line) || /`[^`]+`/.test(line) || /\b(bd|benjamin-docs|pnpm|npm|node|test|validate|ready)\b/i.test(line));
+}
+
+function stripAgentBriefTemplateText(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .filter((line) => !/^\s{0,3}#{1,6}\s+/.test(line))
+    .map(cleanContinuationLine)
+    .filter(Boolean)
+    .filter((line) => !isAgentBriefTemplateLine(line))
+    .join("\n");
+}
+
+function cleanContinuationLine(line: string): string {
+  return line.trim().replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, "");
+}
+
+function isAgentBriefTemplateLine(line: string): boolean {
+  return AGENT_BRIEF_TEMPLATE_LINES.includes(normalizePhrase(line));
+}
+
+function normalizePhrase(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[`*_]/g, "")
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 function countMatches(text: string, terms: string[]): number {

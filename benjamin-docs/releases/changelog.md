@@ -11,6 +11,13 @@ source: manual
 
 # Changelog
 
+## 0.5.0
+
+- Added Continuation Proof review checks for `handoff/agent-brief.md`.
+- `bd ready` now fails when the agent handoff lacks read-first docs, current state, commands/checks, risks/hazards, or next actions.
+- Updated starter templates and generated `next` prompts so fresh and older projects are asked for continuation-ready handoff evidence.
+- Updated the bundled skill and public README to explain the new readiness bar without adding new primary commands.
+
 ## 0.4.2
 
 - Fixed the older-project upgrade path when `benjamin-docs/` already exists but root `AGENTS.md` has no Benjamin-owned section.
