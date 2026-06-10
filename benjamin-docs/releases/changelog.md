@@ -11,7 +11,7 @@ source: manual
 
 # Changelog
 
-## Unreleased
+## 0.3.1
 
 - Tightened the bundled agent skill around existing-project baseline capture, safe updates to existing Benjamin docs, and `AGENTS.md` improvement guidance.
 - Saved the 0.4.0 direction as a quality milestone focused on reliable high-quality capture instead of more CLI commands.
