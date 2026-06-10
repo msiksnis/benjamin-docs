@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -68,9 +68,56 @@ describe("init", () => {
 
       assert.match(config, /"mode": "codebase"/);
       assert.match(config, /"focus": "codebase"/);
+      assert.equal(existsSync(join(dir, "AGENTS.md")), true);
+      assert.equal(existsSync(join(dir, "benjamin-docs/AGENTS.md")), true);
       assert.match(output, /Capture the current project baseline/);
       assert.match(output, /benjamin-docs\/engineering\/architecture\.md/);
       assert.match(output, /understandable for non-technical readers/);
+    });
+  });
+
+  it("defaults plain non-interactive init to codebase memory in an obvious codebase", () => {
+    withTempDir((dir) => {
+      writeFileSync(join(dir, "package.json"), '{"name":"demo"}\n');
+
+      const output = runCli(["init"], dir);
+      const config = readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8");
+      const agents = readFileSync(join(dir, "AGENTS.md"), "utf8");
+
+      assert.match(config, /"mode": "codebase"/);
+      assert.match(config, /"focus": "codebase"/);
+      assert.match(output, /Agent guidance: created benjamin-docs\/AGENTS\.md/);
+      assert.match(output, /Agent guidance: created AGENTS\.md/);
+      assert.match(agents, /Benjamin Docs Project Memory/);
+      assert.match(agents, /benjamin-docs\/AGENTS\.md/);
+      assert.match(output, /Capture the current project baseline/);
+    });
+  });
+
+  it("lets automation opt out of codebase agent guidance", () => {
+    withTempDir((dir) => {
+      writeFileSync(join(dir, "package.json"), '{"name":"demo"}\n');
+
+      const output = runCli(["init", "--no-agent-contract"], dir);
+      const config = readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8");
+
+      assert.match(config, /"mode": "codebase"/);
+      assert.match(config, /"focus": "codebase"/);
+      assert.equal(existsSync(join(dir, "AGENTS.md")), false);
+      assert.equal(existsSync(join(dir, "benjamin-docs/AGENTS.md")), false);
+      assert.doesNotMatch(output, /Agent guidance:/);
+    });
+  });
+
+  it("prints init help", () => {
+    withTempDir((dir) => {
+      const output = runCli(["init", "--help"], dir);
+
+      assert.match(output, /benjamin-docs init/);
+      assert.match(output, /For most people:/);
+      assert.match(output, /benjamin-docs init --mode codebase/);
+      assert.match(output, /benjamin-docs init --no-agent-contract/);
+      assert.match(runCli(["init", "--mode", "codebase", "--help"], dir), /benjamin-docs init/);
     });
   });
 

@@ -26,6 +26,24 @@ export function addAnchor(root: string, id: string, file: string, docs: string[]
   writeGeneratedJson(root, anchorsPath, anchors, METADATA_LABEL);
 }
 
+export function listAnchors(root: string): string {
+  const anchorsPath = `${CONFIG_DIR}/${ANCHORS_FILE}`;
+  const anchors = readGeneratedJson<AnchorsFile>(root, anchorsPath, METADATA_LABEL);
+  const entries = Object.entries(anchors.anchors).sort(([left], [right]) => left.localeCompare(right));
+
+  if (entries.length === 0) {
+    return ["benjamin-docs anchors", "", "No anchors yet.", "", "Add one with:", "  benjamin-docs anchor add <id> <file>"].join("\n");
+  }
+
+  const lines = ["benjamin-docs anchors", ""];
+  for (const [id, anchor] of entries) {
+    lines.push(`- ${id}: ${anchor.file}`);
+    if (anchor.docs.length > 0) lines.push(`  docs: ${anchor.docs.join(", ")}`);
+  }
+
+  return lines.join("\n");
+}
+
 interface SafePath {
   full: string;
   relative: string;

@@ -11,6 +11,15 @@ source: manual
 
 # Changelog
 
+## 0.4.1
+
+- Made plain non-interactive `bd init` auto-detect obvious codebases and initialize codebase memory instead of planning mode.
+- Made codebase init install repo-local agent guidance by default, including the docs-local child `benjamin-docs/AGENTS.md`.
+- Added `bd init --no-agent-contract` for automation that explicitly wants codebase memory without agent guidance.
+- Added `bd anchor list` so users and agents can inspect code anchors without opening `.benjamin-docs/anchors.json` directly.
+- Added subcommand help for `init`, `anchor`, and `scope`, including support for help flags anywhere in the subcommand args.
+- Updated `bd introduce`, public README, and bundled skill guidance so the recommended human path remains `bd init`.
+
 ## 0.4.0
 
 - Started the agent-ready project memory milestone.

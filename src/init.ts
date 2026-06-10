@@ -176,7 +176,7 @@ function updateScopes(root: string, docsRoot: string): void {
   writeGeneratedJson(root, `${CONFIG_DIR}/${SCOPES_FILE}`, scopes, METADATA_LABEL);
 }
 
-function looksLikeCodebase(root: string): boolean {
+export function looksLikeCodebase(root: string): boolean {
   return ["package.json", "src", "app", "pages", "pyproject.toml", "Cargo.toml", "go.mod", "pom.xml"].some((path) => existsSync(`${root}/${path}`));
 }
 

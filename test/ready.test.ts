@@ -49,7 +49,7 @@ describe("ready", () => {
       assert.match(result.stdout, /ok\s+validate/);
       assert.match(result.stdout, /ok\s+review/);
       assert.match(result.stdout, /ok\s+doctor --strict/);
-      assert.doesNotMatch(result.stdout, /agent guidance/i);
+      assert.match(result.stdout, /ok\s+agent guidance - /);
       assert.match(result.stdout, /Project memory is ready for handoff/);
     });
   });
@@ -89,7 +89,7 @@ describe("ready", () => {
     withTempDir((dir) => {
       runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
       runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
-      runCliResult(["init", "--mode", "codebase"], dir);
+      runCliResult(["init", "--mode", "codebase", "--no-agent-contract"], dir);
       writeReadyBaseline(dir);
       writeFileSync(join(dir, "AGENTS.md"), "# Existing Agent Rules\n\nKeep these.\n", "utf8");
 

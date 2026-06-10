@@ -110,6 +110,42 @@ describe("scopes and anchors", () => {
     });
   });
 
+  it("lists code anchors", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      mkdirSync(join(dir, "src/features/booking"), { recursive: true });
+      writeFileSync(join(dir, "src/features/booking/capacity.ts"), "export const capacity = 1;\n");
+      writeFileSync(join(dir, "src/features/booking/rules.ts"), "export const rules = [];\n");
+      runCli(["anchor", "add", "booking-rules", "src/features/booking/rules.ts"], dir);
+      runCli(["anchor", "add", "booking-capacity", "src/features/booking/capacity.ts"], dir);
+
+      const output = runCli(["anchor", "list"], dir);
+
+      assert.match(output, /benjamin-docs anchors/);
+      assert.match(output, /- booking-capacity: src\/features\/booking\/capacity\.ts/);
+      assert.match(output, /- booking-rules: src\/features\/booking\/rules\.ts/);
+    });
+  });
+
+  it("prints anchor help", () => {
+    withTempDir((dir) => {
+      const output = runCli(["anchor", "--help"], dir);
+
+      assert.match(output, /benjamin-docs anchor/);
+      assert.match(output, /benjamin-docs anchor add <id> <file>/);
+      assert.match(output, /benjamin-docs anchor list/);
+    });
+  });
+
+  it("prints scope help", () => {
+    withTempDir((dir) => {
+      const output = runCli(["scope", "--help"], dir);
+
+      assert.match(output, /benjamin-docs scope/);
+      assert.match(output, /benjamin-docs scope create feature <slug>/);
+    });
+  });
+
   it("rejects a symlinked metadata directory during anchor add", () => {
     withTempDir((dir) => {
       const outsideDir = mkdtempSync(join(tmpdir(), "benjamin-docs-outside-"));

@@ -4,7 +4,7 @@ Local project memory for humans and AI agents.
 
 [npm package](https://www.npmjs.com/package/benjamin-docs)
 
-`benjamin-docs` turns useful chats into project docs.
+`benjamin-docs` turns useful chats and project work into project docs.
 
 It keeps decisions, plans, open questions, and handoff notes in Markdown files inside your project.
 
@@ -116,11 +116,13 @@ benjamin-docs chat-project
 
 ## Use It In An Existing Project
 
-For an existing codebase:
+For an existing app or codebase:
 
 ```bash
 benjamin-docs init
 ```
+
+In an obvious codebase, `init` sets up codebase memory and repo-local agent guidance automatically. Existing `AGENTS.md` files are preserved; Benjamin-owned sections are marked so they can be updated without rewriting the rest of the file.
 
 Then ask your agent:
 
@@ -139,16 +141,10 @@ Use mode flags only when you want to be specific:
 ```bash
 benjamin-docs init --mode planning
 benjamin-docs init --mode codebase
+benjamin-docs init --mode feature --feature <slug>
+benjamin-docs init --no-agent-contract
 benjamin-docs next
 ```
-
-When you want future agents to work from repo-local guidance:
-
-```bash
-benjamin-docs init --agent-contract
-```
-
-Existing `AGENTS.md` files are preserved. Treat existing agent instructions as user-owned guidance and approve any rewrite deliberately.
 
 ## Check Readiness
 
@@ -182,6 +178,15 @@ Existing `docs/` folders are left alone unless you explicitly configure otherwis
 ## More Commands
 
 Use `benjamin-docs commands` when you need advanced setup, diagnostics, exports, scope commands, or skill packaging.
+
+Useful advanced examples:
+
+```bash
+benjamin-docs anchor add homepage pages/index.js
+benjamin-docs anchor list
+benjamin-docs scope create feature checkout-redesign
+benjamin-docs init --help
+```
 
 ## Local Development
 

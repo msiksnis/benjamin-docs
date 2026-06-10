@@ -20,6 +20,7 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs export --audience developer", args: ["export", "--audience", "developer"], description: "Build a local audience-specific Markdown bundle." },
   { command: "benjamin-docs scope create feature <slug>", args: ["scope", "create", "feature", "<slug>"], description: "Create feature docs and metadata." },
   { command: "benjamin-docs anchor add <id> <file>", args: ["anchor", "add", "<id>", "<file>"], description: "Link a stable code anchor to docs." },
+  { command: "benjamin-docs anchor list", args: ["anchor", "list"], description: "List stable code anchors." },
   { command: "benjamin-docs install-skill", args: ["install-skill"], description: "Install the bundled agent skill locally." },
   { command: "benjamin-docs package-skill", args: ["package-skill"], description: "Package the skill for Claude upload." },
   { command: "benjamin-docs chat-project", args: ["chat-project"], description: "Print exact guidance for chat-to-project workflows." },

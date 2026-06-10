@@ -119,7 +119,7 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 
 Use this workflow when the user asks to document an existing app, capture the current project baseline, initialize Benjamin Docs in a codebase, or prepare a repo for future agents.
 
-1. Run the local CLI command with `status`. If the project is not initialized, run `init --mode codebase`. If the user wants repo-local agent guidance, use `init --mode codebase --agent-contract`; add `--children` only when the docs workspace needs its own child guidance.
+1. Run the local CLI command with `status`. If the project is not initialized, run `init`. In an obvious codebase, current CLI versions default plain non-interactive `init` to codebase memory with repo-local agent guidance. Use explicit flags only when automation needs to override the default, such as `init --mode planning`, `init --mode codebase`, or `init --no-agent-contract`.
 2. Read `.benjamin-docs/config.json`, `.benjamin-docs/manifest.json`, root `AGENTS.md` when present, package/config files, README files, and the main source tree map. Prefer `rg --files` for discovery.
 3. Identify what kind of project this is, the main runtime/framework, data sources, external services, build/test commands, and known operational risks.
 4. Update the existing baseline docs instead of creating parallel summaries:
@@ -133,7 +133,7 @@ Use this workflow when the user asks to document an existing app, capture the cu
    - `features/index.md`
    - `releases/changelog.md`
 5. Keep generated starter text only when it is still true. Replace placeholder content with concrete project context.
-6. If code references matter, add anchors with `anchor add <id> <file>` instead of only mentioning paths in prose.
+6. If code references matter, add anchors with `anchor add <id> <file>` instead of only mentioning paths in prose. Use `anchor list` when you need to inspect existing anchors.
 7. Run the local CLI command with `ready`. If it fails, fix the docs or setup gap before claiming the baseline is ready.
 8. Summarize the baseline in terms a future maintainer can act on: what the project is, how to run it, where the important code lives, what is risky, and what should happen next.
 
@@ -193,8 +193,10 @@ When updating docs from a chat, capture the durable decisions and state transiti
 When initializing or updating a codebase, app, feature, or change project and the user wants future agents to work from project memory, prefer:
 
 ```bash
-benjamin-docs init --agent-contract
+benjamin-docs init
 ```
+
+In an obvious codebase, current CLI versions default `init` to codebase memory with agent guidance. Use `benjamin-docs init --no-agent-contract` only when the user explicitly does not want repo-local agent guidance.
 
 Never overwrite an existing `AGENTS.md`.
 

@@ -3,14 +3,14 @@ import { realpathSync } from "node:fs";
 import { emitKeypressEvents } from "node:readline";
 import { createInterface } from "node:readline/promises";
 import { fileURLToPath } from "node:url";
-import { addAnchor } from "./anchors.js";
+import { addAnchor, listAnchors } from "./anchors.js";
 import { installAgentContracts } from "./agent-contracts.js";
 import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
 import { allCommands, getCommandsText, type CommandEntry } from "./commands.js";
 import { runDoctor } from "./doctor.js";
 import { exportAudience } from "./export.js";
-import { initProject, promoteToCodebase, type InitProjectOptions } from "./init.js";
-import { getHelpText, getIntroductionText, getPackageVersion } from "./info.js";
+import { initProject, looksLikeCodebase, promoteToCodebase, type InitProjectOptions } from "./init.js";
+import { getAnchorHelpText, getHelpText, getInitHelpText, getIntroductionText, getPackageVersion, getScopeHelpText } from "./info.js";
 import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
 import { formatNextMessage, getNextPrompt } from "./next.js";
 import { formatPackageSkillResult, packageSkill, type PackageSkillOptions } from "./package-skill.js";
@@ -98,7 +98,12 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "init") {
-    const options = await resolveInitOptions(argv.slice(1));
+    if (hasHelpArg(argv.slice(1))) {
+      console.log(getInitHelpText());
+      return 0;
+    }
+
+    const options = await resolveInitOptions(argv.slice(1), cwd);
     const result = initProject(cwd, options);
     console.log(`Initialized benjamin-docs. ${result.written.length} files created.`);
     if (options.agentContract) {
@@ -121,6 +126,11 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "scope") {
+    if (hasHelpArg(argv.slice(1))) {
+      console.log(getScopeHelpText());
+      return 0;
+    }
+
     if (argv[1] !== "create") {
       throw new Error("Usage: benjamin-docs scope create feature <slug>");
     }
@@ -137,8 +147,18 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "anchor") {
+    if (hasHelpArg(argv.slice(1))) {
+      console.log(getAnchorHelpText());
+      return 0;
+    }
+
+    if (argv[1] === "list") {
+      console.log(listAnchors(cwd));
+      return 0;
+    }
+
     if (argv[1] !== "add") {
-      throw new Error("Usage: benjamin-docs anchor add <id> <file>");
+      throw new Error("Usage: benjamin-docs anchor add <id> <file> OR benjamin-docs anchor list");
     }
 
     const id = argv[2];
@@ -192,16 +212,17 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   return 1;
 }
 
-async function resolveInitOptions(args: string[]): Promise<InitProjectOptions> {
+async function resolveInitOptions(args: string[], cwd: string): Promise<InitProjectOptions> {
   const parsed = parseInitArgs(args);
-  if (parsed.setup) return parsed;
+  if (parsed.setup) return applyInitDefaults(parsed);
 
   if (process.stdin.isTTY && process.stdout.isTTY) {
     const prompted = await promptForInitOptions();
-    return { ...prompted, ...parsed };
+    return applyInitDefaults({ ...prompted, ...parsed });
   }
 
-  return { ...parsed, setup: "project" };
+  const setup: FocusType = looksLikeCodebase(cwd) ? "codebase" : "project";
+  return applyInitDefaults({ ...parsed, setup });
 }
 
 function parseInitArgs(args: string[]): InitProjectOptions {
@@ -238,6 +259,12 @@ function parseInitArgs(args: string[]): InitProjectOptions {
       continue;
     }
 
+    if (arg === "--no-agent-contract") {
+      options.agentContract = false;
+      options.childContracts = false;
+      continue;
+    }
+
     if (arg === "--children") {
       options.childContracts = true;
       continue;
@@ -251,6 +278,26 @@ function parseInitArgs(args: string[]): InitProjectOptions {
   }
 
   return options;
+}
+
+function applyInitDefaults(options: InitProjectOptions): InitProjectOptions {
+  if (options.setup === "codebase" && options.agentContract === undefined) {
+    return { ...options, agentContract: true, childContracts: options.childContracts ?? true };
+  }
+
+  if (options.setup === "codebase" && options.agentContract && options.childContracts === undefined) {
+    return { ...options, childContracts: true };
+  }
+
+  return options;
+}
+
+function isHelpArg(arg: string | undefined): boolean {
+  return arg === "help" || arg === "--help" || arg === "-h";
+}
+
+function hasHelpArg(args: string[]): boolean {
+  return args.some((arg) => isHelpArg(arg));
 }
 
 function parseSetup(value: string): FocusType {

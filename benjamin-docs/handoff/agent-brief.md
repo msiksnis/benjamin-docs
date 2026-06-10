@@ -21,7 +21,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.3.0` published on npm, tagged as `v0.3.0`, and released on GitHub
+- Package status: `0.4.0` published on npm, tagged as `v0.4.0`, and released on GitHub
+- Working package version: `0.4.1` for simple-path polish after the Atelier dogfood pass
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -30,7 +31,7 @@ The project has been renamed fully from the earlier working name `agent-docs`; d
 - TypeScript CLI with no runtime dependencies.
 - Main commands: `init`, `ready`, `help`.
 - Advanced drawer: `commands`, with numbered interactive selection in real terminals.
-- Advanced commands include `status`, `next`, `validate`, `review`, `doctor`, `export --audience <audience>`, `scope create feature <slug>`, `anchor add <id> <file>`, `install-skill`, `package-skill`, and `chat-project`.
+- Advanced commands include `status`, `next`, `validate`, `review`, `doctor`, `export --audience <audience>`, `scope create feature <slug>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
 - Short binary alias: `bd`.
 - Planning-mode docs created by `init`.
 - Codebase-mode docs created by `promote --to codebase`.
@@ -60,10 +61,12 @@ The project has been renamed fully from the earlier working name `agent-docs`; d
 - `v0.3.0` is pushed to GitHub with release notes.
 - The next milestone should focus on high-quality capture behavior, not more primary CLI commands.
 - Use pnpm for this project.
+- 0.4.1 polish should make `bd init` smart enough for normal codebase use: plain non-interactive init in an obvious codebase defaults to codebase memory with root and child agent guidance. Use `bd init --no-agent-contract` only when automation explicitly wants no repo-local guidance.
+- `bd anchor list` was added after dogfooding showed that anchors could be created but not inspected through the CLI.
 
-## 0.4.0 Direction
+## 0.4.x Direction
 
-0.4.0 should make Benjamin Docs reliably turn messy chats, new repos, existing codebases, and single feature plans into useful project memory without the user needing to understand the docs structure.
+0.4.x should make Benjamin Docs reliably turn messy chats, new repos, existing codebases, and single feature plans into useful project memory without the user needing to understand the docs structure.
 
 The priority is agent behavior:
 
@@ -73,7 +76,7 @@ The priority is agent behavior:
 - clearer handoff docs
 - direct challenge of weak assumptions and missing decisions
 
-Do not expand the primary command surface for 0.4.0 unless dogfooding proves a repeated workflow cannot fit under `init`, `ready`, `help`, or the advanced `commands` drawer.
+Do not expand the primary command surface unless dogfooding proves a repeated workflow cannot fit under `init`, `ready`, `help`, or the advanced `commands` drawer.
 
 ## Public Repo Setup
 

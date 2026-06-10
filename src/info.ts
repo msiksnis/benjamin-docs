@@ -26,6 +26,8 @@ export function getHelpText(): string {
     "If you are inside a project, run:",
     "  benjamin-docs init",
     "",
+    "In an app or codebase, init auto-detects codebase memory and installs agent guidance.",
+    "",
     "Then ask your agent:",
     "  Capture the current project baseline with benjamin-docs in plain language.",
     "",
@@ -38,16 +40,19 @@ export function getIntroductionText(): string {
   return [
     "benjamin-docs keeps project memory on disk.",
     "",
-    "It turns chats into local Markdown docs:",
+    "It turns messy chats and projects into local Markdown docs:",
     "- decisions",
     "- plans",
     "- open questions",
     "- handoff notes",
+    "- code maps and agent guidance when code exists",
     "",
     "No cloud. No dashboard. No transcript dump.",
     "",
-    "In terminal, run:",
-    "  benjamin-docs install-skill",
+    "Inside a project, run:",
+    "  benjamin-docs init",
+    "",
+    "In an app or codebase, init auto-detects codebase memory and installs agent guidance.",
     "",
     "From any chat, ask your agent:",
     "  Use the benjamin-docs skill to create a project from this chat.",
@@ -68,5 +73,61 @@ export function getIntroductionText(): string {
     "",
     "Then ask your agent:",
     "  Capture the current project baseline with benjamin-docs.",
+  ].join("\n");
+}
+
+export function getInitHelpText(): string {
+  return [
+    "benjamin-docs init",
+    "",
+    "Set up local project memory.",
+    "",
+    "For most people:",
+    "  benjamin-docs init",
+    "",
+    "What it does:",
+    "- In an interactive terminal, asks what you are setting up.",
+    "- In an obvious codebase, defaults to codebase memory and agent guidance.",
+    "- Preserves existing docs and existing AGENTS.md content.",
+    "",
+    "Automation flags:",
+    "  benjamin-docs init --mode planning",
+    "  benjamin-docs init --mode codebase",
+    "  benjamin-docs init --mode feature --feature <slug>",
+    "  benjamin-docs init --agent-contract",
+    "  benjamin-docs init --agent-contract --children",
+    "  benjamin-docs init --no-agent-contract",
+    "",
+    "Tip: teach humans `benjamin-docs init`; use flags for scripts and agents.",
+  ].join("\n");
+}
+
+export function getAnchorHelpText(): string {
+  return [
+    "benjamin-docs anchor",
+    "",
+    "Link stable names to important code files.",
+    "",
+    "Commands:",
+    "  benjamin-docs anchor add <id> <file>",
+    "  benjamin-docs anchor list",
+    "",
+    "Examples:",
+    "  benjamin-docs anchor add homepage pages/index.js",
+    "  benjamin-docs anchor list",
+  ].join("\n");
+}
+
+export function getScopeHelpText(): string {
+  return [
+    "benjamin-docs scope",
+    "",
+    "Create focused docs for a feature, change, or plan.",
+    "",
+    "Commands:",
+    "  benjamin-docs scope create feature <slug>",
+    "",
+    "Example:",
+    "  benjamin-docs scope create feature checkout-redesign",
   ].join("\n");
 }

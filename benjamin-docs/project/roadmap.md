@@ -18,6 +18,7 @@ source: session-capture
 - Support existing-codebase projects with `promote --to codebase`.
 - Support feature scopes with `scope create feature <slug>`.
 - Support code anchors with `anchor add <id> <file>`.
+- Support anchor inspection with `anchor list`.
 - Validate managed docs, metadata, anchors, links, and symlink/root safety.
 - Export audience bundles with `export --audience <audience>`.
 - Provide human-readable help, version output, and a plain-language `introduce` command.
@@ -34,22 +35,35 @@ source: session-capture
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.3.0`.
+- Current published release: `0.4.0`.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
-- `v0.3.0` is tagged and released on GitHub.
-- The 0.3.0 npm artifact was verified in a fresh temp project.
+- `v0.4.0` is tagged and released on GitHub.
+- The 0.4.0 npm artifact was verified in a fresh temp project and dogfooded on `/Users/marty/Important/atelier-beaute`.
 
 ## Immediate Next Work
 
 - Keep the CLI command surface stable. Do not add more top-level commands unless a repeated real workflow proves the need.
-- Improve the bundled skill so agents produce stronger baseline captures and update existing docs safely.
-- Dogfood 0.3.0 on more real projects and record where the skill produces weak, vague, or overconfident docs.
+- Polish the 0.4.x simple path so `bd init` is enough in normal codebase use.
+- Dogfood 0.4.x on more real projects and record where the skill produces weak, vague, or overconfident docs.
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
+
+## 0.4.1 Goal
+
+`benjamin-docs@0.4.1` should make the 0.4.0 behavior feel simpler in practice.
+
+Target state:
+
+- Plain `bd init` in an obvious codebase creates codebase memory and agent guidance by default.
+- Users do not need to learn `--mode codebase --agent-contract --children` for the normal path.
+- Automation can still opt out with `bd init --no-agent-contract`.
+- `bd anchor list` completes the anchor workflow.
+- `bd init --help`, `bd anchor --help`, and `bd scope --help` explain advanced usage without errors.
+- `bd introduce`, README, and the bundled skill all point to the same simple first step.
 
 ## 0.4.0 Goal
 
