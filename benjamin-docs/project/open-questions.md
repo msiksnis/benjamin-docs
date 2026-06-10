@@ -3,34 +3,36 @@ title: Open Questions
 scope: project
 scope_id: project
 audience: [developer, designer, business, agent]
-status: draft
+status: review
 visibility: private
-updated: 2026-06-06
+updated: 2026-06-10
 source: session-capture
 ---
 
 # Open Questions
 
-## Public Readiness
+## 0.4.0 Capture Quality
 
-- `benjamin-docs` is now public on npm. Should the README continue showing npm/npx fallback commands, or return to a stricter pnpm-first stance?
-- Should `validate` report unmanaged legacy Markdown files as skipped, or stay quiet unless there is a path/symlink safety issue?
+- How strict should deterministic `review` become before it feels like documentation busywork?
+- Which continuation signals should be required for `codebase` mode but optional for planning-only projects with no code yet?
+- Should feature scopes require validation/check sections before `bd ready` can pass?
+- How should BD prove that a fresh agent can continue from docs without reading the original chat?
 
-## Skill Distribution
+## Agent Guidance
 
-- Should BD keep installing the same skill into shared, Codex, Claude Code, and Cursor folders, or should app-specific installers become explicit subcommands later?
-- Should Claude Desktop upload docs stay in the README, or move into `package-skill` output only?
-- What is the right plugin story for Codex and Claude once plugin formats settle?
+- If a user requested agent guidance but an existing unmarked `AGENTS.md` was preserved, should `bd ready` fail or report a stronger warning?
+- Should generated `AGENTS.md` remain short, or include a slightly stronger operating contract for scope choice, evidence, and closeout?
 
-## CLI Scope
+## Templates And Review
 
 - Decision: keep `doctor --strict` as a setup/validation gate, and use `ready` as the higher-level gate that also fails on `review` warnings.
-- Should release and handoff scopes get first-class create commands, or should BD keep those as starter docs only?
-- Should `review` eventually understand audience quality, stale dates, and missing code anchors, or stay a simple deterministic lint?
+- Decision: do not add new primary commands for 0.4.0 unless dogfooding proves a repeated workflow cannot fit under `init`, `ready`, `help`, or `commands`.
+- Should starter-template detection be centralized with template definitions to avoid drift?
+- Should release and handoff scopes get first-class create commands later, or should BD keep those as starter docs only?
 
 ## Dogfooding
 
-- BD now passes its own `validate`, `review`, and `doctor --strict` checks.
-- `/Users/marty/Important/kit/benjamin` was tested non-destructively through a temp-copy `init --mode codebase` and baseline capture.
-- The real `/Users/marty/Important/kit/benjamin` repo is now initialized with BD and passes `ready`.
-- Which project should be the next real dogfood target after Benjamin?
+- BD now passes its own `bd ready` checks on the published 0.3.1 workflow.
+- `/Users/marty/Important/atelier-beaute` was used as a disposable real-project test for 0.3.x.
+- Which second real project should be the 0.4.0 dogfood target after `atelier-beaute`?
+- Should dogfooding include a fresh-agent exercise that only sees `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`?

@@ -206,6 +206,8 @@ function rootContractSection(docsRoot: string, childPaths: string[]): string {
   - \`${docsRoot}/project/open-questions.md\`
   - \`${docsRoot}/handoff/agent-brief.md\`
 - Update Benjamin docs when durable decisions, workflows, architecture, risks, or handoff context change.
+- Use feature docs for distinct features or changes; use handoff docs for continuation context.
+- Prefer concrete evidence: code paths, commands, decisions, risks, and next actions.
 - Do not dump raw transcripts unless the user explicitly asks for an archive.
 - Preserve the user's intent, but call out weak assumptions, contradictions, and useful alternatives.
 - Before claiming handoff readiness, run \`benjamin-docs ready\`.

@@ -35,6 +35,13 @@
       "title": "Release",
       "path": "benjamin-docs/releases/changelog.md",
       "status": "draft"
+    },
+    {
+      "id": "agent-ready-project-memory",
+      "kind": "feature",
+      "title": "Agent Ready Project Memory",
+      "path": "benjamin-docs/features/agent-ready-project-memory",
+      "status": "draft"
     }
   ]
 }

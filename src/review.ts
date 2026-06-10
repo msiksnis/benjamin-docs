@@ -27,6 +27,12 @@ const STARTER_PHRASES = [
   "Use this to orient future AI agents quickly.",
   "Capture the planned or current system shape, major boundaries, and important constraints.",
   "Capture important files, modules, routes, schemas, and tests when code exists.",
+  "Track feature scopes that are planned, in progress, shipped, or deferred.",
+  "Track notable changes.",
+  "Capture what this feature is meant to accomplish.",
+  "Capture the implementation or execution plan.",
+  "Capture durable decisions, rejected options, and reasoning.",
+  "Capture status, open questions, and next actions for this feature.",
 ];
 
 const MIN_WORDS_BY_BASENAME: Record<string, number> = {
@@ -37,6 +43,9 @@ const MIN_WORDS_BY_BASENAME: Record<string, number> = {
   "agent-brief.md": 60,
   "architecture.md": 50,
   "code-map.md": 50,
+  "plan.md": 45,
+  "decisions.md": 35,
+  "handoff.md": 45,
 };
 
 export function reviewProject(root: string): ReviewResult {
@@ -118,6 +127,43 @@ function reviewDoc(fullPath: string, relativePath: string, warnings: ReviewIssue
   if (basename === "open-questions.md" && !body.includes("?")) {
     warnings.push({ path: relativePath, message: "Open questions doc has no question marks. Add concrete unresolved decisions." });
   }
+
+  reviewContinuationSignals(body, relativePath, basename, warnings);
+}
+
+function reviewContinuationSignals(body: string, relativePath: string, basename: string, warnings: ReviewIssue[]): void {
+  if (basename === "agent-brief.md") {
+    if (!hasAny(body, ["bd ", "benjamin-docs", "pnpm", "npm", "test", "check", "validate", "ready"])) {
+      warnings.push({ path: relativePath, message: "Agent brief should name commands or checks future agents should run." });
+    }
+    if (!hasAny(body, ["next action", "next step", "continue", "handoff", "risk", "hazard", "avoid"])) {
+      warnings.push({ path: relativePath, message: "Agent brief should include next actions, risks, or hazards for continuation." });
+    }
+  }
+
+  if (basename === "code-map.md" && !hasPathLikeReference(body)) {
+    warnings.push({ path: relativePath, message: "Code map should include concrete file or directory paths." });
+  }
+
+  if (basename === "architecture.md" && countMatches(body, ["runtime", "node", "browser", "server", "client", "boundary", "boundaries", "service", "data", "database", "api", "constraint", "metadata"]) < 2) {
+    warnings.push({ path: relativePath, message: "Architecture should mention runtime, boundaries, services/data, or constraints." });
+  }
+
+  if (basename === "roadmap.md" && countMatches(body, ["now", "next", "later", "deferred", "non-goal", "out of scope", "risk"]) < 2) {
+    warnings.push({ path: relativePath, message: "Roadmap should include now/next/later, deferred work, non-goals, or risks." });
+  }
+
+  if (isFeatureDoc(relativePath, "plan.md") && !hasAny(body, ["test", "check", "validate", "review", "verify", "manual", "acceptance"])) {
+    warnings.push({ path: relativePath, message: "Feature plan should include validation, checks, or acceptance criteria." });
+  }
+
+  if (isFeatureDoc(relativePath, "decisions.md") && !hasAny(body, ["decision", "decided", "rejected", "option", "because", "reason"])) {
+    warnings.push({ path: relativePath, message: "Feature decisions should include decisions, rejected options, or reasoning." });
+  }
+
+  if (isFeatureDoc(relativePath, "handoff.md") && !hasAny(body, ["status", "next", "open question", "risk", "todo", "remaining"])) {
+    warnings.push({ path: relativePath, message: "Feature handoff should include status, risks/open questions, or next actions." });
+  }
 }
 
 function reviewCodebaseDocs(docsRoot: string, manifestDocs: string[], warnings: ReviewIssue[]): void {
@@ -149,6 +195,24 @@ function expectedDocs(docsRoot: string, mode: string): string[] {
 
 function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function hasAny(text: string, terms: string[]): boolean {
+  const normalized = text.toLowerCase();
+  return terms.some((term) => normalized.includes(term));
+}
+
+function countMatches(text: string, terms: string[]): number {
+  const normalized = text.toLowerCase();
+  return terms.filter((term) => normalized.includes(term)).length;
+}
+
+function hasPathLikeReference(text: string): boolean {
+  return /(^|\s)([\w.-]+\/[\w./-]+|[\w.-]+\.(ts|tsx|js|jsx|json|md|css|html|py|rb|go|rs|java|php|sql|yml|yaml))(\s|$|[,:.)])/m.test(text);
+}
+
+function isFeatureDoc(relativePath: string, basename: string): boolean {
+  return relativePath.includes("/features/") && relativePath.endsWith(`/${basename}`);
 }
 
 function formatReview(result: { docsChecked: number; errors: ReviewIssue[]; warnings: ReviewIssue[] }): ReviewResult {

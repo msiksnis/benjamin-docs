@@ -139,6 +139,40 @@ Use this workflow when the user asks to document an existing app, capture the cu
 
 Do not describe this as "documenting an existing codebase" when that would be misleading. A project may be new, half-built, or freshly generated. Prefer "capture the current project baseline" in user-facing summaries.
 
+## Feature Or Change Plan Workflow
+
+Use this workflow when the user asks to plan, document, hand off, or continue one feature, change, redesign, experiment, migration, bug fix, or release slice.
+
+1. Check whether the project is initialized. If not, run `init --mode feature --feature <slug>` when a clear feature slug exists, otherwise run `init` and ask the user for the feature name only if it is needed.
+2. If the project is already initialized, use `scope create feature <slug>` when the feature does not already have a scope.
+3. Read the project brief, roadmap, open questions, agent brief, and any existing feature docs before editing.
+4. Update the feature docs:
+   - `features/<slug>/brief.md`: outcome, user/project value, scope, non-goals
+   - `features/<slug>/plan.md`: implementation steps, validation, rollout/checks
+   - `features/<slug>/decisions.md`: decisions, rejected options, reasoning
+   - `features/<slug>/handoff.md`: status, risks/open questions, next actions
+5. Update project-level docs only when the feature changes overall roadmap, architecture, risks, or handoff context.
+6. Use anchors for important code files when code exists.
+7. Run `ready` when the feature docs are intended for handoff. Use lower-level checks only to diagnose failures.
+
+Keep the user-facing summary short: feature scope created or updated, main decisions captured, risks/open questions, next action, and readiness result.
+
+## Handoff Or Existing-Doc Update Workflow
+
+Use this workflow when the user asks to update project memory, prepare a handoff, summarize recent work, or preserve decisions from the current conversation.
+
+1. Read existing Benjamin docs first. Do not create a parallel summary if an existing doc fits.
+2. Identify the smallest durable update:
+   - project state belongs in `project/brief.md`
+   - sequencing belongs in `project/roadmap.md`
+   - unresolved decisions belong in `project/open-questions.md`
+   - human-facing context belongs in `handoff/human-brief.md`
+   - agent-facing continuation context belongs in `handoff/agent-brief.md`
+   - implementation details belong in feature docs or engineering docs
+3. Preserve useful historical decisions. Replace only stale starter text, duplicated summaries, or outdated claims.
+4. Mark assumptions and uncertainties explicitly.
+5. Run `ready` if the user is relying on the handoff. If `ready` fails, fix the docs before claiming handoff readiness.
+
 ## Updating Existing Benjamin Docs
 
 When Benjamin docs already exist, treat them as project memory, not disposable generated output.
@@ -204,6 +238,24 @@ Before calling a capture done, check that a future person or agent can answer:
 - What should I avoid breaking?
 
 If those answers are missing, keep editing the docs before running the final readiness gate.
+
+## Agent-Ready Memory Checklist
+
+Use this checklist before claiming that a capture is complete.
+
+- `project/brief.md`: purpose, audience, current state, non-goals, and why the project matters.
+- `project/roadmap.md`: now, next, later/deferred work, risks, and explicit non-goals when relevant.
+- `project/open-questions.md`: unresolved decisions as questions, with context and likely options.
+- `handoff/human-brief.md`: plain-language status, important decisions, risks, and next actions.
+- `handoff/agent-brief.md`: read-first docs, commands/checks to run, hazards to avoid, current status, and next actions.
+- `engineering/architecture.md`: runtime, boundaries, services/data, constraints, and important architectural decisions when code exists.
+- `engineering/code-map.md`: concrete file paths, modules, routes, schemas, tests, and why each matters when code exists.
+- feature `brief.md`: outcome, value, scope, and non-goals.
+- feature `plan.md`: implementation steps, validation/checks, and rollout or handoff criteria.
+- feature `decisions.md`: decisions, rejected options, and reasoning.
+- feature `handoff.md`: status, risks/open questions, and next actions.
+
+For planning-only projects with no code yet, do not invent architecture or code paths. State that code does not exist yet and describe the intended shape only when the user has provided it.
 
 ## Doc Format
 

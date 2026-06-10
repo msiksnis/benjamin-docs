@@ -17,6 +17,10 @@
     "benjamin-docs/features/session-capture/decisions.md",
     "benjamin-docs/features/session-capture/handoff.md",
     "benjamin-docs/releases/changelog.md",
-    "benjamin-docs/releases/npm-publish-checklist.md"
+    "benjamin-docs/releases/npm-publish-checklist.md",
+    "benjamin-docs/features/agent-ready-project-memory/brief.md",
+    "benjamin-docs/features/agent-ready-project-memory/plan.md",
+    "benjamin-docs/features/agent-ready-project-memory/decisions.md",
+    "benjamin-docs/features/agent-ready-project-memory/handoff.md"
   ]
 }

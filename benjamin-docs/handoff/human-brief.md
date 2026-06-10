@@ -3,20 +3,22 @@ title: Human Brief
 scope: handoff
 scope_id: human-brief
 audience: [developer, designer, business, advisor]
-status: draft
+status: review
 visibility: private
-updated: 2026-06-06
+updated: 2026-06-10
 source: session-capture
 ---
 
 # Human Brief
 
-`benjamin-docs` is now a published local-first CLI for turning useful AI chats into durable project docs. The package is public as `benjamin-docs`, installed with `pnpm add -g benjamin-docs`, and currently focuses on local files rather than SaaS.
+`benjamin-docs` is a published local-first CLI for turning useful AI chats into durable project docs. The package is public as `benjamin-docs`, currently published at `0.3.1`, and focuses on local files rather than SaaS.
 
 The product promise is simple: a person or agent can start with a chat or an existing codebase, create a small project notebook, and preserve decisions, plans, risks, open questions, and handoff notes in Markdown. The docs live in the project under `benjamin-docs/`; metadata lives under `.benjamin-docs/`.
 
-Recent work made the first-run story stronger: `chat-project` asks before creating a project from a chat, `init --mode codebase` gives a better baseline prompt, `install-skill` installs the bundled skill for Codex, Cursor, Claude Code, and shared agent skill folders, and `package-skill` creates a Claude Desktop upload zip.
+Recent work made the first-run story stronger: `ready` is the primary handoff gate, `commands` is an interactive advanced drawer, `bd` is the short alias, agent guidance can be installed into `AGENTS.md` without overwriting existing user-owned instructions, and `install-skill` / `package-skill` distribute the bundled skill.
 
-The current quality focus is dogfooding. BD should be its own canonical example: short public README, clear CLI help, useful `introduce`, strict setup checks with `doctor --strict`, and a `review` command that catches placeholder or thin docs.
+The current quality focus is 0.4.0: agent-ready project memory. BD should turn messy chats, existing repos, and feature plans into docs that a future human or agent can actually continue from.
 
-Main open product question: how strict should BD become before `0.2.0`? The tool should help users notice weak project memory without feeling like a heavy documentation system.
+Main product constraint: the user workflow must stay simple. The visible path should remain `bd init`, `bd ready`, and `bd help`; quality improvements should come from the skill, templates, review checks, generated agent guidance, and dogfooding.
+
+Main open product question: how strict should deterministic review become before it feels like documentation busywork? The tool should catch weak project memory without becoming a heavy documentation system.

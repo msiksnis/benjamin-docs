@@ -31,6 +31,7 @@ function planningPrompt(docsRoot: string): string {
     "Capture the current project plan with benjamin-docs.",
     `Update ${docsRoot}/project/brief.md, ${docsRoot}/project/roadmap.md,`,
     `${docsRoot}/project/open-questions.md, and ${docsRoot}/handoff/agent-brief.md.`,
+    "Read repo-local agent guidance and .benjamin-docs/config.json first when present.",
     "Use plain language. Summarize decisions, rejected options, risks, and next steps.",
     "Mark uncertain items clearly.",
   ].join("\n");
@@ -44,6 +45,7 @@ function codebasePrompt(docsRoot: string): string {
     `${docsRoot}/project/open-questions.md, ${docsRoot}/engineering/architecture.md,`,
     `${docsRoot}/engineering/code-map.md, ${docsRoot}/handoff/human-brief.md,`,
     `and ${docsRoot}/handoff/agent-brief.md.`,
+    "Read repo-local agent guidance and .benjamin-docs/config.json first when present.",
     "Keep project docs understandable for non-technical readers.",
     "Make human-brief.md a short plain-language summary for the owner or teammate.",
     "Mark uncertain items, call out risks, and add useful code anchors where relevant.",
@@ -61,6 +63,7 @@ function featurePrompt(docsRoot: string, feature: string, codebaseMode: boolean)
     `Then update ${docsRoot}/project/roadmap.md, ${docsRoot}/project/open-questions.md,`,
     `${docsRoot}/handoff/agent-brief.md, and the feature docs under`,
     `${docsRoot}/features/${feature}/.`,
+    "Read repo-local agent guidance and .benjamin-docs/config.json first when present.",
     "Include decisions, rejected options, risks, implementation notes, and next steps.",
     "Keep the brief and handoff understandable for non-technical readers.",
     "Mark uncertain items clearly.",
