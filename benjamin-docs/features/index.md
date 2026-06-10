@@ -11,7 +11,7 @@ source: manual
 
 # Features Index
 
-Track feature scopes that are planned, in progress, shipped, or deferred.
+This index points to active and historical Benjamin Docs feature scopes. Use it to decide whether new work belongs in an existing scope or needs a focused feature scope.
 
 ## Active
 

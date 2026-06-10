@@ -25,6 +25,13 @@ Completed in the first slice:
 - Added concise evidence/scope guidance to generated `AGENTS.md` sections.
 - Refreshed stale project open questions and human handoff docs.
 
+Dogfood results:
+
+- Self dogfood with `node dist/src/cli.js ready` initially failed because `features/index.md` still contained starter-template wording. Removing the starter phrase made local 0.4.0 review pass.
+- Local source skill install was required because global npm is still `0.3.1`; published `bd doctor --strict` will see source-installed skills as stale until the next publish or reinstall.
+- `/Users/marty/Important/atelier-beaute` failed the new local 0.4.0 review because `handoff/agent-brief.md` had useful caution/test content but lacked explicit next-action/risk/hazard signals. Adding `Risks / Hazards` and `Next Actions` headings made `review` and `ready` pass.
+- A fresh temp `init --mode codebase` correctly fails `ready` with starter-template and continuation warnings. This confirms the new review bar blocks untouched generated docs.
+
 Current branch:
 
 - `codex/simple-agent-ready-setup`
@@ -38,7 +45,7 @@ Relevant release state:
 ## Immediate Next Actions
 
 1. Decide whether to tackle the higher-risk agent guidance requested-but-preserved state.
-2. Dogfood the new 0.4.0 review behavior on this repo and one external repo.
+2. Run a fresh-agent continuation test that only exposes `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
 3. Run:
    ```bash
    pnpm check
