@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-06-06
+updated: 2026-06-11
 source: session-capture
 ---
 
@@ -40,10 +40,18 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Project creation and starter docs live in `src/init.ts` and `src/templates.ts`.
 - Metadata and path-safety helpers live in `src/fsx.ts`, `src/project-config.ts`, and `src/types.ts`.
 - Validation lives in `src/validate.ts`.
-- Docs quality review lives in `src/review.ts`.
+- Docs quality and changed-work freshness review live in `src/review.ts`.
 - Setup diagnostics live in `src/doctor.ts`.
 - Skill installation and Claude zip packaging live in `src/install-skill.ts` and `src/package-skill.ts`.
 - Agent-facing behavior lives in `skills/benjamin-docs/SKILL.md`.
+
+## Changed-Work Freshness
+
+`bd review --changed` is an advanced, deterministic git-diff pass layered onto the existing review command. It compares changed tracked and untracked files against `HEAD` by default, or a caller-provided `--since <git-ref>`.
+
+The check is warning-only. It classifies changed source files into coarse areas such as database/schema, application behavior, and configuration/workflow, then warns when likely source docs such as `engineering/architecture.md`, `engineering/code-map.md`, `releases/changelog.md`, or `handoff/agent-brief.md` were not updated. It also scans project-level docs for obvious stale implementation claims such as admin routes or content schema still being described as not implemented after related code changes.
+
+This is intentionally heuristic, not an AI reviewer. The product rule is that agents should either update Benjamin Docs or explicitly state why a change has no durable project-memory impact.
 
 ## Safety Rules
 

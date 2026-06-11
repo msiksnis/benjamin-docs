@@ -15,7 +15,7 @@ import { formatInstallSkillResult, installSkill, knownSkillTargets, type Install
 import { formatNextMessage, getNextPrompt } from "./next.js";
 import { formatPackageSkillResult, packageSkill, type PackageSkillOptions } from "./package-skill.js";
 import { checkReady } from "./ready.js";
-import { reviewProject } from "./review.js";
+import { reviewProject, type ReviewOptions } from "./review.js";
 import { createScope } from "./scopes.js";
 import { getStatus } from "./status.js";
 import type { FocusType } from "./types.js";
@@ -81,7 +81,7 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "review") {
-    const result = reviewProject(cwd);
+    const result = reviewProject(cwd, parseReviewArgs(argv.slice(1)));
     console.log(result.output);
     return result.ok ? 0 : 1;
   }
@@ -282,6 +282,31 @@ function parseInitArgs(args: string[]): InitProjectOptions {
 
   if (options.childContracts && !options.agentContract) {
     throw new Error("Usage: benjamin-docs init --agent-contract --children");
+  }
+
+  return options;
+}
+
+function parseReviewArgs(args: string[]): ReviewOptions {
+  const options: ReviewOptions = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === "--changed") {
+      options.changed = true;
+      continue;
+    }
+
+    if (arg === "--since") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs review --changed --since <git-ref>");
+      options.changed = true;
+      options.since = value;
+      index += 1;
+      continue;
+    }
+
+    throw new Error("Usage: benjamin-docs review [--changed] [--since <git-ref>]");
   }
 
   return options;

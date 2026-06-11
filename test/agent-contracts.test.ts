@@ -18,6 +18,8 @@ describe("agent contracts", () => {
       assert.match(content, /<!-- benjamin-docs:end -->/);
       assert.match(content, /\.benjamin-docs\/config\.json/);
       assert.match(content, /benjamin-docs\/project\/brief\.md/);
+      assert.match(content, /After code, config, schema, test, workflow, or product behavior changes/);
+      assert.match(content, /run `benjamin-docs review --changed`/);
       assert.match(content, /benjamin-docs ready/);
       assert.match(output, /Agent guidance: created AGENTS\.md/);
     });

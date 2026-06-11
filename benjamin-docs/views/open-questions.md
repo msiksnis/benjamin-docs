@@ -13,6 +13,17 @@ source: manual
 
 What unresolved questions and open risks are captured across managed Benjamin docs?
 
+## [Changed Work Review Handoff](../features/changed-work-review/handoff.md)
+
+Source: `benjamin-docs/features/changed-work-review/handoff.md`
+
+### Risks / Open Questions
+
+- The changed-work mapping is intentionally coarse. It may over-warn when a source edit is too small to affect durable project memory.
+- The stale-claim detector only catches obvious wording patterns such as admin routes or schema/content models still being described as not implemented.
+- The default comparison is `HEAD`; teams may prefer `--since main` or `--since origin/main` in PR workflows.
+- Future dogfooding should decide whether `bd ready --changed` or `bd ready --since <ref>` is worth adding.
+
 ## [Memory Views Handoff](../features/memory-views/handoff.md)
 
 Source: `benjamin-docs/features/memory-views/handoff.md`

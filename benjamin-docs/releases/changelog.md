@@ -5,11 +5,17 @@ scope_id: release
 audience: [developer, business, public]
 status: review
 visibility: private
-updated: 2026-06-10
+updated: 2026-06-11
 source: manual
 ---
 
 # Changelog
+
+## 0.6.0
+
+- Added `bd review --changed` / `benjamin-docs review --changed` as an advanced warning-only freshness check for git-changed work that likely needs Benjamin Docs source updates.
+- Changed-work review includes untracked files, supports `--since <git-ref>`, warns when source files changed without source-doc updates, warns when git history cannot be inspected, and detects simple stale implementation claims in project-level docs.
+- Strengthened generated `AGENTS.md` and the bundled skill so agents review docs impact after code, config, schema, test, workflow, or product behavior changes.
 
 ## 0.5.1
 

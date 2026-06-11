@@ -5,20 +5,20 @@ scope_id: human-brief
 audience: [developer, designer, business, advisor]
 status: review
 visibility: private
-updated: 2026-06-10
+updated: 2026-06-11
 source: session-capture
 ---
 
 # Human Brief
 
-`benjamin-docs` is a published local-first CLI for turning useful AI chats into durable project docs. The package is public as `benjamin-docs`, currently published at `0.5.0`, and focuses on local files rather than SaaS.
+`benjamin-docs` is a published local-first CLI for turning useful AI chats into durable project docs. The package is public as `benjamin-docs`, currently published at `0.5.1`, and focuses on local files rather than SaaS.
 
 The product promise is simple: a person or agent can start with a chat or an existing codebase, create a small project notebook, and preserve decisions, plans, risks, open questions, and handoff notes in Markdown. The docs live in the project under `benjamin-docs/`; metadata lives under `.benjamin-docs/`.
 
 Recent work made the first-run story stronger: `ready` is the primary handoff gate, `commands` is an interactive advanced drawer, `bd` is the short alias, agent guidance can be installed into `AGENTS.md` without overwriting existing user-owned instructions, and `install-skill` / `package-skill` distribute the bundled skill.
 
-The current polish focus is 0.5.1: Memory Views and a clearer refresh flow. BD should make the useful path obvious: initialize project memory, generate derived views, then run the readiness gate.
+The current publish target is 0.6.0: changed-work freshness review. BD should make the useful path obvious: initialize project memory, generate derived views, run changed-work review when code changed, then run the readiness gate.
 
-Main product constraint: the user workflow must stay simple. The main command surface should remain `bd init`, `bd ready`, and `bd help`; advanced refresh guidance can point to `bd views` without making the product feel like a full workspace app.
+Main product constraint: the user workflow must stay simple. The main command surface should remain `bd init`, `bd ready`, and `bd help`; advanced refresh/freshness guidance can point to `bd views` and `bd review --changed` without making the product feel like a full workspace app.
 
-Main open product question: how strict should deterministic review become before it feels like documentation busywork? The tool should catch weak project memory without becoming a heavy documentation system.
+Main open product question: how strict should deterministic changed-work review become before it feels like documentation busywork? The tool should catch stale project memory without requiring docs churn for tiny implementation edits.

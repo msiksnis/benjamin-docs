@@ -30,6 +30,10 @@
     "benjamin-docs/views/open-questions.md",
     "benjamin-docs/views/next-actions.md",
     "benjamin-docs/views/risks.md",
-    "benjamin-docs/views/agent-continuation.md"
+    "benjamin-docs/views/agent-continuation.md",
+    "benjamin-docs/features/changed-work-review/brief.md",
+    "benjamin-docs/features/changed-work-review/plan.md",
+    "benjamin-docs/features/changed-work-review/decisions.md",
+    "benjamin-docs/features/changed-work-review/handoff.md"
   ]
 }

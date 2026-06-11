@@ -28,13 +28,24 @@ Source: `benjamin-docs/features/agent-ready-project-memory/handoff.md`
    ```
 4. Update this handoff with dogfooding results before publishing 0.4.0.
 
+## [Changed Work Review Handoff](../features/changed-work-review/handoff.md)
+
+Source: `benjamin-docs/features/changed-work-review/handoff.md`
+
+### Next Actions
+
+- Run the full project verification gate.
+- Run `node dist/src/cli.js review --changed --since HEAD` in this repo after docs are updated and confirm warnings are useful.
+- Dogfood the command on Atelier or another project with real feature work after BD initialization.
+- Tune file classification and stale-claim patterns based on actual false positives and missed stale docs.
+
 ## [Memory Views Handoff](../features/memory-views/handoff.md)
 
 Source: `benjamin-docs/features/memory-views/handoff.md`
 
 ### Next Actions
 
-- Run the release gate and publish 0.5.1 if npm already has 0.5.0.
+- Memory Views shipped in 0.5.1; keep future work focused on dogfooding view usefulness instead of republishing that milestone.
 - Dogfood `bd views` on more existing Benjamin Docs projects.
 - Watch whether users expect a feature-board view; add it only if it proves useful.
 - Consider whether generated docs should eventually use a dedicated source value such as `generated`.
@@ -52,3 +63,4 @@ Source: `benjamin-docs/project/roadmap.md`
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
+- Dogfood `bd review --changed` on real projects where agents have added features after BD initialization; tune false positives before making changed-work review stricter or adding it to `ready`.

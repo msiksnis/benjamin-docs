@@ -57,6 +57,30 @@ Source: `benjamin-docs/features/agent-ready-project-memory/decisions.md`
 - Should a fixture-based dogfood harness live under `test/fixtures`, `docs/`, or `benjamin-docs/features/agent-ready-project-memory/`?
 - Should future versions expose anchor docs links in `anchor add`, or keep anchors as file-only shortcuts for now?
 
+## [Changed Work Review Decisions](../features/changed-work-review/decisions.md)
+
+Source: `benjamin-docs/features/changed-work-review/decisions.md`
+
+### Decisions
+
+- Keep changed-work review under the existing `review` command as `review --changed`. Reason: this is an advanced diagnostic, not a new primary command.
+- Keep the first version warning-only. Reason: the heuristics need dogfooding before they can become a readiness failure.
+- Include untracked files. Reason: agents often create new routes, migrations, and tests before committing, and those are exactly the changes that can make docs stale.
+- Treat generated Memory Views as derived output, not proof that source docs were updated. Reason: stale source docs can produce fresh-but-wrong views.
+- Update both generated `AGENTS.md` and the bundled skill. Reason: existing and future agents need the docs-impact rule at task completion time.
+- Warn on likely project-level docs, not only feature docs. Reason: the Atelier audit showed feature handoffs can be fresh while project-level memory still says implemented areas do not exist.
+
+## [Changed Work Review Decisions](../features/changed-work-review/decisions.md)
+
+Source: `benjamin-docs/features/changed-work-review/decisions.md`
+
+### Rejected Options
+
+- Rejected adding a new primary command. That would make the product feel heavier and conflicts with the current `init`, `ready`, `help` main surface.
+- Rejected making `bd ready` fail on changed-work warnings immediately. That would be premature without false-positive data from real projects.
+- Rejected AI-based semantic review in V1. Deterministic checks are cheaper, local, testable, and good enough to catch the first class of stale docs.
+- Rejected requiring docs churn for every code diff. The intended behavior is a conscious docs-impact decision, not mandatory documentation busywork.
+
 ## [Memory Views Decisions](../features/memory-views/decisions.md)
 
 Source: `benjamin-docs/features/memory-views/decisions.md`
@@ -108,7 +132,8 @@ Source: `benjamin-docs/handoff/agent-brief.md`
 - `bd anchor list` was added after dogfooding showed that anchors could be created but not inspected through the CLI.
 - 0.4.2 fixed older initialized projects that already have Benjamin docs but have an unmarked root `AGENTS.md`: append a Benjamin-owned section without overwriting the existing guide.
 - 0.5.0 should make continuation readiness explicit: `agent-brief.md` must include read-first docs, current state, commands/checks, risks/hazards, and next actions.
-- 0.5.1 adds Memory Views as an advanced generated lens and documents the refresh flow as `bd init`, `bd views`, then `bd ready`.
+- 0.5.1 added Memory Views as an advanced generated lens and documents the refresh flow as `bd init`, `bd views`, then `bd ready`.
+- 0.6.0 adds `bd review --changed` after the Atelier audit showed agents may update feature docs while leaving project-level docs stale. The first implementation is deterministic and warning-only.
 
 ## [Baseline Capture Guide](../project/baseline-capture.md)
 

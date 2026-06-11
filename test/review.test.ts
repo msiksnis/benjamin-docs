@@ -1,6 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runCliResult, withTempDir } from "./helpers.js";
 
@@ -80,6 +81,66 @@ describe("review", () => {
       assert.match(result.stdout, /Missing: read-first docs, current state, risks\/hazards, next actions/);
     });
   });
+
+  it("warns when implementation files changed without source docs updates", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReviewBaseline(dir);
+      writeSourceFile(dir, "src/app/[locale]/admin/products/page.tsx", "export default function ProductsPage() { return null; }\n");
+      writeSourceFile(dir, "supabase/migrations/20260611052322_content.sql", "create table products (id uuid primary key);\n");
+      commitAll(dir, "baseline");
+
+      writeSourceFile(dir, "src/app/[locale]/admin/products/page.tsx", "export default function ProductsPage() { return 'products'; }\n");
+      writeSourceFile(dir, "supabase/migrations/20260611055152_product_rpcs.sql", "create function admin_products() returns void language sql as $$ select 1; $$;\n");
+
+      const result = runCliResult(["review", "--changed", "--since", "HEAD"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /status: passed with warnings/);
+      assert.match(result.stdout, /changed files checked: 2/);
+      assert.match(result.stdout, /Source files changed, but no Benjamin Docs source files changed/);
+      assert.match(result.stdout, /benjamin-docs\/engineering\/architecture\.md/);
+      assert.match(result.stdout, /benjamin-docs\/engineering\/code-map\.md/);
+      assert.match(result.stdout, /benjamin-docs\/releases\/changelog\.md/);
+    });
+  });
+
+  it("warns when changed review cannot inspect git history", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReviewBaseline(dir);
+
+      const result = runCliResult(["review", "--changed"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /status: passed with warnings/);
+      assert.match(result.stdout, /Changed-work review needs git history/);
+    });
+  });
+
+  it("warns when project docs still contain stale not-implemented claims for changed code areas", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReviewBaseline(dir);
+      writeBaselineDoc(
+        dir,
+        "benjamin-docs/engineering/architecture.md",
+        "Architecture",
+        capturedBody("Admin CMS routes are not implemented yet. Once the CMS schema exists, add tests and document the content model."),
+      );
+      writeSourceFile(dir, "src/app/[locale]/admin/products/page.tsx", "export default function ProductsPage() { return null; }\n");
+      commitAll(dir, "baseline");
+
+      writeSourceFile(dir, "src/app/[locale]/admin/products/page.tsx", "export default function ProductsPage() { return 'products'; }\n");
+
+      const result = runCliResult(["review", "--changed", "--since", "HEAD"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /status: passed with warnings/);
+      assert.match(result.stdout, /Possible stale claim after changed admin route files/);
+      assert.match(result.stdout, /Admin CMS routes are not implemented yet/);
+    });
+  });
 });
 
 function writeReviewBaseline(dir: string): void {
@@ -103,4 +164,18 @@ function writeBaselineDoc(root: string, path: string, title: string, body: strin
 
 function capturedBody(seed: string): string {
   return `${seed}\n\nIt records concrete decisions, risks, current status, and next actions. The doc should be useful to a person arriving cold and to an agent that needs enough context to continue without asking the owner to repeat the whole project history.`;
+}
+
+function writeSourceFile(root: string, path: string, content: string): void {
+  const fullPath = join(root, path);
+  mkdirSync(join(fullPath, ".."), { recursive: true });
+  writeFileSync(fullPath, content, "utf8");
+}
+
+function commitAll(root: string, message: string): void {
+  execFileSync("git", ["init"], { cwd: root, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: root, stdio: "ignore" });
+  execFileSync("git", ["config", "user.name", "Test User"], { cwd: root, stdio: "ignore" });
+  execFileSync("git", ["add", "."], { cwd: root, stdio: "ignore" });
+  execFileSync("git", ["commit", "-m", message], { cwd: root, stdio: "ignore" });
 }

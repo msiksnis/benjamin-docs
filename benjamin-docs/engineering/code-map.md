@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-06-06
+updated: 2026-06-11
 source: session-capture
 ---
 
@@ -31,9 +31,9 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 ## Validation And Review
 
 - `src/validate.ts` validates config, manifest, scopes, anchors, managed Markdown, links, and symlink/root safety.
-- `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, and empty open-question docs.
+- `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, empty open-question docs, weak continuation proof, and changed source work that likely needs project-memory updates.
 - `src/doctor.ts` checks CLI version, installed skills, Claude Desktop upload zip, project initialization, and validation. `--strict` turns setup gaps and validation warnings into failures.
-- `src/ready.ts` is the 0.2.0 handoff gate. It combines validation, docs review, and `doctor --strict`, and fails when any of those checks is not clean.
+- `src/ready.ts` is the handoff gate. It combines validation, docs review, `doctor --strict`, and agent guidance checks, and fails when any of those checks is not clean.
 
 ## Filesystem And Metadata
 
@@ -58,9 +58,10 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `test/install-skill.test.ts` and `test/package-skill.test.ts` cover skill installation and Claude zip packaging.
 - `test/doctor.test.ts` covers setup diagnostics and strict mode.
 - `test/review.test.ts` covers docs-quality review behavior.
+- Changed-work review tests in `test/review.test.ts` create git fixture repos and verify `review --changed --since HEAD` warns for source changes without source-doc updates and for stale not-implemented claims.
 - `test/ready.test.ts` covers the combined handoff gate.
 - `test/fsx.test.ts` and `test/frontmatter.test.ts` cover low-level path and Markdown parsing behavior.
 
 ## Change Guide
 
-When adding a CLI command, update `src/cli.ts`, help text in `src/info.ts`, tests, README command lists, and release smoke tests. When changing generated docs, update `src/templates.ts`, validation expectations, and the `benjamin-docs` skill if agent behavior also changes.
+When adding a CLI command, update `src/cli.ts`, `src/commands.ts`, help text in `src/info.ts` when relevant, tests, README command lists, and release smoke tests. When changing generated docs, update `src/templates.ts`, validation expectations, and the `benjamin-docs` skill if agent behavior also changes. When changing agent completion behavior, update both `src/agent-contracts.ts` and `skills/benjamin-docs/SKILL.md`.

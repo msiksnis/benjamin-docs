@@ -197,6 +197,7 @@ Useful advanced examples:
 
 ```bash
 benjamin-docs views
+benjamin-docs review --changed
 benjamin-docs anchor add homepage pages/index.js
 benjamin-docs anchor list
 benjamin-docs scope create feature checkout-redesign
@@ -204,6 +205,8 @@ benjamin-docs init --help
 ```
 
 `views` generates local Memory Views under `benjamin-docs/views/`: decision log, open questions, next actions, risks, and agent continuation. The views are derived from managed Markdown docs so they are readable, diffable, and not a second source of truth.
+
+`review --changed` checks git-changed work for likely project-memory updates. Use `benjamin-docs review --changed --since main` in PR-style workflows.
 
 ## Local Development
 

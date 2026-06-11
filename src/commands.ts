@@ -15,6 +15,7 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs next", args: ["next"], description: "Print the next recommended agent prompt." },
   { command: "benjamin-docs validate", args: ["validate"], description: "Check structure, frontmatter, links, scopes, and anchors." },
   { command: "benjamin-docs review", args: ["review"], description: "Check for thin or starter-template docs." },
+  { command: "benjamin-docs review --changed", args: ["review", "--changed"], description: "Check changed work for likely project-memory updates." },
   { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
   { command: "benjamin-docs doctor --strict", args: ["doctor", "--strict"], description: "Run setup checks as a strict gate." },
   { command: "benjamin-docs views", args: ["views"], description: "Generate local Memory Views from managed docs." },

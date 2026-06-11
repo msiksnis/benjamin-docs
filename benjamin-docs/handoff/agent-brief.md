@@ -5,7 +5,7 @@ scope_id: agent-brief
 audience: [agent]
 status: review
 visibility: private
-updated: 2026-06-10
+updated: 2026-06-11
 source: session-capture
 ---
 
@@ -21,8 +21,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.5.0` published on npm.
-- Working package version: `0.5.1` for Memory Views and refresh-flow polish.
+- Package status: `0.5.1` published on npm.
+- Working package version: `0.6.0` for changed-work freshness review.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -37,27 +37,28 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.5.0 is published. The active 0.5.1 work adds Memory Views and makes the `bd init -> bd views -> bd ready` flow visible in CLI guidance, README, and the bundled skill.
+Current state: 0.5.1 is published. The active 0.6.0 work adds `bd review --changed` as an advanced warning-only freshness check for source changes that probably need project-memory updates.
 
 Commands/checks to run before handoff:
 
 ```bash
 pnpm build
-node --test dist/test/review.test.js dist/test/ready.test.js dist/test/init.test.js dist/test/validate-export.test.js dist/test/scopes-anchors.test.js
+node --test dist/test/review.test.js dist/test/agent-contracts.test.js dist/test/commands.test.js
+node dist/src/cli.js review --changed --since HEAD
 pnpm run release:check
 node dist/src/cli.js ready
 ```
 
-Risks/hazards: do not add more primary commands for this milestone, do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths.
+Risks/hazards: do not add more primary commands for this milestone, keep `review --changed` warning-only until dogfooding proves the heuristics, do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths.
 
-Next actions: run the verification gates, publish 0.5.1, smoke-test a fresh npm install, then tag the release.
+Next actions: run the full verification gates, publish 0.6.0, smoke-test a fresh npm install, then tag the release.
 
 ## Implemented So Far
 
 - TypeScript CLI with no runtime dependencies.
 - Main commands: `init`, `ready`, `help`.
 - Advanced drawer: `commands`, with numbered interactive selection in real terminals.
-- Advanced commands include `status`, `next`, `validate`, `review`, `doctor`, `export --audience <audience>`, `scope create feature <slug>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
+- Advanced commands include `status`, `next`, `validate`, `review`, `review --changed`, `doctor`, `export --audience <audience>`, `scope create feature <slug>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
 - Short binary alias: `bd`.
 - Planning-mode docs created by `init`.
 - Codebase-mode docs created by `promote --to codebase`.
@@ -91,7 +92,8 @@ Next actions: run the verification gates, publish 0.5.1, smoke-test a fresh npm 
 - `bd anchor list` was added after dogfooding showed that anchors could be created but not inspected through the CLI.
 - 0.4.2 fixed older initialized projects that already have Benjamin docs but have an unmarked root `AGENTS.md`: append a Benjamin-owned section without overwriting the existing guide.
 - 0.5.0 should make continuation readiness explicit: `agent-brief.md` must include read-first docs, current state, commands/checks, risks/hazards, and next actions.
-- 0.5.1 adds Memory Views as an advanced generated lens and documents the refresh flow as `bd init`, `bd views`, then `bd ready`.
+- 0.5.1 added Memory Views as an advanced generated lens and documents the refresh flow as `bd init`, `bd views`, then `bd ready`.
+- 0.6.0 adds `bd review --changed` after the Atelier audit showed agents may update feature docs while leaving project-level docs stale. The first implementation is deterministic and warning-only.
 
 ## 0.4.x Direction
 
@@ -183,4 +185,4 @@ When continuing this project:
 - Dogfood the 0.5.0 Continuation Proof workflow on a fresh project and an older initialized project.
 - Improve `skills/benjamin-docs/SKILL.md` whenever dogfooding shows vague, thin, or unsafe capture behavior.
 - Keep `README.md` short and point advanced users to `bd commands`.
-- Publish 0.5.0 only after local `ready`, release checks, and smoke tests pass.
+- Dogfood `bd review --changed` on real projects before deciding whether changed-work warnings should become part of `ready`.

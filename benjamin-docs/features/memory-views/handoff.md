@@ -31,7 +31,7 @@ Memory Views is implemented and tested.
 
 ## Next Actions
 
-- Run the release gate and publish 0.5.1 if npm already has 0.5.0.
+- Memory Views shipped in 0.5.1; keep future work focused on dogfooding view usefulness instead of republishing that milestone.
 - Dogfood `bd views` on more existing Benjamin Docs projects.
 - Watch whether users expect a feature-board view; add it only if it proves useful.
 - Consider whether generated docs should eventually use a dedicated source value such as `generated`.

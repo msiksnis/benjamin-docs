@@ -49,6 +49,13 @@
       "title": "Memory Views",
       "path": "benjamin-docs/features/memory-views",
       "status": "draft"
+    },
+    {
+      "id": "changed-work-review",
+      "kind": "feature",
+      "title": "Changed Work Review",
+      "path": "benjamin-docs/features/changed-work-review",
+      "status": "draft"
     }
   ]
 }

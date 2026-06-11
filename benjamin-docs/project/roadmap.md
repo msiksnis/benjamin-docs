@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-10
+updated: 2026-06-11
 source: session-capture
 ---
 
@@ -35,8 +35,8 @@ source: session-capture
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.4.2`.
-- Working package version: `0.5.1` for Memory Views and refresh-flow polish.
+- Current published release: `0.5.1`.
+- Working package version: `0.6.0` for changed-work project-memory review.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -45,6 +45,7 @@ source: session-capture
 - `v0.4.2` is tagged and released on GitHub.
 - The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
 - Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
+- `bd review --changed` is implemented as an advanced, warning-only freshness check for source changes that probably need Benjamin Docs updates.
 
 ## Immediate Next Work
 
@@ -55,6 +56,26 @@ source: session-capture
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
+- Dogfood `bd review --changed` on real projects where agents have added features after BD initialization; tune false positives before making changed-work review stricter or adding it to `ready`.
+
+## 0.6.0 Goal
+
+`benjamin-docs@0.6.0` should make local project memory harder to accidentally leave stale after implementation work.
+
+Target state:
+
+- `bd review --changed` checks git-changed source files and warns when likely project-memory source docs were not updated.
+- Changed-work review stays in the advanced drawer and remains warning-only until dogfooding proves the heuristics are useful.
+- Generated `AGENTS.md` and the bundled skill tell agents to update project-level docs when feature work changes roadmap, architecture, code map, release notes, risks, or handoff context.
+
+## 0.5.1 Goal
+
+`benjamin-docs@0.5.1` made local project memory easier to refresh.
+
+Target state:
+
+- `bd views` generates local Memory Views for decisions, open questions, next actions, risks, and agent continuation.
+- Public guidance describes the refresh flow as `bd init`, `bd views`, then `bd ready`.
 
 ## 0.5.0 Goal
 

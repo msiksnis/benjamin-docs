@@ -112,10 +112,16 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 8. Write durable Benjamin-managed docs only under the configured docs root, usually `benjamin-docs/`.
 9. Existing `docs/` directories may be read as project context, but do not create or update Benjamin-managed docs there unless `.benjamin-docs/config.json` explicitly sets `docsRoot` to `docs`.
 10. Update existing docs instead of dumping a transcript.
-11. For a baseline capture, handoff, or any request asking whether the project is ready, run the local CLI command with `views` first when the docs have meaningful captured content so the derived Memory Views stay current.
-12. Then run the local CLI command with `ready` as the primary gate.
-13. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
-14. Report changed files, generated views when refreshed, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
+11. After code, config, schema, test, workflow, or product behavior changes, run a docs-impact pass before final response:
+   - review the git diff
+   - update the smallest relevant Benjamin source docs
+   - update project-level docs when feature work changes roadmap, architecture, code map, release notes, risks, or handoff context
+   - if no docs update is needed, state why the change has no durable project-memory impact
+12. For a baseline capture, handoff, or any request asking whether the project is ready, run the local CLI command with `views` first when the docs have meaningful captured content so the derived Memory Views stay current.
+13. Then run the local CLI command with `ready` as the primary gate.
+14. Use `review --changed` when git history is available to catch source changes that probably need project-memory updates.
+15. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
+16. Report changed files, generated views when refreshed, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
 
 ## Existing Project Baseline Workflow
 
@@ -154,10 +160,11 @@ Use this workflow when the user asks to plan, document, hand off, or continue on
    - `features/<slug>/plan.md`: implementation steps, validation, rollout/checks
    - `features/<slug>/decisions.md`: decisions, rejected options, reasoning
    - `features/<slug>/handoff.md`: status, risks/open questions, next actions
-5. Update project-level docs only when the feature changes overall roadmap, architecture, risks, or handoff context.
+5. Update project-level docs when the feature changes overall roadmap, architecture, code map, release state, risks, or handoff context. Feature docs are not enough when project-level memory would otherwise become stale.
 6. Use anchors for important code files when code exists.
-7. Run `views` when the feature docs are intended for handoff so project-level Memory Views include the latest feature decisions, risks, and next actions.
-8. Run `ready` when the feature docs are intended for handoff. Use lower-level checks only to diagnose failures.
+7. Run `review --changed` when git history is available after implementation work, especially when app routes, schemas, tests, config, workflows, or release-relevant behavior changed.
+8. Run `views` when the feature docs are intended for handoff so project-level Memory Views include the latest feature decisions, risks, and next actions.
+9. Run `ready` when the feature docs are intended for handoff. Use lower-level checks only to diagnose failures.
 
 Keep the user-facing summary short: feature scope created or updated, main decisions captured, risks/open questions, next action, and readiness result.
 
@@ -192,6 +199,30 @@ When Benjamin docs already exist, treat them as project memory, not disposable g
 - If a doc is long or mixed-purpose, suggest a split before rewriting it wholesale.
 
 When updating docs from a chat, capture the durable decisions and state transitions. Do not preserve conversational order unless the timeline itself is important.
+
+## Changed Work Freshness
+
+When project work changes code, config, schema, tests, workflows, user-facing behavior, release state, or operational posture, do not stop at feature-level notes if project-level docs became false or stale.
+
+Use this completion loop:
+
+1. Review the git diff and identify changed areas.
+2. Update the smallest relevant Benjamin source docs.
+3. Regenerate Memory Views with `views` when source docs changed.
+4. Run `review --changed` when git history is available.
+5. Run `ready` before claiming handoff readiness.
+
+Expected doc targets:
+
+- schema, database, service boundaries, or data flow changes: `engineering/architecture.md` and `engineering/code-map.md`
+- routes, modules, pages, components, or tests added: `engineering/code-map.md` and relevant feature docs
+- roadmap, status, or next-action changes: `project/roadmap.md`
+- unresolved decisions: `project/open-questions.md`
+- continuation instructions, commands, hazards, or current state: `handoff/agent-brief.md`
+- human-facing project status: `handoff/human-brief.md`
+- shipped or release-relevant changes: `releases/changelog.md`
+
+If no Benjamin Docs update is needed, say why in the final response. The reason should be concrete, for example "only reformatted code; no behavior, workflow, architecture, or handoff context changed."
 
 ## Agent Guidance / AGENTS.md
 

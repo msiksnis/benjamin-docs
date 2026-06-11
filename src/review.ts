@@ -1,4 +1,5 @@
 import { existsSync, lstatSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { CONFIG_DIR } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
 import { readGeneratedJson, rootPath } from "./fsx.js";
@@ -17,6 +18,20 @@ export interface ReviewResult {
 export interface ReviewIssue {
   path?: string;
   message: string;
+}
+
+export interface ReviewOptions {
+  changed?: boolean;
+  since?: string;
+}
+
+interface ChangedReviewResult {
+  filesChecked: number;
+}
+
+interface ChangedFilesResult {
+  files: string[];
+  ok: boolean;
 }
 
 const STARTER_PHRASES = [
@@ -86,9 +101,10 @@ const AGENT_BRIEF_TEMPLATE_LINES = [
   "list the next concrete actions for a human or agent",
 ];
 
-export function reviewProject(root: string): ReviewResult {
+export function reviewProject(root: string, options: ReviewOptions = {}): ReviewResult {
   const errors: ReviewIssue[] = [];
   const warnings: ReviewIssue[] = [];
+  let changedReview: ChangedReviewResult | undefined;
 
   if (!existsSync(rootPath(root, CONFIG_DIR, "config.json"))) {
     errors.push({ message: "benjamin-docs is not initialized. Run: benjamin-docs init" });
@@ -141,7 +157,183 @@ export function reviewProject(root: string): ReviewResult {
     reviewCodebaseDocs(docsRoot, manifestDocs, warnings);
   }
 
-  return formatReview({ docsChecked, errors, warnings });
+  if (options.changed) {
+    changedReview = reviewChangedWork(root, docsRoot, options.since ?? "HEAD", warnings);
+  }
+
+  return formatReview({ docsChecked, errors, warnings, changedFilesChecked: changedReview?.filesChecked });
+}
+
+function reviewChangedWork(root: string, docsRoot: string, since: string, warnings: ReviewIssue[]): ChangedReviewResult {
+  const changedResult = getChangedFiles(root, since);
+  const changedFiles = changedResult.files;
+  const docsChanged = changedFiles.filter((file) => isBenjaminSourceDoc(file, docsRoot));
+  const sourceChanges = changedFiles.filter((file) => isReviewableSourceChange(file, docsRoot));
+  const expectedDocs = expectedDocsForChangedFiles(sourceChanges, docsRoot);
+
+  if (!changedResult.ok) {
+    warnings.push({
+      message: "Changed-work review needs git history. Run it inside a git repository or pass a valid --since <git-ref>.",
+    });
+  }
+
+  if (sourceChanges.length > 0 && docsChanged.length === 0) {
+    warnings.push({
+      message: "Source files changed, but no Benjamin Docs source files changed. Update project memory or state why no durable docs update is needed.",
+    });
+  }
+
+  for (const doc of expectedDocs) {
+    if (!docsChanged.includes(doc)) {
+      warnings.push({
+        path: doc,
+        message: `May need update because changed source files affect ${changedAreas(sourceChanges).join(", ")}.`,
+      });
+    }
+  }
+
+  reviewStaleClaimsForChangedWork(root, docsRoot, sourceChanges, warnings);
+
+  return { filesChecked: sourceChanges.length };
+}
+
+function getChangedFiles(root: string, since: string): ChangedFilesResult {
+  try {
+    const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRT", since, "--"], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    const untracked = execFileSync("git", ["ls-files", "--others", "--exclude-standard"], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+
+    return {
+      files: uniqueStrings([...changed.split(/\r?\n/), ...untracked.split(/\r?\n/)].map((line) => line.trim()).filter(Boolean)),
+      ok: true,
+    };
+  } catch {
+    return { files: [], ok: false };
+  }
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function isBenjaminSourceDoc(file: string, docsRoot: string): boolean {
+  return file.startsWith(`${docsRoot}/`) && file.endsWith(".md") && !file.startsWith(`${docsRoot}/views/`);
+}
+
+function isReviewableSourceChange(file: string, docsRoot: string): boolean {
+  if (file.startsWith(`${docsRoot}/`) || file.startsWith(`${CONFIG_DIR}/`)) return false;
+  if (file.startsWith(".git/")) return false;
+  return /\.(ts|tsx|js|jsx|sql|json|yml|yaml|md|css|html|py|rb|go|rs|java|php)$/i.test(file);
+}
+
+function expectedDocsForChangedFiles(files: string[], docsRoot: string): string[] {
+  const docs = new Set<string>();
+
+  for (const file of files) {
+    if (isDatabaseOrSchemaFile(file)) {
+      docs.add(`${docsRoot}/engineering/architecture.md`);
+      docs.add(`${docsRoot}/engineering/code-map.md`);
+      docs.add(`${docsRoot}/releases/changelog.md`);
+    }
+
+    if (isApplicationFile(file)) {
+      docs.add(`${docsRoot}/engineering/code-map.md`);
+    }
+
+    if (isConfigOrWorkflowFile(file)) {
+      docs.add(`${docsRoot}/handoff/agent-brief.md`);
+    }
+  }
+
+  return [...docs].sort();
+}
+
+function changedAreas(files: string[]): string[] {
+  const areas = new Set<string>();
+  if (files.some(isDatabaseOrSchemaFile)) areas.add("database/schema");
+  if (files.some(isApplicationFile)) areas.add("application behavior");
+  if (files.some(isConfigOrWorkflowFile)) areas.add("configuration/workflow");
+  return areas.size > 0 ? [...areas] : ["project behavior"];
+}
+
+function isDatabaseOrSchemaFile(file: string): boolean {
+  return file.startsWith("supabase/migrations/") || file.startsWith("supabase/tests/") || file.endsWith(".sql") || file.includes("database.types.");
+}
+
+function isApplicationFile(file: string): boolean {
+  return file.startsWith("src/app/") || file.startsWith("src/components/") || file.startsWith("src/lib/");
+}
+
+function isConfigOrWorkflowFile(file: string): boolean {
+  return file === "package.json" || file.endsWith(".config.ts") || file.endsWith(".config.js") || file.startsWith(".github/workflows/");
+}
+
+function reviewStaleClaimsForChangedWork(root: string, docsRoot: string, sourceChanges: string[], warnings: ReviewIssue[]): void {
+  if (sourceChanges.length === 0) return;
+
+  const checks: Array<{ enabled: boolean; label: string; docs: string[]; patterns: RegExp[] }> = [
+    {
+      enabled: sourceChanges.some((file) => file.startsWith("src/app/") && file.includes("/admin")),
+      label: "changed admin route files",
+      docs: [`${docsRoot}/engineering/architecture.md`, `${docsRoot}/engineering/code-map.md`, `${docsRoot}/project/roadmap.md`, `${docsRoot}/handoff/agent-brief.md`],
+      patterns: [
+        /\badmin(?:\s+cms)?\s+routes?\s+(?:are\s+)?not implemented yet\b/i,
+        /\badmin\b[\s\S]{0,120}\bdoes not exist yet\b/i,
+        /\bdefine\s+\/?admin\b[\s\S]{0,80}\binformation architecture\b/i,
+      ],
+    },
+    {
+      enabled: sourceChanges.some(isDatabaseOrSchemaFile),
+      label: "changed database/schema files",
+      docs: [`${docsRoot}/engineering/architecture.md`, `${docsRoot}/engineering/code-map.md`, `${docsRoot}/project/roadmap.md`, `${docsRoot}/handoff/agent-brief.md`],
+      patterns: [
+        /\bcontent\s+(?:tables?|model|schema)\b[\s\S]{0,120}\bnot implemented yet\b/i,
+        /\bonce the (?:cms )?schema exists\b/i,
+        /\bdefine the (?:supabase )?content model\b/i,
+      ],
+    },
+  ];
+
+  for (const check of checks) {
+    if (!check.enabled) continue;
+
+    for (const doc of check.docs) {
+      const claim = findStaleClaim(root, doc, check.patterns);
+      if (claim) {
+        warnings.push({ path: doc, message: `Possible stale claim after ${check.label}: "${claim}"` });
+      }
+    }
+  }
+}
+
+function findStaleClaim(root: string, relativePath: string, patterns: RegExp[]): string | undefined {
+  const fullPath = rootPath(root, relativePath);
+  if (!existsSync(fullPath) || !lstatSync(fullPath).isFile()) return undefined;
+
+  let body: string;
+  try {
+    body = parseMarkdown(readFileSync(fullPath, "utf8")).body;
+  } catch {
+    return undefined;
+  }
+
+  for (const pattern of patterns) {
+    const match = body.match(pattern);
+    if (match?.[0]) return compactClaim(match[0]);
+  }
+
+  return undefined;
+}
+
+function compactClaim(text: string): string {
+  return text.replace(/\s+/g, " ").trim().slice(0, 180);
 }
 
 function reviewDoc(fullPath: string, relativePath: string, warnings: ReviewIssue[]): void {
@@ -317,7 +509,7 @@ function isFeatureDoc(relativePath: string, basename: string): boolean {
   return relativePath.includes("/features/") && relativePath.endsWith(`/${basename}`);
 }
 
-function formatReview(result: { docsChecked: number; errors: ReviewIssue[]; warnings: ReviewIssue[] }): ReviewResult {
+function formatReview(result: { docsChecked: number; errors: ReviewIssue[]; warnings: ReviewIssue[]; changedFilesChecked?: number }): ReviewResult {
   const ok = result.errors.length === 0;
   const status = result.errors.length > 0 ? "failed" : result.warnings.length > 0 ? "passed with warnings" : "passed";
   const lines = [
@@ -325,6 +517,7 @@ function formatReview(result: { docsChecked: number; errors: ReviewIssue[]; warn
     "",
     `status: ${status}`,
     `docs checked: ${result.docsChecked}`,
+    ...(result.changedFilesChecked === undefined ? [] : [`changed files checked: ${result.changedFilesChecked}`]),
     `errors: ${result.errors.length}`,
     `warnings: ${result.warnings.length}`,
   ];
