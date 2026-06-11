@@ -23,7 +23,8 @@ describe("commands", () => {
       assert.match(output, /benjamin-docs install-skill/);
       assert.match(output, /benjamin-docs package-skill/);
       assert.match(output, /\s+1\. benjamin-docs init/);
-      assert.match(output, /\s+18\. benjamin-docs chat-project/);
+      assert.match(output, /benjamin-docs scope status <slug> <status>/);
+      assert.match(output, /\s+19\. benjamin-docs chat-project/);
       assert.match(output, /type a number/);
     });
   });
@@ -31,7 +32,7 @@ describe("commands", () => {
   it("maps every drawer entry to runnable cli args", () => {
     const commands = allCommands();
 
-    assert.equal(commands.length, 18);
+    assert.equal(commands.length, 19);
     assert.deepEqual(commands[0]?.args, ["init"]);
     assert.deepEqual(commands[1]?.args, ["ready"]);
     assert.deepEqual(commands[5]?.args, ["validate"]);
@@ -39,7 +40,8 @@ describe("commands", () => {
     assert.deepEqual(commands[10]?.args, ["views"]);
     assert.deepEqual(commands[11]?.args, ["export", "--audience", "developer"]);
     assert.deepEqual(commands[12]?.args, ["scope", "create", "feature", "<slug>"]);
-    assert.deepEqual(commands[13]?.args, ["anchor", "add", "<id>", "<file>"]);
-    assert.deepEqual(commands[14]?.args, ["anchor", "list"]);
+    assert.deepEqual(commands[13]?.args, ["scope", "status", "<slug>", "<status>"]);
+    assert.deepEqual(commands[14]?.args, ["anchor", "add", "<id>", "<file>"]);
+    assert.deepEqual(commands[15]?.args, ["anchor", "list"]);
   });
 });

@@ -4,8 +4,10 @@ import { CONFIG_DIR } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
 import { readGeneratedJson, rootPath } from "./fsx.js";
 import { readConfig } from "./project-config.js";
-import type { ManifestFile } from "./types.js";
+import type { ManifestFile, WatchRule } from "./types.js";
 import { validateProject } from "./validate.js";
+import { renderMemoryViews, type RenderedMemoryView } from "./views.js";
+import { defaultWatchRules, matchesAnyGlob, resolveWatchRules } from "./watch.js";
 
 export interface ReviewResult {
   ok: boolean;
@@ -101,6 +103,18 @@ const AGENT_BRIEF_TEMPLATE_LINES = [
   "list the next concrete actions for a human or agent",
 ];
 
+const STALE_CLAIM_PATTERNS = [
+  /\bnot (?:implemented|built|created|added|wired up) yet\b/i,
+  /\bdo(?:es)? not exist yet\b/i,
+  /\bno (?:code|schema|tests?|migrations?) exists? yet\b/i,
+  /\bonce the\b[^.\n]{0,80}\b(?:exists|is implemented|is built|is created)\b/i,
+  /\bplanned but not (?:started|implemented|built)\b/i,
+];
+
+const PATH_LIVENESS_BASENAMES = ["architecture.md", "code-map.md", "agent-brief.md"];
+
+const DOC_CHURN_THRESHOLD = 10;
+
 export function reviewProject(root: string, options: ReviewOptions = {}): ReviewResult {
   const errors: ReviewIssue[] = [];
   const warnings: ReviewIssue[] = [];
@@ -118,11 +132,13 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
   let docsRoot = "benjamin-docs";
   let mode = "planning";
   let manifestDocs: string[] = [];
+  let watchRules: WatchRule[] = defaultWatchRules(docsRoot);
 
   try {
     const config = readConfig(root);
     docsRoot = config.docsRoot;
     mode = config.mode;
+    watchRules = resolveWatchRules(config);
     const manifest = readGeneratedJson<ManifestFile>(root, `${CONFIG_DIR}/manifest.json`, "Metadata path");
     manifestDocs = manifest.docs;
   } catch (error) {
@@ -150,26 +166,29 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
 
     if (!existsSync(fullPath) || !lstatSync(fullPath).isFile()) continue;
     docsChecked += 1;
-    reviewDoc(fullPath, doc, warnings);
+    reviewDoc(root, fullPath, doc, warnings);
   }
 
   if (mode === "codebase") {
     reviewCodebaseDocs(docsRoot, manifestDocs, warnings);
   }
 
+  reviewDocChurn(root, docsRoot, warnings);
+  reviewViewsFreshness(root, warnings);
+
   if (options.changed) {
-    changedReview = reviewChangedWork(root, docsRoot, options.since ?? "HEAD", warnings);
+    changedReview = reviewChangedWork(root, docsRoot, watchRules, options.since ?? "HEAD", warnings);
   }
 
   return formatReview({ docsChecked, errors, warnings, changedFilesChecked: changedReview?.filesChecked });
 }
 
-function reviewChangedWork(root: string, docsRoot: string, since: string, warnings: ReviewIssue[]): ChangedReviewResult {
+function reviewChangedWork(root: string, docsRoot: string, rules: WatchRule[], since: string, warnings: ReviewIssue[]): ChangedReviewResult {
   const changedResult = getChangedFiles(root, since);
   const changedFiles = changedResult.files;
   const docsChanged = changedFiles.filter((file) => isBenjaminSourceDoc(file, docsRoot));
   const sourceChanges = changedFiles.filter((file) => isReviewableSourceChange(file, docsRoot));
-  const expectedDocs = expectedDocsForChangedFiles(sourceChanges, docsRoot);
+  const matchedRules = rules.filter((rule) => sourceChanges.some((file) => matchesAnyGlob(rule.paths, file)));
 
   if (!changedResult.ok) {
     warnings.push({
@@ -183,18 +202,34 @@ function reviewChangedWork(root: string, docsRoot: string, since: string, warnin
     });
   }
 
-  for (const doc of expectedDocs) {
+  for (const doc of expectedRuleDocs(matchedRules)) {
+    const areas = matchedRules.filter((rule) => rule.docs.includes(doc)).map((rule) => rule.label ?? "watched files");
+
+    let fullPath;
+    try {
+      fullPath = rootPath(root, doc);
+    } catch {
+      warnings.push({ path: doc, message: "Watch rule references an unsafe doc path. Fix the watch rule in .benjamin-docs/config.json." });
+      continue;
+    }
+
+    if (!existsSync(fullPath)) {
+      warnings.push({ path: doc, message: "Watch rule expects this doc, but it does not exist. Create it or fix the watch rule in .benjamin-docs/config.json." });
+      continue;
+    }
+
     if (!docsChanged.includes(doc)) {
-      warnings.push({
-        path: doc,
-        message: `May need update because changed source files affect ${changedAreas(sourceChanges).join(", ")}.`,
-      });
+      warnings.push({ path: doc, message: `May need update because changed source files affect ${areas.join(", ")}.` });
     }
   }
 
-  reviewStaleClaimsForChangedWork(root, docsRoot, sourceChanges, warnings);
+  reviewStaleClaims(root, docsRoot, sourceChanges.length > 0, warnings);
 
   return { filesChecked: sourceChanges.length };
+}
+
+function expectedRuleDocs(rules: WatchRule[]): string[] {
+  return [...new Set(rules.flatMap((rule) => rule.docs))].sort();
 }
 
 function getChangedFiles(root: string, since: string): ChangedFilesResult {
@@ -219,6 +254,20 @@ function getChangedFiles(root: string, since: string): ChangedFilesResult {
   }
 }
 
+function gitLastCommit(root: string, file: string): string | undefined {
+  try {
+    const output = execFileSync("git", ["log", "-1", "--format=%H", "--", file], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+
+    return output || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
 }
@@ -233,116 +282,152 @@ function isReviewableSourceChange(file: string, docsRoot: string): boolean {
   return /\.(ts|tsx|js|jsx|sql|json|yml|yaml|md|css|html|py|rb|go|rs|java|php)$/i.test(file);
 }
 
-function expectedDocsForChangedFiles(files: string[], docsRoot: string): string[] {
-  const docs = new Set<string>();
+function reviewDocChurn(root: string, docsRoot: string, warnings: ReviewIssue[]): void {
+  const workingChanges = getChangedFiles(root, "HEAD");
+  if (!workingChanges.ok) return;
 
-  for (const file of files) {
-    if (isDatabaseOrSchemaFile(file)) {
-      docs.add(`${docsRoot}/engineering/architecture.md`);
-      docs.add(`${docsRoot}/engineering/code-map.md`);
-      docs.add(`${docsRoot}/releases/changelog.md`);
+  for (const doc of [`${docsRoot}/engineering/architecture.md`, `${docsRoot}/engineering/code-map.md`]) {
+    let fullPath;
+    try {
+      fullPath = rootPath(root, doc);
+    } catch {
+      continue;
     }
 
-    if (isApplicationFile(file)) {
-      docs.add(`${docsRoot}/engineering/code-map.md`);
-    }
+    if (!existsSync(fullPath) || !lstatSync(fullPath).isFile()) continue;
+    if (workingChanges.files.includes(doc)) continue;
 
-    if (isConfigOrWorkflowFile(file)) {
-      docs.add(`${docsRoot}/handoff/agent-brief.md`);
+    const lastCommit = gitLastCommit(root, doc);
+    if (!lastCommit) continue;
+
+    const sinceDoc = getChangedFiles(root, lastCommit);
+    if (!sinceDoc.ok) continue;
+
+    const sources = sinceDoc.files.filter((file) => isReviewableSourceChange(file, docsRoot));
+    if (sources.length >= DOC_CHURN_THRESHOLD) {
+      warnings.push({
+        path: doc,
+        message: `${sources.length} source files changed since this doc last changed in git. Re-verify it against the current codebase, then update it or restate why it still holds.`,
+      });
     }
   }
-
-  return [...docs].sort();
 }
 
-function changedAreas(files: string[]): string[] {
-  const areas = new Set<string>();
-  if (files.some(isDatabaseOrSchemaFile)) areas.add("database/schema");
-  if (files.some(isApplicationFile)) areas.add("application behavior");
-  if (files.some(isConfigOrWorkflowFile)) areas.add("configuration/workflow");
-  return areas.size > 0 ? [...areas] : ["project behavior"];
+function reviewViewsFreshness(root: string, warnings: ReviewIssue[]): void {
+  let rendered: RenderedMemoryView[];
+  try {
+    rendered = renderMemoryViews(root);
+  } catch {
+    return;
+  }
+
+  const existing = rendered.filter((view) => {
+    try {
+      return existsSync(rootPath(root, view.relativePath));
+    } catch {
+      return false;
+    }
+  });
+  if (existing.length === 0) return;
+
+  for (const view of rendered) {
+    let fullPath;
+    try {
+      fullPath = rootPath(root, view.relativePath);
+    } catch {
+      continue;
+    }
+
+    if (!existsSync(fullPath)) {
+      warnings.push({ path: view.relativePath, message: "Memory View is missing. Run: benjamin-docs views" });
+      continue;
+    }
+
+    let currentBody: string;
+    try {
+      currentBody = parseMarkdown(readFileSync(fullPath, "utf8")).body;
+    } catch {
+      warnings.push({ path: view.relativePath, message: "Memory View cannot be parsed. Run: benjamin-docs views" });
+      continue;
+    }
+
+    if (currentBody.trim() !== view.body.trim()) {
+      warnings.push({ path: view.relativePath, message: "Memory View is stale. Run: benjamin-docs views" });
+    }
+  }
 }
 
-function isDatabaseOrSchemaFile(file: string): boolean {
-  return file.startsWith("supabase/migrations/") || file.startsWith("supabase/tests/") || file.endsWith(".sql") || file.includes("database.types.");
-}
+function reviewStaleClaims(root: string, docsRoot: string, hasSourceChanges: boolean, warnings: ReviewIssue[]): void {
+  if (!hasSourceChanges) return;
 
-function isApplicationFile(file: string): boolean {
-  return file.startsWith("src/app/") || file.startsWith("src/components/") || file.startsWith("src/lib/");
-}
-
-function isConfigOrWorkflowFile(file: string): boolean {
-  return file === "package.json" || file.endsWith(".config.ts") || file.endsWith(".config.js") || file.startsWith(".github/workflows/");
-}
-
-function reviewStaleClaimsForChangedWork(root: string, docsRoot: string, sourceChanges: string[], warnings: ReviewIssue[]): void {
-  if (sourceChanges.length === 0) return;
-
-  const checks: Array<{ enabled: boolean; label: string; docs: string[]; patterns: RegExp[] }> = [
-    {
-      enabled: sourceChanges.some((file) => file.startsWith("src/app/") && file.includes("/admin")),
-      label: "changed admin route files",
-      docs: [`${docsRoot}/engineering/architecture.md`, `${docsRoot}/engineering/code-map.md`, `${docsRoot}/project/roadmap.md`, `${docsRoot}/handoff/agent-brief.md`],
-      patterns: [
-        /\badmin(?:\s+cms)?\s+routes?\s+(?:are\s+)?not implemented yet\b/i,
-        /\badmin\b[\s\S]{0,120}\bdoes not exist yet\b/i,
-        /\bdefine\s+\/?admin\b[\s\S]{0,80}\binformation architecture\b/i,
-      ],
-    },
-    {
-      enabled: sourceChanges.some(isDatabaseOrSchemaFile),
-      label: "changed database/schema files",
-      docs: [`${docsRoot}/engineering/architecture.md`, `${docsRoot}/engineering/code-map.md`, `${docsRoot}/project/roadmap.md`, `${docsRoot}/handoff/agent-brief.md`],
-      patterns: [
-        /\bcontent\s+(?:tables?|model|schema)\b[\s\S]{0,120}\bnot implemented yet\b/i,
-        /\bonce the (?:cms )?schema exists\b/i,
-        /\bdefine the (?:supabase )?content model\b/i,
-      ],
-    },
-  ];
-
-  for (const check of checks) {
-    if (!check.enabled) continue;
-
-    for (const doc of check.docs) {
-      const claim = findStaleClaim(root, doc, check.patterns);
-      if (claim) {
-        warnings.push({ path: doc, message: `Possible stale claim after ${check.label}: "${claim}"` });
-      }
+  for (const doc of [`${docsRoot}/engineering/architecture.md`, `${docsRoot}/engineering/code-map.md`]) {
+    const claim = findStaleClaim(root, doc, STALE_CLAIM_PATTERNS);
+    if (claim) {
+      warnings.push({ path: doc, message: `Possible stale claim while source files changed: "${claim}". Verify it still holds, then update or remove it.` });
     }
   }
 }
 
 function findStaleClaim(root: string, relativePath: string, patterns: RegExp[]): string | undefined {
-  const fullPath = rootPath(root, relativePath);
+  let fullPath;
+  try {
+    fullPath = rootPath(root, relativePath);
+  } catch {
+    return undefined;
+  }
+
   if (!existsSync(fullPath) || !lstatSync(fullPath).isFile()) return undefined;
 
   let body: string;
   try {
-    body = parseMarkdown(readFileSync(fullPath, "utf8")).body;
+    body = stripMentionedPhrases(stripFencedBlocks(parseMarkdown(readFileSync(fullPath, "utf8")).body));
   } catch {
     return undefined;
   }
 
   for (const pattern of patterns) {
-    const match = body.match(pattern);
-    if (match?.[0]) return compactClaim(match[0]);
+    const match = pattern.exec(body);
+    if (match?.[0]) return compactClaim(expandToSentence(body, match.index, match.index + match[0].length));
   }
 
   return undefined;
 }
 
-function compactClaim(text: string): string {
-  return text.replace(/\s+/g, " ").trim().slice(0, 180);
+function stripMentionedPhrases(text: string): string {
+  return text.replace(/`[^`\n]*`/g, "`...`").replace(/"[^"\n]{0,120}"/g, '"..."');
 }
 
-function reviewDoc(fullPath: string, relativePath: string, warnings: ReviewIssue[]): void {
+function expandToSentence(text: string, start: number, end: number): string {
+  let from = start;
+  while (from > 0 && text[from - 1] !== "\n" && !isSentenceTerminator(text[from - 1])) from -= 1;
+
+  let to = end;
+  while (to < text.length && text[to] !== "\n" && !isSentenceTerminator(text[to])) to += 1;
+  if (to < text.length && isSentenceTerminator(text[to])) to += 1;
+
+  return text.slice(from, to);
+}
+
+function isSentenceTerminator(char: string | undefined): boolean {
+  return char === "." || char === "!" || char === "?";
+}
+
+function compactClaim(text: string): string {
+  return text.replace(/\s+/g, " ").trim().replace(/^[-*]\s+/, "").slice(0, 180);
+}
+
+function reviewDoc(root: string, fullPath: string, relativePath: string, warnings: ReviewIssue[]): void {
   let body = "";
+  let status = "";
   try {
-    body = parseMarkdown(readFileSync(fullPath, "utf8")).body;
+    const parsed = parseMarkdown(readFileSync(fullPath, "utf8"));
+    body = parsed.body;
+    status = parsed.frontmatter.status;
   } catch {
     return;
   }
+
+  if (status === "archived") return;
 
   if (STARTER_PHRASES.some((phrase) => body.includes(phrase))) {
     warnings.push({ path: relativePath, message: "Still looks like a starter template. Capture real project context." });
@@ -359,6 +444,79 @@ function reviewDoc(fullPath: string, relativePath: string, warnings: ReviewIssue
   }
 
   reviewContinuationSignals(body, relativePath, basename, warnings);
+  reviewPathReferences(root, body, relativePath, basename, warnings);
+}
+
+function reviewPathReferences(root: string, body: string, relativePath: string, basename: string, warnings: ReviewIssue[]): void {
+  if (!PATH_LIVENESS_BASENAMES.includes(basename)) return;
+
+  for (const reference of extractInlinePathReferences(body)) {
+    const firstSegment = reference.split("/", 1)[0] ?? "";
+
+    let firstSegmentPath;
+    try {
+      firstSegmentPath = rootPath(root, firstSegment);
+    } catch {
+      continue;
+    }
+
+    if (!existsSync(firstSegmentPath)) continue;
+
+    let fullPath;
+    try {
+      fullPath = rootPath(root, reference);
+    } catch {
+      continue;
+    }
+
+    if (!existsSync(fullPath)) {
+      warnings.push({ path: relativePath, message: `References missing path \`${reference}\`. Update or remove the stale reference.` });
+    }
+  }
+}
+
+function extractInlinePathReferences(body: string): string[] {
+  const references = new Set<string>();
+
+  for (const match of stripFencedBlocks(body).matchAll(/`([^`\n]+)`/g)) {
+    const candidate = (match[1] ?? "").trim();
+    if (!isCheckablePathReference(candidate)) continue;
+    references.add(normalizePathReference(candidate));
+  }
+
+  return [...references];
+}
+
+function isCheckablePathReference(candidate: string): boolean {
+  if (!candidate || /\s/.test(candidate)) return false;
+  if (!candidate.includes("/")) return false;
+  if (/[*?<>|$(){}[\]\\]/.test(candidate)) return false;
+  if (candidate.startsWith("/") || candidate.startsWith("~") || candidate.startsWith("-")) return false;
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(candidate)) return false;
+  return true;
+}
+
+function normalizePathReference(candidate: string): string {
+  return candidate
+    .replace(/^\.\//, "")
+    .replace(/:\d+(?:[-:]\d+)?$/, "")
+    .replace(/\/+$/, "");
+}
+
+function stripFencedBlocks(text: string): string {
+  const kept: string[] = [];
+  let inFence = false;
+
+  for (const line of text.split(/\r?\n/)) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+
+    if (!inFence) kept.push(line);
+  }
+
+  return kept.join("\n");
 }
 
 function reviewContinuationSignals(body: string, relativePath: string, basename: string, warnings: ReviewIssue[]): void {

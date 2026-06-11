@@ -27,7 +27,7 @@
       "kind": "feature",
       "title": "Session Capture",
       "path": "benjamin-docs/features/session-capture",
-      "status": "draft"
+      "status": "archived"
     },
     {
       "id": "release",
@@ -41,20 +41,27 @@
       "kind": "feature",
       "title": "Agent Ready Project Memory",
       "path": "benjamin-docs/features/agent-ready-project-memory",
-      "status": "draft"
+      "status": "archived"
     },
     {
       "id": "memory-views",
       "kind": "feature",
       "title": "Memory Views",
       "path": "benjamin-docs/features/memory-views",
-      "status": "draft"
+      "status": "archived"
     },
     {
       "id": "changed-work-review",
       "kind": "feature",
       "title": "Changed Work Review",
       "path": "benjamin-docs/features/changed-work-review",
+      "status": "archived"
+    },
+    {
+      "id": "freshness-and-lifecycle",
+      "kind": "feature",
+      "title": "Freshness And Lifecycle",
+      "path": "benjamin-docs/features/freshness-and-lifecycle",
       "status": "draft"
     }
   ]

@@ -2,5 +2,31 @@
   "version": 1,
   "mode": "codebase",
   "docsRoot": "benjamin-docs",
-  "focus": "codebase"
+  "focus": "codebase",
+  "watch": [
+    {
+      "label": "database/schema",
+      "paths": ["**/*.sql", "**/migrations/**", "**/*.prisma", "db/schema.rb", "**/database.types.*"],
+      "docs": [
+        "benjamin-docs/engineering/architecture.md",
+        "benjamin-docs/engineering/code-map.md",
+        "benjamin-docs/releases/changelog.md"
+      ]
+    },
+    {
+      "label": "application code",
+      "paths": ["src/**", "skills/**"],
+      "docs": ["benjamin-docs/engineering/code-map.md"]
+    },
+    {
+      "label": "tests",
+      "paths": ["test/**", "**/*.test.*"],
+      "docs": ["benjamin-docs/engineering/code-map.md"]
+    },
+    {
+      "label": "configuration/workflow",
+      "paths": ["package.json", "tsconfig*.json", ".github/workflows/**", "pnpm-workspace.yaml"],
+      "docs": ["benjamin-docs/handoff/agent-brief.md"]
+    }
+  ]
 }

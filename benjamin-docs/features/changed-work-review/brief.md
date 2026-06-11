@@ -3,7 +3,7 @@ title: Changed Work Review Brief
 scope: feature
 scope_id: changed-work-review
 audience: [developer, designer, agent]
-status: review
+status: archived
 visibility: private
 updated: 2026-06-11
 source: manual

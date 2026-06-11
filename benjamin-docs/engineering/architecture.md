@@ -41,6 +41,8 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Metadata and path-safety helpers live in `src/fsx.ts`, `src/project-config.ts`, and `src/types.ts`.
 - Validation lives in `src/validate.ts`.
 - Docs quality and changed-work freshness review live in `src/review.ts`.
+- Watch-rule globs and stack-agnostic changed-file mapping live in `src/watch.ts`.
+- Memory Views rendering and lifecycle filtering live in `src/views.ts`.
 - Setup diagnostics live in `src/doctor.ts`.
 - Skill installation and Claude zip packaging live in `src/install-skill.ts` and `src/package-skill.ts`.
 - Agent-facing behavior lives in `skills/benjamin-docs/SKILL.md`.
@@ -49,9 +51,17 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 
 `bd review --changed` is an advanced, deterministic git-diff pass layered onto the existing review command. It compares changed tracked and untracked files against `HEAD` by default, or a caller-provided `--since <git-ref>`.
 
-The check is warning-only. It classifies changed source files into coarse areas such as database/schema, application behavior, and configuration/workflow, then warns when likely source docs such as `engineering/architecture.md`, `engineering/code-map.md`, `releases/changelog.md`, or `handoff/agent-brief.md` were not updated. It also scans project-level docs for obvious stale implementation claims such as admin routes or content schema still being described as not implemented after related code changes.
+Since 0.7.0 the changed-file-to-doc mapping is stack-agnostic and configurable. `.benjamin-docs/config.json` holds `watch` rules, each with glob `paths` and target `docs`; `init` seeds generic defaults covering database/schema files, application code, tests, and configuration/workflow files. Projects without `watch` in config fall back to the same generic defaults at runtime. The old Supabase- and Next.js-specific hardcoded paths are gone.
 
-This is intentionally heuristic, not an AI reviewer. The product rule is that agents should either update Benjamin Docs or explicitly state why a change has no durable project-memory impact.
+Plain `bd review` (and therefore `bd ready`) also runs three deterministic staleness checks:
+
+- Doc churn: warns when ten or more source files changed in git since `engineering/architecture.md` or `engineering/code-map.md` last changed, unless the doc has uncommitted edits.
+- Path liveness: warns when `architecture.md`, `code-map.md`, or `agent-brief.md` reference an inline-code path whose first segment exists in the repo but whose full path does not.
+- Memory View freshness: warns when generated views under `views/` no longer match what the current source docs would render.
+
+`review --changed` additionally scans `architecture.md` and `code-map.md` for generic stale claims such as "not implemented yet" or "does not exist yet" while source files changed, quoting the full sentence.
+
+All of this stays warning-only inside `review`, but `ready` fails on review warnings, so the gate enforces freshness. This is intentionally heuristic, not an AI reviewer. The product rule is unchanged: agents should either update Benjamin Docs or explicitly state why a change has no durable project-memory impact.
 
 ## Safety Rules
 

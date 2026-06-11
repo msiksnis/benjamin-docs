@@ -9,6 +9,7 @@ import {
 } from "./fsx.js";
 import { codebaseDocs, featureDocs, workspaceDocs } from "./templates.js";
 import { assertSafeDocsRoot, defaultConfig, normalizeConfig } from "./project-config.js";
+import { defaultWatchRules } from "./watch.js";
 import type { BenjaminDocsConfig, AnchorsFile, FocusType, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
 
 const METADATA_LABEL = "Metadata path";
@@ -39,7 +40,7 @@ export function initProject(root: string, options: InitProjectOptions = {}): Ini
   }
 
   const mode: BenjaminDocsConfig["mode"] = setup === "codebase" || (setup === "feature" && looksLikeCodebase(root)) ? "codebase" : "planning";
-  const config = defaultConfig({ mode, docsRoot, focus: setup, feature });
+  const config = defaultConfig({ mode, docsRoot, focus: setup, feature, watch: defaultWatchRules(docsRoot) });
 
   ensureGeneratedDir(root, docsRoot);
   ensureGeneratedDir(root, CONFIG_DIR, METADATA_LABEL);
@@ -95,6 +96,7 @@ function writeConfig(root: string, config: BenjaminDocsConfig, written: string[]
     mode: config.mode,
     focus: config.focus,
     feature: config.feature,
+    watch: existing.watch ?? config.watch,
   };
   writeGeneratedJson(root, path, next, METADATA_LABEL);
 }

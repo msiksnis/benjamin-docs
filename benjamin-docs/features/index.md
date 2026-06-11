@@ -15,6 +15,13 @@ This index points to active and historical Benjamin Docs feature scopes. Use it 
 
 ## Active
 
-- [Agent-Ready Project Memory](./agent-ready-project-memory/brief.md): 0.4.0 scope for improving capture quality, agent operating contracts, context maps, and continuation quality without expanding the primary command surface.
-- [Memory Views](./memory-views/brief.md): advanced `bd views` command that generates derived project-memory lenses without promoting a new main command.
-- [Changed Work Review](./changed-work-review/brief.md): advanced `bd review --changed` freshness check for source changes that likely require Benjamin Docs source updates.
+- [Freshness And Lifecycle](./freshness-and-lifecycle/brief.md): 0.7.0 scope for stack-agnostic changed-work review through configurable watch rules, git churn and path liveness staleness checks, Memory View freshness in the readiness gate, and scope lifecycle status with archived views exclusion.
+
+## Shipped (archived)
+
+- [Agent-Ready Project Memory](./agent-ready-project-memory/brief.md): shipped in 0.4.x. Capture quality, agent operating contracts, context maps, and continuation quality.
+- [Session Capture](./session-capture/brief.md): early scope for turning chats into project memory; superseded by the bundled skill workflows.
+- [Memory Views](./memory-views/brief.md): shipped in 0.5.1. Advanced `bd views` command for derived project-memory lenses.
+- [Changed Work Review](./changed-work-review/brief.md): shipped in 0.6.0. Advanced `bd review --changed` freshness check.
+
+Archived scopes keep their docs in place, but they are excluded from generated Memory Views. Reactivate one with `bd scope status <id> review` if work resumes.

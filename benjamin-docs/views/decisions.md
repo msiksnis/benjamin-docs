@@ -13,102 +13,31 @@ source: manual
 
 Derived from decision and rejected-option sections across managed Benjamin docs.
 
-## [Agent-Ready Project Memory Decisions](../features/agent-ready-project-memory/decisions.md)
+## [Freshness And Lifecycle Decisions](../features/freshness-and-lifecycle/decisions.md)
 
-Source: `benjamin-docs/features/agent-ready-project-memory/decisions.md`
-
-### Decisions
-
-- 0.4.0 will focus on agent-ready project memory, not on adding more primary CLI commands.
-- The primary user-facing command set remains `init`, `ready`, and `help`.
-- `bd commands` remains the advanced command drawer.
-- The skill owns messy-context synthesis. The CLI owns deterministic scaffolding, validation, review, readiness, packaging, and exports.
-- `bd ready` remains the completion gate.
-- Generated docs should optimize for continuation quality: a future agent should know what this is, where to look, what matters, what is risky, and what to do next.
-- Existing `AGENTS.md` files remain user-owned. Benjamin Docs may add or update Benjamin-owned sections only, unless the user explicitly approves broader rewrites.
-- Deterministic review should catch obvious weak docs, not attempt full semantic judgment.
-- After dogfooding, `bd init` in obvious non-interactive codebases should default to codebase memory with agent guidance. The simple human command stays the main path; flags are for automation and opt-out.
-- `bd anchor list` is acceptable as an advanced drawer command because it completes the existing anchor workflow without expanding the primary command surface.
-
-## [Agent-Ready Project Memory Decisions](../features/agent-ready-project-memory/decisions.md)
-
-Source: `benjamin-docs/features/agent-ready-project-memory/decisions.md`
-
-### Rejected Options
-
-- Add more top-level commands for 0.4.0.
-  - Reason: the user explicitly wants Benjamin Docs to stay simple.
-- Make `review` depend on an LLM.
-  - Reason: V1/V0.x should stay local, deterministic, and dependency-light.
-- Treat raw chat transcript as project memory.
-  - Reason: transcripts are too noisy for future agents and humans.
-- Automatically rewrite complex `AGENTS.md`.
-  - Reason: agent instructions are user-owned operational policy.
-- Require normal users to learn `--mode codebase --agent-contract --children`.
-  - Reason: those flags are useful for scripts and tests, but the product promise is that `bd init` should be enough.
-
-## [Agent-Ready Project Memory Decisions](../features/agent-ready-project-memory/decisions.md)
-
-Source: `benjamin-docs/features/agent-ready-project-memory/decisions.md`
-
-### Open Decisions
-
-- How strict should deterministic continuation checks be before they become annoying?
-- Should a fixture-based dogfood harness live under `test/fixtures`, `docs/`, or `benjamin-docs/features/agent-ready-project-memory/`?
-- Should future versions expose anchor docs links in `anchor add`, or keep anchors as file-only shortcuts for now?
-
-## [Changed Work Review Decisions](../features/changed-work-review/decisions.md)
-
-Source: `benjamin-docs/features/changed-work-review/decisions.md`
+Source: `benjamin-docs/features/freshness-and-lifecycle/decisions.md` (updated 2026-06-11)
 
 ### Decisions
 
-- Keep changed-work review under the existing `review` command as `review --changed`. Reason: this is an advanced diagnostic, not a new primary command.
-- Keep the first version warning-only. Reason: the heuristics need dogfooding before they can become a readiness failure.
-- Include untracked files. Reason: agents often create new routes, migrations, and tests before committing, and those are exactly the changes that can make docs stale.
-- Treat generated Memory Views as derived output, not proof that source docs were updated. Reason: stale source docs can produce fresh-but-wrong views.
-- Update both generated `AGENTS.md` and the bundled skill. Reason: existing and future agents need the docs-impact rule at task completion time.
-- Warn on likely project-level docs, not only feature docs. Reason: the Atelier audit showed feature handoffs can be fresh while project-level memory still says implemented areas do not exist.
-
-## [Changed Work Review Decisions](../features/changed-work-review/decisions.md)
-
-Source: `benjamin-docs/features/changed-work-review/decisions.md`
+- Watch rules live in `.benjamin-docs/config.json` as data, not code, because users must be able to adapt the mapping to their stack without a release. `init` seeds generic defaults and preserves custom rules on re-init.
+- The glob matcher is hand-rolled (`*`, `**`, `?`) to keep the zero-runtime-dependency rule.
+- Doc churn is measured against git history (files changed since the doc's last commit, threshold 10) because git facts are stack-agnostic and cannot be gamed by wording. A doc with uncommitted edits is treated as fresh.
+- Path liveness only checks inline-code references whose first path segment exists in the repo. This avoids false positives on examples like GitHub slugs while still catching renamed or deleted files.
+- Stale-claim patterns are generic ("not implemented yet", "does not exist yet") and scoped to `architecture.md` and `code-map.md` only, because those docs describe the present. Roadmaps legitimately describe unbuilt work.
+- View freshness runs inside plain `review` so `ready` fails on stale views, but `views` regeneration stays an explicit command. `review` stays read-only; checks must not mutate the project.
+- Views exclude both `archived` and `stale` statuses: archived means done or abandoned, stale means flagged-as-outdated, and neither belongs in a current-memory lens. The source docs keep the content either way.
+- `views` only rewrites files whose body changed, so the frontmatter `updated` date stays meaningful and diffs stay clean.
 
 ### Rejected Options
 
-- Rejected adding a new primary command. That would make the product feel heavier and conflicts with the current `init`, `ready`, `help` main surface.
-- Rejected making `bd ready` fail on changed-work warnings immediately. That would be premature without false-positive data from real projects.
-- Rejected AI-based semantic review in V1. Deterministic checks are cheaper, local, testable, and good enough to catch the first class of stale docs.
-- Rejected requiring docs churn for every code diff. The intended behavior is a conscious docs-impact decision, not mandatory documentation busywork.
-
-## [Memory Views Decisions](../features/memory-views/decisions.md)
-
-Source: `benjamin-docs/features/memory-views/decisions.md`
-
-### Decisions
-
-- Add `bd views` as a direct command so agents, scripts, and CI can run it deterministically.
-- Keep `bd views` in the advanced command drawer instead of promoting it to the main command list.
-- Generate Markdown files under `benjamin-docs/views/` so humans can read them and Git can diff them.
-- Treat generated views as derived lenses. The source of truth remains the project, handoff, engineering, feature, and release docs.
-- Register generated view files in the manifest so validation catches broken frontmatter and links.
-- Make the normal refresh sequence explicit as `bd init`, `bd views`, then `bd ready`.
-- Keep that sequence as guidance, not automatic `init` behavior. `init` creates source-of-truth docs and agent guidance; `views` generates derived docs only when the user or agent asks for them.
-
-## [Memory Views Decisions](../features/memory-views/decisions.md)
-
-Source: `benjamin-docs/features/memory-views/decisions.md`
-
-### Rejected Options
-
-- Do not make Memory Views drawer-only; automation should not depend on an interactive selector.
-- Do not add a hosted dashboard or database backend for this feature.
-- Do not promote `views` next to `init`, `ready`, and `help` until repeated real use proves it belongs there.
-- Do not make `bd init` generate views automatically. Fresh starter docs do not yet have enough signal, and generated views should remain an explicit refresh step.
+- Auto-regenerating views inside `ready`: rejected because a gate that mutates the working tree is surprising in CI and weakens the "checks are read-only" rule.
+- Keeping per-stack hardcoded paths with more stacks added: rejected; data-driven rules scale, hardcoded lists do not.
+- An LLM-based review mode: rejected for this milestone; the CLI's value is being the deterministic referee the LLM cannot fudge.
+- A separate `bd archive` command: rejected; `scope status` covers the lifecycle with one generic verb and no new top-level command.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md`
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-11)
 
 ### Recent Decisions
 
@@ -134,10 +63,11 @@ Source: `benjamin-docs/handoff/agent-brief.md`
 - 0.5.0 should make continuation readiness explicit: `agent-brief.md` must include read-first docs, current state, commands/checks, risks/hazards, and next actions.
 - 0.5.1 added Memory Views as an advanced generated lens and documents the refresh flow as `bd init`, `bd views`, then `bd ready`.
 - 0.6.0 adds `bd review --changed` after the Atelier audit showed agents may update feature docs while leaving project-level docs stale. The first implementation is deterministic and warning-only.
+- 0.7.0 makes the gate trustworthy for any stack: watch rules move the changed-file-to-doc mapping into config, staleness is measured from git facts (churn since engineering docs last changed) and filesystem facts (path liveness), stale Memory Views fail `ready`, and `scope status` archives finished work out of views. All checks stay deterministic; `review` stays read-only.
 
 ## [Baseline Capture Guide](../project/baseline-capture.md)
 
-Source: `benjamin-docs/project/baseline-capture.md`
+Source: `benjamin-docs/project/baseline-capture.md` (updated 2026-06-06)
 
 ### Current Decision
 
@@ -145,7 +75,7 @@ The baseline guide belongs in the README for public discoverability, with this r
 
 ## [Non-Code Stranger Test](../project/non-code-stranger-test.md)
 
-Source: `benjamin-docs/project/non-code-stranger-test.md`
+Source: `benjamin-docs/project/non-code-stranger-test.md` (updated 2026-06-04)
 
 ### Decisions
 

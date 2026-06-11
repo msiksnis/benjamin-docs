@@ -3,9 +3,9 @@ title: Agent-Ready Project Memory Brief
 scope: feature
 scope_id: agent-ready-project-memory
 audience: [developer, designer, agent, business]
-status: review
+status: archived
 visibility: private
-updated: 2026-06-10
+updated: 2026-06-11
 source: manual
 ---
 

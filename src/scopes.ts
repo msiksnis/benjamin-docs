@@ -1,8 +1,10 @@
-import { CONFIG_DIR, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
-import { readGeneratedJson, writeGeneratedJson, writeGeneratedTextIfMissing } from "./fsx.js";
+import { existsSync, readFileSync } from "node:fs";
+import { CONFIG_DIR, KNOWN_STATUSES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
+import { parseMarkdown, serializeMarkdown } from "./frontmatter.js";
+import { readGeneratedJson, rootPath, writeGeneratedJson, writeGeneratedText, writeGeneratedTextIfMissing } from "./fsx.js";
 import { readConfig } from "./project-config.js";
-import { featureDocs } from "./templates.js";
-import type { ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
+import { featureDocs, today } from "./templates.js";
+import type { DocStatus, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const METADATA_LABEL = "Metadata path";
@@ -48,6 +50,59 @@ export function createScope(root: string, kind: string, id: string): string[] {
   }
   writeGeneratedJson(root, manifestPath, manifest, METADATA_LABEL);
   return written;
+}
+
+export interface ScopeStatusResult {
+  scope: ScopeRecord;
+  updatedDocs: string[];
+}
+
+export function setScopeStatus(root: string, id: string, status: string): ScopeStatusResult {
+  if (!(KNOWN_STATUSES as readonly string[]).includes(status)) {
+    throw new Error(`Unknown scope status: ${status}. Expected one of: ${KNOWN_STATUSES.join(", ")}`);
+  }
+
+  const docStatus = status as DocStatus;
+  const scopesPath = `${CONFIG_DIR}/${SCOPES_FILE}`;
+  const scopes = readGeneratedJson<ScopesFile>(root, scopesPath, METADATA_LABEL);
+  const scope = scopes.scopes.find((record) => record.id === id);
+  if (!scope) {
+    throw new Error(`Unknown scope: ${id}. Known scopes: ${scopes.scopes.map((record) => record.id).join(", ")}`);
+  }
+
+  scope.status = docStatus;
+  writeGeneratedJson(root, scopesPath, scopes, METADATA_LABEL);
+
+  const manifest = readGeneratedJson<ManifestFile>(root, `${CONFIG_DIR}/${MANIFEST_FILE}`, METADATA_LABEL);
+  const scopeDocs = manifest.docs
+    .filter((docPath) => docPath === scope.path || docPath.startsWith(`${scope.path}/`))
+    .filter((docPath) => docPath.endsWith(".md"));
+  const updatedDocs: string[] = [];
+
+  for (const docPath of scopeDocs) {
+    let fullPath;
+    try {
+      fullPath = rootPath(root, docPath);
+    } catch {
+      continue;
+    }
+
+    if (!existsSync(fullPath)) continue;
+
+    let parsed;
+    try {
+      parsed = parseMarkdown(readFileSync(fullPath, "utf8"));
+    } catch {
+      continue;
+    }
+
+    if (parsed.frontmatter.status === docStatus) continue;
+
+    writeGeneratedText(root, docPath, serializeMarkdown({ ...parsed.frontmatter, status: docStatus, updated: today() }, parsed.body));
+    updatedDocs.push(docPath);
+  }
+
+  return { scope, updatedDocs };
 }
 
 function titleFromSlug(slug: string): string {

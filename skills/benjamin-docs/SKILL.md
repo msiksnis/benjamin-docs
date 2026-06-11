@@ -107,7 +107,7 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
    - feature: one feature, module, redesign, experiment, or v2 plan
    - handoff: context for another person or future agent
    - release: shipped change notes
-6. Use CLI-created templates when possible. Use `scope create feature <slug>` for feature scopes only; V1 does not create release or handoff scopes through `scope create`.
+6. Use CLI-created templates when possible. Use `scope create feature <slug>` for feature scopes only; V1 does not create release or handoff scopes through `scope create`. When a feature ships or is abandoned, run `scope status <slug> archived` so it drops out of generated Memory Views.
 7. For release and handoff docs, update existing docs created by `init` or `promote --to codebase` when they fit. If no suitable starter doc exists, create manual docs with valid frontmatter until CLI support exists.
 8. Write durable Benjamin-managed docs only under the configured docs root, usually `benjamin-docs/`.
 9. Existing `docs/` directories may be read as project context, but do not create or update Benjamin-managed docs there unless `.benjamin-docs/config.json` explicitly sets `docsRoot` to `docs`.
@@ -211,6 +211,13 @@ Use this completion loop:
 3. Regenerate Memory Views with `views` when source docs changed.
 4. Run `review --changed` when git history is available.
 5. Run `ready` before claiming handoff readiness.
+
+`review` and `ready` also report deterministic staleness signals. Fix them by updating docs, not by weakening them:
+
+- "source files changed since this doc last changed in git": re-verify `architecture.md` or `code-map.md` against the current code and update what changed.
+- "References missing path": the doc points at a file that no longer exists; fix the reference.
+- "Memory View is stale": run `views` to regenerate.
+- "May need update because changed source files affect ...": the warning names the watched area; update that doc or state why no update is needed. The mapping comes from `watch` rules in `.benjamin-docs/config.json`, which can be adapted per project.
 
 Expected doc targets:
 

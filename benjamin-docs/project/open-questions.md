@@ -11,6 +11,15 @@ source: session-capture
 
 # Open Questions
 
+## 0.7.0 Freshness And Lifecycle
+
+- Decision: changed-work mapping is data-driven through `watch` rules in config, with generic defaults; stack-specific hardcoded paths were removed.
+- Decision: `ready` does not auto-regenerate views; `review` warns when views are stale and stays read-only.
+- Decision: views exclude archived and stale docs and scopes; `scope status` is the lifecycle lever.
+- Is the doc-churn threshold of 10 source files right for active repos, or should it scale with repo size?
+- Do the default watch globs over-warn in monorepos where `src/**` is very large?
+- Should the path liveness check expand beyond `architecture.md`, `code-map.md`, and `agent-brief.md`?
+
 ## 0.4.0 Capture Quality
 
 - How strict should deterministic `review` become before it feels like documentation busywork?

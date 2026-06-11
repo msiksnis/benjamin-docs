@@ -13,122 +13,44 @@ source: manual
 
 Derived from continuation-proof, read-first, current-state, check, risk, and next-action sections for future agents.
 
-## [Agent-Ready Project Memory Handoff](../features/agent-ready-project-memory/handoff.md)
+## [Freshness And Lifecycle Handoff](../features/freshness-and-lifecycle/handoff.md)
 
-Source: `benjamin-docs/features/agent-ready-project-memory/handoff.md`
-
-### Immediate Next Actions
-
-1. Decide whether to tackle the higher-risk agent guidance requested-but-preserved state.
-2. Run a fresh-agent continuation test that only exposes `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
-3. Run:
-   ```bash
-   pnpm check
-   bd ready
-   ```
-4. Update this handoff with dogfooding results before publishing 0.4.0.
-
-## [Changed Work Review Handoff](../features/changed-work-review/handoff.md)
-
-Source: `benjamin-docs/features/changed-work-review/handoff.md`
+Source: `benjamin-docs/features/freshness-and-lifecycle/handoff.md` (updated 2026-06-11)
 
 ### Risks / Open Questions
 
-- The changed-work mapping is intentionally coarse. It may over-warn when a source edit is too small to affect durable project memory.
-- The stale-claim detector only catches obvious wording patterns such as admin routes or schema/content models still being described as not implemented.
-- The default comparison is `HEAD`; teams may prefer `--since main` or `--since origin/main` in PR workflows.
-- Future dogfooding should decide whether `bd ready --changed` or `bd ready --since <ref>` is worth adding.
-
-## [Changed Work Review Handoff](../features/changed-work-review/handoff.md)
-
-Source: `benjamin-docs/features/changed-work-review/handoff.md`
+- The churn threshold (10 source files) is a first guess; dogfooding on active projects should tune it.
+- The generic default watch globs may over-warn in monorepos where `src/**` is huge; per-project `watch` customization is the escape hatch.
+- Existing projects will see a one-time "Memory View is stale" warning after upgrading because the renderer changed; `bd views` resolves it.
+- Path liveness skips references whose first segment does not exist in the repo, so fully deleted top-level directories silently stop being checked.
 
 ### Next Actions
 
-- Run the full project verification gate.
-- Run `node dist/src/cli.js review --changed --since HEAD` in this repo after docs are updated and confirm warnings are useful.
-- Dogfood the command on Atelier or another project with real feature work after BD initialization.
-- Tune file classification and stale-claim patterns based on actual false positives and missed stale docs.
-
-## [Changed Work Review Handoff](../features/changed-work-review/handoff.md)
-
-Source: `benjamin-docs/features/changed-work-review/handoff.md`
+- Run `pnpm run release:check`, publish 0.7.0, smoke-test a fresh install, and tag the release.
+- Dogfood the churn threshold and default globs on a non-Node project (Python or Go) and tune.
+- Consider `--json` output for `ready`/`review` plus a GitHub Action as the next milestone.
 
 ### Continuation Proof
 
-Read first:
+Read first: `benjamin-docs/features/freshness-and-lifecycle/brief.md`, `src/watch.ts`, `src/review.ts`, `src/views.ts`.
 
-- `src/review.ts`
-- `src/cli.ts`
-- `src/agent-contracts.ts`
-- `skills/benjamin-docs/SKILL.md`
-- `test/review.test.ts`
-- `benjamin-docs/engineering/architecture.md`
-- `benjamin-docs/engineering/code-map.md`
-
-Current status: first implementation is complete. Full verification passed locally. Publish target is `benjamin-docs@0.6.0`.
+Current status: code and tests done on this machine; npm publish pending.
 
 Checks to run:
 
 ```bash
 pnpm check
 node dist/src/cli.js review --changed --since HEAD
-node dist/src/cli.js views
 node dist/src/cli.js ready
 ```
 
-Avoid: promoting changed-work review to a main command or hard readiness failure until dogfooding proves the warnings are accurate enough.
+Risks: keep all new checks warning-only inside `review`; keep `review` read-only; do not add primary commands.
 
-## [Memory Views Handoff](../features/memory-views/handoff.md)
-
-Source: `benjamin-docs/features/memory-views/handoff.md`
-
-### Risks / Open Questions
-
-- The section extraction is intentionally heading-based and simple. It should be dogfooded on real projects before adding deeper parsing.
-- Generated views can include weak content if the underlying docs are weak. `bd review` and `bd ready` remain the quality gates.
-- The generated docs currently use existing allowed frontmatter values rather than adding a new `source: generated` value.
-- Publishing still needs the normal release gate and a version check against npm before `npm publish`.
-
-## [Memory Views Handoff](../features/memory-views/handoff.md)
-
-Source: `benjamin-docs/features/memory-views/handoff.md`
-
-### Next Actions
-
-- Memory Views shipped in 0.5.1; keep future work focused on dogfooding view usefulness instead of republishing that milestone.
-- Dogfood `bd views` on more existing Benjamin Docs projects.
-- Watch whether users expect a feature-board view; add it only if it proves useful.
-- Consider whether generated docs should eventually use a dedicated source value such as `generated`.
-
-## [Memory Views Handoff](../features/memory-views/handoff.md)
-
-Source: `benjamin-docs/features/memory-views/handoff.md`
-
-### Continuation Proof
-
-Read first:
-
-- `src/views.ts`
-- `src/cli.ts`
-- `src/commands.ts`
-- `test/views.test.ts`
-- `test/commands.test.ts`
-- `README.md`
-
-Checks to run:
-
-- `pnpm check`
-- `node dist/src/cli.js views`
-- `node dist/src/cli.js validate`
-- `node dist/src/cli.js ready`
-- `pnpm run release:check`
-
-Do not promote `views` into `mainCommands` unless there is a clear product decision to make Memory Views part of the simple path.
+Exact next action: publish `benjamin-docs@0.7.0` after `pnpm run release:check` passes.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md`
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-11)
 
 ### Current State
 
@@ -140,14 +62,10 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.5.1` published on npm.
-- Working package version: `0.6.0` for changed-work freshness review.
+- Package status: `0.6.0` published on npm.
+- Working package version: `0.7.0` for trustworthy freshness and lifecycle.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
-
-## [Agent Brief](../handoff/agent-brief.md)
-
-Source: `benjamin-docs/handoff/agent-brief.md`
 
 ### Continuation Proof
 
@@ -160,18 +78,17 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.5.1 is published. The active 0.6.0 work adds `bd review --changed` as an advanced warning-only freshness check for source changes that probably need project-memory updates.
+Current state: 0.6.0 is published. The 0.7.0 work is implemented and tested locally: configurable `watch` rules for changed-work mapping, git churn staleness, path liveness, Memory View freshness inside `review`/`ready`, `scope status` lifecycle with frontmatter cascade, and grouped lifecycle-aware views. Publish is pending.
 
 Commands/checks to run before handoff:
 
 ```bash
-pnpm build
-node --test dist/test/review.test.js dist/test/agent-contracts.test.js dist/test/commands.test.js
+pnpm check
 node dist/src/cli.js review --changed --since HEAD
 pnpm run release:check
 node dist/src/cli.js ready
 ```
 
-Risks/hazards: do not add more primary commands for this milestone, keep `review --changed` warning-only until dogfooding proves the heuristics, do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths.
+Risks/hazards: do not add more primary commands, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. The churn threshold (10 files) and default watch globs are first guesses; tune from dogfooding before tightening.
 
-Next actions: run the full verification gates, publish 0.6.0, smoke-test a fresh npm install, then tag the release.
+Next actions: run the full verification gates, publish 0.7.0, smoke-test a fresh npm install, tag the release, then dogfood the new checks on a non-Node project.

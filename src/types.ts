@@ -30,12 +30,19 @@ export interface ParsedMarkdown {
   body: string;
 }
 
+export interface WatchRule {
+  label?: string;
+  paths: string[];
+  docs: string[];
+}
+
 export interface BenjaminDocsConfig {
   version: 1;
   mode: "planning" | "codebase";
   docsRoot: string;
   focus: FocusType;
   feature?: string;
+  watch?: WatchRule[];
 }
 
 export interface ScopeRecord {

@@ -141,8 +141,13 @@ export function getScopeHelpText(): string {
     "",
     "Commands:",
     "  benjamin-docs scope create feature <slug>",
+    "  benjamin-docs scope status <id> <status>",
     "",
-    "Example:",
+    "Statuses: draft, review, approved, stale, archived.",
+    "Archived and stale scopes drop out of generated Memory Views.",
+    "",
+    "Examples:",
     "  benjamin-docs scope create feature checkout-redesign",
+    "  benjamin-docs scope status checkout-redesign archived",
   ].join("\n");
 }

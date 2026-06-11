@@ -21,6 +21,7 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs views", args: ["views"], description: "Generate local Memory Views from managed docs." },
   { command: "benjamin-docs export --audience developer", args: ["export", "--audience", "developer"], description: "Build a local audience-specific Markdown bundle." },
   { command: "benjamin-docs scope create feature <slug>", args: ["scope", "create", "feature", "<slug>"], description: "Create feature docs and metadata." },
+  { command: "benjamin-docs scope status <slug> <status>", args: ["scope", "status", "<slug>", "<status>"], description: "Update a scope status, e.g. archive a shipped feature." },
   { command: "benjamin-docs anchor add <id> <file>", args: ["anchor", "add", "<id>", "<file>"], description: "Link a stable code anchor to docs." },
   { command: "benjamin-docs anchor list", args: ["anchor", "list"], description: "List stable code anchors." },
   { command: "benjamin-docs install-skill", args: ["install-skill"], description: "Install the bundled agent skill locally." },

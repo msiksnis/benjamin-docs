@@ -51,6 +51,42 @@ describe("init", () => {
     });
   });
 
+  it("seeds default watch rules in config", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+
+      const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as {
+        watch?: Array<{ label?: string; paths: string[]; docs: string[] }>;
+      };
+
+      assert.ok(Array.isArray(config.watch));
+      assert.ok((config.watch ?? []).length > 0);
+      const labels = (config.watch ?? []).map((rule) => rule.label);
+      assert.ok(labels.includes("database/schema"));
+      assert.ok(labels.includes("application code"));
+      assert.ok((config.watch ?? []).every((rule) => rule.paths.length > 0 && rule.docs.length > 0));
+    });
+  });
+
+  it("preserves custom watch rules when init runs again", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+
+      const configPath = join(dir, ".benjamin-docs/config.json");
+      const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+      config.watch = [{ label: "custom", paths: ["handlers/**"], docs: ["benjamin-docs/engineering/code-map.md"] }];
+      writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+
+      runCliResult(["init", "--mode", "planning"], dir);
+
+      const next = JSON.parse(readFileSync(configPath, "utf8")) as {
+        watch?: Array<{ label?: string }>;
+      };
+      assert.equal(next.watch?.length, 1);
+      assert.equal(next.watch?.[0]?.label, "custom");
+    });
+  });
+
   it("does not overwrite an existing project brief", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);

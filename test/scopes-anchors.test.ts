@@ -92,6 +92,39 @@ describe("scopes and anchors", () => {
     });
   });
 
+  it("updates scope status and cascades to scope docs", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "booking-capacity"], dir);
+
+      const output = runCli(["scope", "status", "booking-capacity", "archived"], dir);
+
+      assert.match(output, /Set feature scope booking-capacity to archived\. 4 docs updated\./);
+
+      const scopes = JSON.parse(readFileSync(join(dir, ".benjamin-docs/scopes.json"), "utf8")) as {
+        scopes: Array<{ id: string; status: string }>;
+      };
+      assert.equal(scopes.scopes.find((scope) => scope.id === "booking-capacity")?.status, "archived");
+      assert.match(readFileSync(join(dir, "benjamin-docs/features/booking-capacity/brief.md"), "utf8"), /status: archived/);
+      assert.match(readFileSync(join(dir, "benjamin-docs/features/booking-capacity/handoff.md"), "utf8"), /status: archived/);
+    });
+  });
+
+  it("rejects unknown scope ids and statuses", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "booking-capacity"], dir);
+
+      const unknownScope = runCliResult(["scope", "status", "missing-scope", "archived"], dir);
+      assert.equal(unknownScope.status, 1);
+      assert.match(unknownScope.stderr, /Unknown scope: missing-scope/);
+
+      const unknownStatus = runCliResult(["scope", "status", "booking-capacity", "shipped"], dir);
+      assert.equal(unknownStatus.status, 1);
+      assert.match(unknownStatus.stderr, /Unknown scope status: shipped/);
+    });
+  });
+
   it("adds a code anchor with metadata", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
@@ -144,6 +177,7 @@ describe("scopes and anchors", () => {
 
       assert.match(output, /benjamin-docs scope/);
       assert.match(output, /benjamin-docs scope create feature <slug>/);
+      assert.match(output, /benjamin-docs scope status <id> <status>/);
     });
   });
 

@@ -1,10 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
-import { CONFIG_DIR, CONFIG_FILE, MANIFEST_FILE } from "./constants.js";
+import { CONFIG_DIR, CONFIG_FILE, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { readGeneratedJson, rootPath, writeGeneratedJson, writeGeneratedText } from "./fsx.js";
 import { parseMarkdown } from "./frontmatter.js";
 import { readConfig } from "./project-config.js";
 import { doc } from "./templates.js";
-import type { DocFrontmatter, ManifestFile } from "./types.js";
+import type { DocFrontmatter, ManifestFile, ScopesFile } from "./types.js";
 
 interface ViewDefinition {
   file: string;
@@ -14,6 +14,15 @@ interface ViewDefinition {
   matches: (heading: string) => boolean;
   agentOnly?: boolean;
 }
+
+export interface RenderedMemoryView {
+  relativePath: string;
+  title: string;
+  body: string;
+  content: string;
+}
+
+const EXCLUDED_DOC_STATUSES: Array<DocFrontmatter["status"]> = ["stale", "archived"];
 
 const VIEW_DEFINITIONS: ViewDefinition[] = [
   {
@@ -59,6 +68,8 @@ interface SourceDoc {
   relativePath: string;
   title: string;
   audience: DocFrontmatter["audience"];
+  status: DocFrontmatter["status"];
+  updated: string;
   sections: Section[];
 }
 
@@ -67,41 +78,82 @@ interface Section {
   content: string;
 }
 
-export function generateMemoryViews(root: string): string[] {
+export function renderMemoryViews(root: string): RenderedMemoryView[] {
   if (!existsSync(rootPath(root, CONFIG_DIR, CONFIG_FILE))) {
     throw new Error("Cannot generate Memory Views before benjamin-docs is initialized. Run benjamin-docs init first.");
   }
 
   const config = readConfig(root);
+  const manifest = readGeneratedJson<ManifestFile>(root, `${CONFIG_DIR}/${MANIFEST_FILE}`, "Metadata path");
+  const retiredScopePaths = readRetiredScopePaths(root);
+  const sourceDocs = readSourceDocs(root, config.docsRoot, manifest, retiredScopePaths);
+
+  return VIEW_DEFINITIONS.map((view) => {
+    const body = renderView(config.docsRoot, view, sourceDocs);
+    return {
+      relativePath: `${config.docsRoot}/views/${view.file}`,
+      title: view.title,
+      body,
+      content: doc(view.title, "project", "project", view.audience, body),
+    };
+  });
+}
+
+export function generateMemoryViews(root: string): string[] {
+  const rendered = renderMemoryViews(root);
   const manifestPath = `${CONFIG_DIR}/${MANIFEST_FILE}`;
   const manifest = readGeneratedJson<ManifestFile>(root, manifestPath, "Metadata path");
-  const sourceDocs = readSourceDocs(root, config.docsRoot, manifest);
-  const viewPaths = VIEW_DEFINITIONS.map((view) => `${config.docsRoot}/views/${view.file}`);
   const written: string[] = [];
 
-  for (const view of VIEW_DEFINITIONS) {
-    const entries = matchingSections(sourceDocs, view.matches, view.agentOnly ?? false);
-    const relativePath = `${config.docsRoot}/views/${view.file}`;
-    writeGeneratedText(root, relativePath, doc(view.title, "project", "project", view.audience, renderView(config.docsRoot, view.title, view.intro, entries)));
-    written.push(rootPath(root, relativePath));
+  for (const view of rendered) {
+    if (!viewNeedsWrite(root, view)) continue;
+    writeGeneratedText(root, view.relativePath, view.content);
+    written.push(rootPath(root, view.relativePath));
   }
 
-  for (const viewPath of viewPaths) {
-    if (!manifest.docs.includes(viewPath)) manifest.docs.push(viewPath);
+  for (const view of rendered) {
+    if (!manifest.docs.includes(view.relativePath)) manifest.docs.push(view.relativePath);
   }
   writeGeneratedJson(root, manifestPath, manifest, "Metadata path");
 
   return written;
 }
 
-function readSourceDocs(root: string, docsRoot: string, manifest: ManifestFile): SourceDoc[] {
+function viewNeedsWrite(root: string, view: RenderedMemoryView): boolean {
+  const fullPath = rootPath(root, view.relativePath);
+  if (!existsSync(fullPath)) return true;
+
+  try {
+    return parseMarkdown(readFileSync(fullPath, "utf8")).body.trim() !== view.body.trim();
+  } catch {
+    return true;
+  }
+}
+
+function readRetiredScopePaths(root: string): string[] {
+  let scopes: ScopesFile;
+  try {
+    scopes = readGeneratedJson<ScopesFile>(root, `${CONFIG_DIR}/${SCOPES_FILE}`, "Metadata path");
+  } catch {
+    return [];
+  }
+
+  if (!Array.isArray(scopes.scopes)) return [];
+
+  return scopes.scopes
+    .filter((scope) => EXCLUDED_DOC_STATUSES.includes(scope.status))
+    .map((scope) => scope.path)
+    .filter((path) => typeof path === "string" && path.length > 0);
+}
+
+function readSourceDocs(root: string, docsRoot: string, manifest: ManifestFile, retiredScopePaths: string[]): SourceDoc[] {
   const docsRootPrefix = `${docsRoot}/`;
 
   return manifest.docs
     .filter((relativePath) => relativePath.startsWith(docsRootPrefix))
     .filter((relativePath) => relativePath.endsWith(".md"))
     .filter((relativePath) => !relativePath.startsWith(`${docsRoot}/views/`))
-    .sort((a, b) => a.localeCompare(b))
+    .filter((relativePath) => !isUnderRetiredScope(relativePath, retiredScopePaths))
     .map((relativePath) => {
       const content = readFileSync(rootPath(root, relativePath), "utf8");
       try {
@@ -110,28 +162,25 @@ function readSourceDocs(root: string, docsRoot: string, manifest: ManifestFile):
           relativePath,
           title: parsed.frontmatter.title,
           audience: parsed.frontmatter.audience,
+          status: parsed.frontmatter.status,
+          updated: parsed.frontmatter.updated,
           sections: parseSections(parsed.body),
         };
       } catch (error) {
         throw new Error(`Cannot generate Memory Views while managed docs are invalid: ${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
       }
-    });
+    })
+    .filter((sourceDoc) => !EXCLUDED_DOC_STATUSES.includes(sourceDoc.status))
+    .sort(compareSourceDocs);
 }
 
-function matchingSections(sourceDocs: SourceDoc[], matches: (heading: string) => boolean, agentOnly: boolean): Array<{ doc: SourceDoc; section: Section }> {
-  const entries: Array<{ doc: SourceDoc; section: Section }> = [];
+function isUnderRetiredScope(relativePath: string, retiredScopePaths: string[]): boolean {
+  return retiredScopePaths.some((scopePath) => relativePath === scopePath || relativePath.startsWith(`${scopePath}/`));
+}
 
-  for (const sourceDoc of sourceDocs) {
-    if (agentOnly && !sourceDoc.audience.includes("agent")) continue;
-
-    for (const section of sourceDoc.sections) {
-      if (!matches(section.heading)) continue;
-      if (!section.content) continue;
-      entries.push({ doc: sourceDoc, section });
-    }
-  }
-
-  return entries;
+function compareSourceDocs(a: SourceDoc, b: SourceDoc): number {
+  if (a.updated !== b.updated) return a.updated < b.updated ? 1 : -1;
+  return a.relativePath.localeCompare(b.relativePath);
 }
 
 function parseSections(body: string): Section[] {
@@ -199,23 +248,34 @@ function isMarkdownFence(language: string): boolean {
   return normalized === "md" || normalized === "markdown";
 }
 
-function renderView(docsRoot: string, title: string, intro: string, entries: Array<{ doc: SourceDoc; section: Section }>): string {
-  const body = [`# ${title}`, "", intro, ""];
+function renderView(docsRoot: string, view: ViewDefinition, sourceDocs: SourceDoc[]): string {
+  const body = [`# ${view.title}`, "", view.intro, ""];
+  const docEntries: Array<{ doc: SourceDoc; sections: Section[] }> = [];
 
-  if (entries.length === 0) {
+  for (const sourceDoc of sourceDocs) {
+    if (view.agentOnly && !sourceDoc.audience.includes("agent")) continue;
+
+    const sections = sourceDoc.sections.filter((section) => section.content && view.matches(section.heading));
+    if (sections.length > 0) docEntries.push({ doc: sourceDoc, sections });
+  }
+
+  if (docEntries.length === 0) {
     body.push("_No matching sections found yet._");
     return `${body.join("\n")}\n`;
   }
 
-  for (const entry of entries) {
+  for (const entry of docEntries) {
     body.push(`## [${escapeLinkText(entry.doc.title)}](${sourceLink(docsRoot, entry.doc.relativePath)})`);
     body.push("");
-    body.push(`Source: \`${entry.doc.relativePath}\``);
+    body.push(`Source: \`${entry.doc.relativePath}\` (updated ${entry.doc.updated})`);
     body.push("");
-    body.push(`### ${entry.section.heading}`);
-    body.push("");
-    body.push(entry.section.content);
-    body.push("");
+
+    for (const section of entry.sections) {
+      body.push(`### ${section.heading}`);
+      body.push("");
+      body.push(section.content);
+      body.push("");
+    }
   }
 
   return `${body.join("\n").trimEnd()}\n`;

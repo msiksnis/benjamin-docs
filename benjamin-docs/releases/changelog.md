@@ -11,6 +11,17 @@ source: manual
 
 # Changelog
 
+## 0.7.0
+
+- Made changed-work review stack-agnostic: changed-file-to-doc mapping now comes from configurable `watch` rules in `.benjamin-docs/config.json`, seeded by `init` with generic defaults for database/schema files, application code, tests, and configuration/workflow files. The previous Supabase- and Next.js-specific hardcoded paths are gone.
+- Added a git churn staleness check: `review` (and therefore `ready`) warns when ten or more source files changed since `engineering/architecture.md` or `engineering/code-map.md` last changed in git, unless the doc has uncommitted edits.
+- Added a path liveness check: `review` warns when `architecture.md`, `code-map.md`, or `agent-brief.md` reference an inline-code path that no longer exists in the repo.
+- Added a Memory View freshness check: `review` warns when generated views no longer match the current source docs, so stale views can no longer pass `ready` silently.
+- Replaced project-specific stale-claim patterns with generic ones ("not implemented yet", "does not exist yet") scoped to engineering docs, quoting the full sentence.
+- Added `bd scope status <id> <status>` to update a scope's lifecycle status; the status and updated date cascade into the scope's docs.
+- Memory Views now exclude archived and stale docs and scopes, group sections under one heading per source doc, order sources by updated date, and only rewrite files whose content changed.
+- Upgrade note: the first `review` after upgrading reports existing Memory Views as stale because the renderer changed; run `bd views` once to refresh them.
+
 ## 0.6.0
 
 - Added `bd review --changed` / `benjamin-docs review --changed` as an advanced warning-only freshness check for git-changed work that likely needs Benjamin Docs source updates.

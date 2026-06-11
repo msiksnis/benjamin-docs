@@ -201,12 +201,15 @@ benjamin-docs review --changed
 benjamin-docs anchor add homepage pages/index.js
 benjamin-docs anchor list
 benjamin-docs scope create feature checkout-redesign
+benjamin-docs scope status checkout-redesign archived
 benjamin-docs init --help
 ```
 
-`views` generates local Memory Views under `benjamin-docs/views/`: decision log, open questions, next actions, risks, and agent continuation. The views are derived from managed Markdown docs so they are readable, diffable, and not a second source of truth.
+`views` generates local Memory Views under `benjamin-docs/views/`: decision log, open questions, next actions, risks, and agent continuation. The views are derived from managed Markdown docs so they are readable, diffable, and not a second source of truth. Archived scopes and docs drop out of views, and `ready` warns when views are stale.
 
-`review --changed` checks git-changed work for likely project-memory updates. Use `benjamin-docs review --changed --since main` in PR-style workflows.
+`review --changed` checks git-changed work for likely project-memory updates. Use `benjamin-docs review --changed --since main` in PR-style workflows. The mapping from changed files to docs comes from `watch` rules in `.benjamin-docs/config.json`; `init` seeds generic defaults you can adapt to your stack.
+
+`review` and `ready` also catch quiet rot: many source files changed since the engineering docs last changed, docs referencing files that no longer exist, and stale Memory Views.
 
 ## Local Development
 

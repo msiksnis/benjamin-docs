@@ -13,24 +13,13 @@ source: manual
 
 Derived from risk, hazard, assumption, and open-question sections across managed Benjamin docs.
 
-## [Changed Work Review Handoff](../features/changed-work-review/handoff.md)
+## [Freshness And Lifecycle Handoff](../features/freshness-and-lifecycle/handoff.md)
 
-Source: `benjamin-docs/features/changed-work-review/handoff.md`
-
-### Risks / Open Questions
-
-- The changed-work mapping is intentionally coarse. It may over-warn when a source edit is too small to affect durable project memory.
-- The stale-claim detector only catches obvious wording patterns such as admin routes or schema/content models still being described as not implemented.
-- The default comparison is `HEAD`; teams may prefer `--since main` or `--since origin/main` in PR workflows.
-- Future dogfooding should decide whether `bd ready --changed` or `bd ready --since <ref>` is worth adding.
-
-## [Memory Views Handoff](../features/memory-views/handoff.md)
-
-Source: `benjamin-docs/features/memory-views/handoff.md`
+Source: `benjamin-docs/features/freshness-and-lifecycle/handoff.md` (updated 2026-06-11)
 
 ### Risks / Open Questions
 
-- The section extraction is intentionally heading-based and simple. It should be dogfooded on real projects before adding deeper parsing.
-- Generated views can include weak content if the underlying docs are weak. `bd review` and `bd ready` remain the quality gates.
-- The generated docs currently use existing allowed frontmatter values rather than adding a new `source: generated` value.
-- Publishing still needs the normal release gate and a version check against npm before `npm publish`.
+- The churn threshold (10 source files) is a first guess; dogfooding on active projects should tune it.
+- The generic default watch globs may over-warn in monorepos where `src/**` is huge; per-project `watch` customization is the escape hatch.
+- Existing projects will see a one-time "Memory View is stale" warning after upgrading because the renderer changed; `bd views` resolves it.
+- Path liveness skips references whose first segment does not exist in the repo, so fully deleted top-level directories silently stop being checked.

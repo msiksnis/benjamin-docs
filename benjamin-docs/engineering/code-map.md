@@ -22,16 +22,18 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 ## Project Creation
 
-- `src/init.ts` creates `.benjamin-docs/`, `benjamin-docs/`, starter docs, manifest, scopes, and anchors.
+- `src/init.ts` creates `.benjamin-docs/`, `benjamin-docs/`, starter docs, manifest, scopes, and anchors. It also seeds default `watch` rules into config and preserves custom rules on re-init.
 - `src/templates.ts` contains starter Markdown docs and frontmatter defaults.
-- `src/scopes.ts` creates feature scopes and adds anchors.
+- `src/scopes.ts` creates feature scopes and updates scope lifecycle status. `setScopeStatus` cascades a new status and updated date into the scope's managed docs.
 - `src/export.ts` exports audience-specific bundles.
 - `src/status.ts` summarizes the current initialized project.
 
 ## Validation And Review
 
-- `src/validate.ts` validates config, manifest, scopes, anchors, managed Markdown, links, and symlink/root safety.
-- `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, empty open-question docs, weak continuation proof, and changed source work that likely needs project-memory updates.
+- `src/validate.ts` validates config (including `watch` rules), manifest, scopes, anchors, managed Markdown, links, and symlink/root safety.
+- `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, empty open-question docs, weak continuation proof, git churn since engineering docs last changed, missing inline-code path references, stale Memory Views, and changed source work that likely needs project-memory updates. Archived docs are skipped.
+- `src/watch.ts` holds the `WatchRule` defaults, the zero-dependency glob matcher, and `resolveWatchRules` for config-or-default resolution.
+- `src/views.ts` renders Memory Views: it filters out archived/stale docs and scopes, orders sources by updated date, groups sections per source doc, and only rewrites view files whose body changed. `renderMemoryViews` is also used by review for the freshness check.
 - `src/doctor.ts` checks CLI version, installed skills, Claude Desktop upload zip, project initialization, and validation. `--strict` turns setup gaps and validation warnings into failures.
 - `src/ready.ts` is the handoff gate. It combines validation, docs review, `doctor --strict`, and agent guidance checks, and fails when any of those checks is not clean.
 
@@ -58,7 +60,9 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `test/install-skill.test.ts` and `test/package-skill.test.ts` cover skill installation and Claude zip packaging.
 - `test/doctor.test.ts` covers setup diagnostics and strict mode.
 - `test/review.test.ts` covers docs-quality review behavior.
-- Changed-work review tests in `test/review.test.ts` create git fixture repos and verify `review --changed --since HEAD` warns for source changes without source-doc updates and for stale not-implemented claims.
+- Changed-work review tests in `test/review.test.ts` create git fixture repos and verify `review --changed --since HEAD` warns for source changes without source-doc updates, custom watch rules, missing watch-rule docs, generic stale not-implemented claims, doc churn, path liveness, and Memory View freshness.
+- `test/views.test.ts` covers view generation, stable rewrites, archived-scope exclusion, and per-doc section grouping.
+- `test/scopes-anchors.test.ts` covers `scope status` cascade and rejection of unknown scopes and statuses.
 - `test/ready.test.ts` covers the combined handoff gate.
 - `test/fsx.test.ts` and `test/frontmatter.test.ts` cover low-level path and Markdown parsing behavior.
 

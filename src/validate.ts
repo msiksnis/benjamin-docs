@@ -144,6 +144,44 @@ function validateConfig(config: BenjaminDocsConfig, errors: string[]): void {
   if (config.feature !== undefined && typeof config.feature !== "string") {
     errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: feature must be a string`);
   }
+  if (config.watch !== undefined) validateWatchRules(config.watch, errors);
+}
+
+function validateWatchRules(watch: unknown, errors: string[]): void {
+  if (!Array.isArray(watch)) {
+    errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: watch must be an array of rules`);
+    return;
+  }
+
+  watch.forEach((rule, index) => {
+    if (!isRecord(rule)) {
+      errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: watch[${index}] must be an object with paths and docs arrays`);
+      return;
+    }
+
+    if (rule.label !== undefined && typeof rule.label !== "string") {
+      errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: watch[${index}].label must be a string`);
+    }
+
+    if (!isNonEmptyStringArray(rule.paths)) {
+      errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: watch[${index}].paths must be a non-empty array of glob strings`);
+    }
+
+    if (!isNonEmptyStringArray(rule.docs)) {
+      errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: watch[${index}].docs must be a non-empty array of doc paths`);
+      return;
+    }
+
+    for (const doc of rule.docs) {
+      if (!isSafeDocsRoot(doc)) {
+        errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: watch[${index}] doc must be a safe relative path: ${doc}`);
+      }
+    }
+  });
+}
+
+function isNonEmptyStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === "string" && item.length > 0);
 }
 
 function validateManifest(root: string, realRoot: string, manifest: ManifestFile, errors: string[]): void {

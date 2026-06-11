@@ -13,46 +13,19 @@ source: manual
 
 Derived from next-action and near-term work sections across managed Benjamin docs.
 
-## [Agent-Ready Project Memory Handoff](../features/agent-ready-project-memory/handoff.md)
+## [Freshness And Lifecycle Handoff](../features/freshness-and-lifecycle/handoff.md)
 
-Source: `benjamin-docs/features/agent-ready-project-memory/handoff.md`
-
-### Immediate Next Actions
-
-1. Decide whether to tackle the higher-risk agent guidance requested-but-preserved state.
-2. Run a fresh-agent continuation test that only exposes `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
-3. Run:
-   ```bash
-   pnpm check
-   bd ready
-   ```
-4. Update this handoff with dogfooding results before publishing 0.4.0.
-
-## [Changed Work Review Handoff](../features/changed-work-review/handoff.md)
-
-Source: `benjamin-docs/features/changed-work-review/handoff.md`
+Source: `benjamin-docs/features/freshness-and-lifecycle/handoff.md` (updated 2026-06-11)
 
 ### Next Actions
 
-- Run the full project verification gate.
-- Run `node dist/src/cli.js review --changed --since HEAD` in this repo after docs are updated and confirm warnings are useful.
-- Dogfood the command on Atelier or another project with real feature work after BD initialization.
-- Tune file classification and stale-claim patterns based on actual false positives and missed stale docs.
-
-## [Memory Views Handoff](../features/memory-views/handoff.md)
-
-Source: `benjamin-docs/features/memory-views/handoff.md`
-
-### Next Actions
-
-- Memory Views shipped in 0.5.1; keep future work focused on dogfooding view usefulness instead of republishing that milestone.
-- Dogfood `bd views` on more existing Benjamin Docs projects.
-- Watch whether users expect a feature-board view; add it only if it proves useful.
-- Consider whether generated docs should eventually use a dedicated source value such as `generated`.
+- Run `pnpm run release:check`, publish 0.7.0, smoke-test a fresh install, and tag the release.
+- Dogfood the churn threshold and default globs on a non-Node project (Python or Go) and tune.
+- Consider `--json` output for `ready`/`review` plus a GitHub Action as the next milestone.
 
 ## [Roadmap](../project/roadmap.md)
 
-Source: `benjamin-docs/project/roadmap.md`
+Source: `benjamin-docs/project/roadmap.md` (updated 2026-06-11)
 
 ### Immediate Next Work
 

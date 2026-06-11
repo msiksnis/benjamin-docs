@@ -3,7 +3,7 @@ title: Changed Work Review Handoff
 scope: feature
 scope_id: changed-work-review
 audience: [developer, agent]
-status: review
+status: archived
 visibility: private
 updated: 2026-06-11
 source: manual

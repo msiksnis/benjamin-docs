@@ -61,7 +61,7 @@ describe("views", () => {
 
       const output = runCli(["views"], dir);
 
-      assert.match(output, /Generated Memory Views\. 5 files written\./);
+      assert.match(output, /Generated Memory Views\. 5 files updated\./);
 
       const decisions = readDoc(dir, "benjamin-docs/views/decisions.md");
       assert.match(decisions, /features\/memory-views\/decisions\.md/);
@@ -93,6 +93,74 @@ describe("views", () => {
       const validation = runCliResult(["validate"], dir);
       assert.equal(validation.status, 0);
       assert.match(validation.stdout, /Validation passed/);
+    });
+  });
+
+  it("skips rewriting views when nothing changed", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      appendDoc(dir, "benjamin-docs/project/roadmap.md", ["## Next", "", "- Keep iterating on capture quality."].join("\n"));
+
+      const first = runCli(["views"], dir);
+      assert.match(first, /Generated Memory Views\. 5 files updated\./);
+
+      const second = runCli(["views"], dir);
+      assert.match(second, /Memory Views are already up to date\. 0 files updated\./);
+    });
+  });
+
+  it("excludes archived scopes from generated views", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "old-feature"], dir);
+      appendDoc(
+        dir,
+        "benjamin-docs/features/old-feature/decisions.md",
+        ["## Decisions", "", "- Use the legacy export pipeline for the first release."].join("\n"),
+      );
+
+      runCli(["views"], dir);
+      assert.match(readDoc(dir, "benjamin-docs/views/decisions.md"), /Use the legacy export pipeline/);
+
+      runCli(["scope", "status", "old-feature", "archived"], dir);
+      runCli(["views"], dir);
+
+      const decisions = readDoc(dir, "benjamin-docs/views/decisions.md");
+      assert.doesNotMatch(decisions, /Use the legacy export pipeline/);
+      assert.doesNotMatch(decisions, /old-feature/);
+    });
+  });
+
+  it("groups multiple matching sections under a single source heading", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "memory-views"], dir);
+      appendDoc(
+        dir,
+        "benjamin-docs/features/memory-views/handoff.md",
+        [
+          "## Risks / Open Questions",
+          "",
+          "- Views must not become a second source of truth.",
+          "",
+          "## Next Actions",
+          "",
+          "- Dogfood grouped views on a real project.",
+          "",
+          "## Continuation Proof",
+          "",
+          "- Read `src/views.ts` before changing the renderer.",
+        ].join("\n"),
+      );
+
+      runCli(["views"], dir);
+
+      const continuation = readDoc(dir, "benjamin-docs/views/agent-continuation.md");
+      const headerCount = continuation.split("## [memory-views Handoff]").length - 1;
+      assert.equal(headerCount, 1);
+      assert.match(continuation, /Views must not become a second source of truth\./);
+      assert.match(continuation, /Dogfood grouped views on a real project\./);
+      assert.match(continuation, /Read `src\/views\.ts` before changing the renderer\./);
     });
   });
 

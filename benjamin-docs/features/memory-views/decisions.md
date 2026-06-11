@@ -3,7 +3,7 @@ title: Memory Views Decisions
 scope: feature
 scope_id: memory-views
 audience: [developer, agent]
-status: draft
+status: archived
 visibility: private
 updated: 2026-06-11
 source: manual

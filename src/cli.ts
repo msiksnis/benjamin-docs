@@ -16,7 +16,7 @@ import { formatNextMessage, getNextPrompt } from "./next.js";
 import { formatPackageSkillResult, packageSkill, type PackageSkillOptions } from "./package-skill.js";
 import { checkReady } from "./ready.js";
 import { reviewProject, type ReviewOptions } from "./review.js";
-import { createScope } from "./scopes.js";
+import { createScope, setScopeStatus } from "./scopes.js";
 import { getStatus } from "./status.js";
 import type { FocusType } from "./types.js";
 import { validateProject } from "./validate.js";
@@ -128,7 +128,7 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "views") {
     const written = generateMemoryViews(cwd);
-    console.log(`Generated Memory Views. ${written.length} files written.`);
+    console.log(written.length === 0 ? "Memory Views are already up to date. 0 files updated." : `Generated Memory Views. ${written.length} files updated.`);
     return 0;
   }
 
@@ -138,8 +138,20 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
       return 0;
     }
 
+    if (argv[1] === "status") {
+      const id = argv[2];
+      const status = argv[3];
+      if (!id || !status) {
+        throw new Error("Usage: benjamin-docs scope status <id> <status>");
+      }
+
+      const result = setScopeStatus(cwd, id, status);
+      console.log(`Set ${result.scope.kind} scope ${id} to ${status}. ${result.updatedDocs.length} docs updated.`);
+      return 0;
+    }
+
     if (argv[1] !== "create") {
-      throw new Error("Usage: benjamin-docs scope create feature <slug>");
+      throw new Error("Usage: benjamin-docs scope create feature <slug> OR benjamin-docs scope status <id> <status>");
     }
 
     const kind = argv[2];
@@ -500,6 +512,11 @@ async function resolveCommandEntryArgs(entry: CommandEntry): Promise<string[]> {
 
     if (arg === "<file>") {
       args.push(await promptRequiredLine("Anchor file path: "));
+      continue;
+    }
+
+    if (arg === "<status>") {
+      args.push(await promptRequiredLine("Status (draft|review|approved|stale|archived): "));
       continue;
     }
 

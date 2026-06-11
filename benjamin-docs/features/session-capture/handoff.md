@@ -3,9 +3,9 @@ title: session-capture Handoff
 scope: feature
 scope_id: session-capture
 audience: [developer, agent]
-status: draft
+status: archived
 visibility: private
-updated: 2026-06-03
+updated: 2026-06-11
 source: manual
 ---
 

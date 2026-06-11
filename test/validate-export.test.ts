@@ -18,6 +18,24 @@ describe("validate", () => {
     });
   });
 
+  it("reports invalid watch rules in config", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+
+      const configPath = join(dir, ".benjamin-docs/config.json");
+      const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+      config.watch = [{ label: 7, paths: [], docs: ["../outside.md"] }];
+      writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+
+      const result = runCliResult(["validate"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /watch\[0]\.label must be a string/);
+      assert.match(result.stderr, /watch\[0]\.paths must be a non-empty array of glob strings/);
+      assert.match(result.stderr, /watch\[0] doc must be a safe relative path: \.\.\/outside\.md/);
+    });
+  });
+
   it("reports missing docs", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);

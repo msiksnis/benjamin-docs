@@ -34,6 +34,10 @@
     "benjamin-docs/features/changed-work-review/brief.md",
     "benjamin-docs/features/changed-work-review/plan.md",
     "benjamin-docs/features/changed-work-review/decisions.md",
-    "benjamin-docs/features/changed-work-review/handoff.md"
+    "benjamin-docs/features/changed-work-review/handoff.md",
+    "benjamin-docs/features/freshness-and-lifecycle/brief.md",
+    "benjamin-docs/features/freshness-and-lifecycle/plan.md",
+    "benjamin-docs/features/freshness-and-lifecycle/decisions.md",
+    "benjamin-docs/features/freshness-and-lifecycle/handoff.md"
   ]
 }

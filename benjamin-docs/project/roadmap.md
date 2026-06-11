@@ -35,8 +35,8 @@ source: session-capture
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.5.1`.
-- Working package version: `0.6.0` for changed-work project-memory review.
+- Current published release: `0.6.0`.
+- Working package version: `0.7.0` for trustworthy freshness and lifecycle.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -57,6 +57,25 @@ source: session-capture
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
 - Dogfood `bd review --changed` on real projects where agents have added features after BD initialization; tune false positives before making changed-work review stricter or adding it to `ready`.
+
+## 0.7.0 Goal
+
+`benjamin-docs@0.7.0` makes the readiness gate harder to fool and works for any stack, not just this user's stack.
+
+Target state:
+
+- Changed-work review maps changed files to docs through configurable `watch` rules in `.benjamin-docs/config.json`, with generic defaults seeded by `init`.
+- `review` warns on git churn (many source files changed since engineering docs last changed), missing inline-code path references, and stale Memory Views; `ready` fails on those warnings.
+- `bd scope status <id> <status>` archives shipped or abandoned scopes, and views exclude archived/stale docs and scopes.
+- Views group sections per source doc, order by updated date, and only rewrite changed files.
+- All new checks stay deterministic and warning-only inside `review`; no new primary commands.
+
+Deferred from 0.7.0:
+
+- `--json` output for `ready`/`review`/`validate` and a GitHub Action for PR-time freshness checks.
+- Enforcement hooks (agent-stop or pre-commit recipes) so freshness does not depend on skill obedience.
+- Skill modularization through `bd guide <workflow>` so SKILL.md stays thin.
+- Churn-threshold tuning from dogfooding on non-Node projects.
 
 ## 0.6.0 Goal
 
