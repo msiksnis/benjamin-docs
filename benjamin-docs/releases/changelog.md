@@ -11,6 +11,13 @@ source: manual
 
 # Changelog
 
+## 0.5.1
+
+- Added `bd views` / `benjamin-docs views` to generate local Memory Views for decisions, open questions, next actions, risks, and agent continuation.
+- Kept `views` in the advanced command drawer instead of promoting it into the main command list.
+- Made the refresh flow explicit in CLI help, introduction copy, generated `next` prompts, chat-to-project guidance, README, and the bundled skill: `bd init`, `bd views`, then `bd ready`.
+- Fixed view extraction so Markdown headings inside fenced Markdown examples are not treated as source sections.
+
 ## 0.5.0
 
 - Added Continuation Proof review checks for `handoff/agent-brief.md`.

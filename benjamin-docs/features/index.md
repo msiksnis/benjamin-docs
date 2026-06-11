@@ -16,3 +16,4 @@ This index points to active and historical Benjamin Docs feature scopes. Use it 
 ## Active
 
 - [Agent-Ready Project Memory](./agent-ready-project-memory/brief.md): 0.4.0 scope for improving capture quality, agent operating contracts, context maps, and continuation quality without expanding the primary command surface.
+- [Memory Views](./memory-views/brief.md): advanced `bd views` command that generates derived project-memory lenses without promoting a new main command.

@@ -4,6 +4,7 @@ import { readConfig } from "./project-config.js";
 import type { ManifestFile } from "./types.js";
 
 const METADATA_LABEL = "Metadata path";
+const FINALIZE_FLOW = "After updating docs, run `benjamin-docs views`, then `benjamin-docs ready`.";
 
 export function getNextPrompt(root: string): string {
   const config = readConfig(root);
@@ -35,6 +36,7 @@ function planningPrompt(docsRoot: string): string {
     "Use plain language. Summarize decisions, rejected options, risks, and next steps.",
     "Make agent-brief.md a continuation proof: read-first docs, current state, commands/checks, risks/hazards, and next actions.",
     "Mark uncertain items clearly.",
+    FINALIZE_FLOW,
   ].join("\n");
 }
 
@@ -51,6 +53,7 @@ function codebasePrompt(docsRoot: string): string {
     "Make human-brief.md a short plain-language summary for the owner or teammate.",
     "Make agent-brief.md a continuation proof: read-first docs, current state, commands/checks, risks/hazards, and next actions.",
     "Mark uncertain items, call out risks, and add useful code anchors where relevant.",
+    FINALIZE_FLOW,
   ].join("\n");
 }
 
@@ -70,6 +73,7 @@ function featurePrompt(docsRoot: string, feature: string, codebaseMode: boolean)
     "Make agent-brief.md a continuation proof: read-first docs, current state, commands/checks, risks/hazards, and next actions.",
     "Keep the brief and handoff understandable for non-technical readers.",
     "Mark uncertain items clearly.",
+    FINALIZE_FLOW,
   ].join("\n");
 }
 

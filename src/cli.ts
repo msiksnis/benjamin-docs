@@ -20,6 +20,7 @@ import { createScope } from "./scopes.js";
 import { getStatus } from "./status.js";
 import type { FocusType } from "./types.js";
 import { validateProject } from "./validate.js";
+import { generateMemoryViews } from "./views.js";
 
 export function initChoiceLabels(): string[] {
   return ["A new project or idea", "A codebase or app", "One feature, change, or plan"];
@@ -122,6 +123,12 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
 
   if (command === "status") {
     console.log(getStatus(cwd));
+    return 0;
+  }
+
+  if (command === "views") {
+    const written = generateMemoryViews(cwd);
+    console.log(`Generated Memory Views. ${written.length} files written.`);
     return 0;
   }
 

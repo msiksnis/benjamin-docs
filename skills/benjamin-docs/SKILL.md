@@ -68,9 +68,10 @@ Critical rules:
    - `handoff/human-brief.md`
    - `handoff/agent-brief.md`
 11. Do not invent certainty. Mark assumptions and unresolved questions clearly.
-12. Run the local CLI command with `ready` as the completion gate for the created project.
-13. If `ready` fails, use lower-level checks such as `validate`, `review`, or `doctor --strict` only to diagnose the failed result, then fix weak docs or setup gaps before claiming the project is ready.
-14. Report the created project path, project structure, main docs updated, key decisions captured, unresolved questions, and whether `ready` passed. Mention lower-level checks only if you ran them.
+12. Run the local CLI command with `views` so derived Memory Views are refreshed after the source docs are captured.
+13. Run the local CLI command with `ready` as the completion gate for the created project.
+14. If `ready` fails, use lower-level checks such as `validate`, `review`, or `doctor --strict` only to diagnose the failed result, then fix weak docs or setup gaps before claiming the project is ready.
+15. Report the created project path, project structure, main docs updated, generated views, key decisions captured, unresolved questions, and whether `ready` passed. Mention lower-level checks only if you ran them.
 
 When reporting completion, do not imply the project is only a few files. Say the project structure was created:
 
@@ -111,9 +112,10 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 8. Write durable Benjamin-managed docs only under the configured docs root, usually `benjamin-docs/`.
 9. Existing `docs/` directories may be read as project context, but do not create or update Benjamin-managed docs there unless `.benjamin-docs/config.json` explicitly sets `docsRoot` to `docs`.
 10. Update existing docs instead of dumping a transcript.
-11. For a baseline capture, handoff, or any request asking whether the project is ready, run the local CLI command with `ready` as the primary gate.
-12. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
-13. Report changed files, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
+11. For a baseline capture, handoff, or any request asking whether the project is ready, run the local CLI command with `views` first when the docs have meaningful captured content so the derived Memory Views stay current.
+12. Then run the local CLI command with `ready` as the primary gate.
+13. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
+14. Report changed files, generated views when refreshed, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
 
 ## Existing Project Baseline Workflow
 
@@ -134,8 +136,9 @@ Use this workflow when the user asks to document an existing app, capture the cu
    - `releases/changelog.md`
 5. Keep generated starter text only when it is still true. Replace placeholder content with concrete project context.
 6. If code references matter, add anchors with `anchor add <id> <file>` instead of only mentioning paths in prose. Use `anchor list` when you need to inspect existing anchors.
-7. Run the local CLI command with `ready`. If it fails, fix the docs or setup gap before claiming the baseline is ready.
-8. Summarize the baseline in terms a future maintainer can act on: what the project is, how to run it, where the important code lives, what is risky, and what should happen next.
+7. Run the local CLI command with `views` to refresh derived Memory Views.
+8. Run the local CLI command with `ready`. If it fails, fix the docs or setup gap before claiming the baseline is ready.
+9. Summarize the baseline in terms a future maintainer can act on: what the project is, how to run it, where the important code lives, what is risky, and what should happen next.
 
 Do not describe this as "documenting an existing codebase" when that would be misleading. A project may be new, half-built, or freshly generated. Prefer "capture the current project baseline" in user-facing summaries.
 
@@ -153,7 +156,8 @@ Use this workflow when the user asks to plan, document, hand off, or continue on
    - `features/<slug>/handoff.md`: status, risks/open questions, next actions
 5. Update project-level docs only when the feature changes overall roadmap, architecture, risks, or handoff context.
 6. Use anchors for important code files when code exists.
-7. Run `ready` when the feature docs are intended for handoff. Use lower-level checks only to diagnose failures.
+7. Run `views` when the feature docs are intended for handoff so project-level Memory Views include the latest feature decisions, risks, and next actions.
+8. Run `ready` when the feature docs are intended for handoff. Use lower-level checks only to diagnose failures.
 
 Keep the user-facing summary short: feature scope created or updated, main decisions captured, risks/open questions, next action, and readiness result.
 
@@ -171,7 +175,8 @@ Use this workflow when the user asks to update project memory, prepare a handoff
    - implementation details belong in feature docs or engineering docs
 3. Preserve useful historical decisions. Replace only stale starter text, duplicated summaries, or outdated claims.
 4. Mark assumptions and uncertainties explicitly.
-5. Run `ready` if the user is relying on the handoff. If `ready` fails, fix the docs before claiming handoff readiness.
+5. Run `views` if the user is relying on the handoff and the update changes decisions, open questions, risks, next actions, or continuation context.
+6. Run `ready` if the user is relying on the handoff. If `ready` fails, fix the docs before claiming handoff readiness.
 
 ## Updating Existing Benjamin Docs
 

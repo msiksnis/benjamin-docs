@@ -21,6 +21,15 @@
     "benjamin-docs/features/agent-ready-project-memory/brief.md",
     "benjamin-docs/features/agent-ready-project-memory/plan.md",
     "benjamin-docs/features/agent-ready-project-memory/decisions.md",
-    "benjamin-docs/features/agent-ready-project-memory/handoff.md"
+    "benjamin-docs/features/agent-ready-project-memory/handoff.md",
+    "benjamin-docs/features/memory-views/brief.md",
+    "benjamin-docs/features/memory-views/plan.md",
+    "benjamin-docs/features/memory-views/decisions.md",
+    "benjamin-docs/features/memory-views/handoff.md",
+    "benjamin-docs/views/decisions.md",
+    "benjamin-docs/views/open-questions.md",
+    "benjamin-docs/views/next-actions.md",
+    "benjamin-docs/views/risks.md",
+    "benjamin-docs/views/agent-continuation.md"
   ]
 }

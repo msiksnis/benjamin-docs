@@ -52,14 +52,14 @@ This runs:
 Run:
 
 ```bash
-pnpm publish
+pnpm publish --access public
 ```
 
 After publishing:
 
 - Confirm `pnpm add -g benjamin-docs` works in a clean environment.
 - Confirm `benjamin-docs introduce` works from outside the repo.
-- Create and push a git tag for `v0.1.0`.
+- Create and push a git tag for the published version, for example `v0.5.1`.
 - Update release notes if anything changed after this checklist.
 
 ## Boundary

@@ -42,6 +42,13 @@
       "title": "Agent Ready Project Memory",
       "path": "benjamin-docs/features/agent-ready-project-memory",
       "status": "draft"
+    },
+    {
+      "id": "memory-views",
+      "kind": "feature",
+      "title": "Memory Views",
+      "path": "benjamin-docs/features/memory-views",
+      "status": "draft"
     }
   ]
 }

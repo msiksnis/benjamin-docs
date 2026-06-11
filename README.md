@@ -158,6 +158,18 @@ For agent handoff, `ready` expects `agent-brief.md` to name read-first docs, cur
 
 If `ready` fails, use `benjamin-docs commands` to find lower-level diagnostics such as validation, review, or doctor checks.
 
+## Refresh Project Memory
+
+When useful docs already exist, generate Memory Views before the readiness gate:
+
+```bash
+benjamin-docs init
+benjamin-docs views
+benjamin-docs ready
+```
+
+`views` creates derived Markdown views for decisions, open questions, next actions, risks, and agent continuation. The source of truth stays in the project, feature, handoff, engineering, and release docs.
+
 ## What It Creates
 
 ```text
@@ -184,11 +196,14 @@ Use `benjamin-docs commands` when you need advanced setup, diagnostics, exports,
 Useful advanced examples:
 
 ```bash
+benjamin-docs views
 benjamin-docs anchor add homepage pages/index.js
 benjamin-docs anchor list
 benjamin-docs scope create feature checkout-redesign
 benjamin-docs init --help
 ```
+
+`views` generates local Memory Views under `benjamin-docs/views/`: decision log, open questions, next actions, risks, and agent continuation. The views are derived from managed Markdown docs so they are readable, diffable, and not a second source of truth.
 
 ## Local Development
 

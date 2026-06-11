@@ -17,6 +17,7 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs review", args: ["review"], description: "Check for thin or starter-template docs." },
   { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
   { command: "benjamin-docs doctor --strict", args: ["doctor", "--strict"], description: "Run setup checks as a strict gate." },
+  { command: "benjamin-docs views", args: ["views"], description: "Generate local Memory Views from managed docs." },
   { command: "benjamin-docs export --audience developer", args: ["export", "--audience", "developer"], description: "Build a local audience-specific Markdown bundle." },
   { command: "benjamin-docs scope create feature <slug>", args: ["scope", "create", "feature", "<slug>"], description: "Create feature docs and metadata." },
   { command: "benjamin-docs anchor add <id> <file>", args: ["anchor", "add", "<id>", "<file>"], description: "Link a stable code anchor to docs." },

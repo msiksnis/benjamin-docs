@@ -36,7 +36,7 @@ source: session-capture
 
 - `benjamin-docs` is published on npm.
 - Current published release: `0.4.2`.
-- Working package version: `0.5.0` for Continuation Proof readiness.
+- Working package version: `0.5.1` for Memory Views and refresh-flow polish.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -44,6 +44,7 @@ source: session-capture
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
 - `v0.4.2` is tagged and released on GitHub.
 - The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
+- Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
 
 ## Immediate Next Work
 
@@ -53,6 +54,7 @@ source: session-capture
 - Implement 0.5.0 as a continuation-quality milestone: prove that a future human or agent can continue from the docs without the original chat.
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
+- Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
 
 ## 0.5.0 Goal
 

@@ -47,6 +47,7 @@ describe("init", () => {
       assert.match(readFileSync(join(dir, "benjamin-docs/handoff/agent-brief.md"), "utf8"), /## Commands And Checks/);
       assert.match(output, /Next, ask your agent:/);
       assert.match(output, /Use plain language/);
+      assert.match(output, /run `benjamin-docs views`, then `benjamin-docs ready`/);
     });
   });
 
@@ -76,6 +77,7 @@ describe("init", () => {
       assert.match(output, /benjamin-docs\/engineering\/architecture\.md/);
       assert.match(output, /understandable for non-technical readers/);
       assert.match(output, /continuation proof/);
+      assert.match(output, /run `benjamin-docs views`, then `benjamin-docs ready`/);
     });
   });
 

@@ -21,8 +21,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.4.2` published on npm, tagged as `v0.4.2`, and released on GitHub
-- Working package version: `0.5.0` for Continuation Proof readiness
+- Package status: `0.5.0` published on npm.
+- Working package version: `0.5.1` for Memory Views and refresh-flow polish.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -37,7 +37,7 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.4.2 is published. The active 0.5.0 work strengthens `review`, templates, `next` prompts, README, and the bundled skill so `bd ready` fails when the agent handoff is not continuation-ready.
+Current state: 0.5.0 is published. The active 0.5.1 work adds Memory Views and makes the `bd init -> bd views -> bd ready` flow visible in CLI guidance, README, and the bundled skill.
 
 Commands/checks to run before handoff:
 
@@ -50,7 +50,7 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands for this milestone, do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths.
 
-Next actions: finish implementing 0.5.0, run the verification gates, smoke-test fresh init behavior, then decide whether to publish.
+Next actions: run the verification gates, publish 0.5.1, smoke-test a fresh npm install, then tag the release.
 
 ## Implemented So Far
 
@@ -91,6 +91,7 @@ Next actions: finish implementing 0.5.0, run the verification gates, smoke-test 
 - `bd anchor list` was added after dogfooding showed that anchors could be created but not inspected through the CLI.
 - 0.4.2 fixed older initialized projects that already have Benjamin docs but have an unmarked root `AGENTS.md`: append a Benjamin-owned section without overwriting the existing guide.
 - 0.5.0 should make continuation readiness explicit: `agent-brief.md` must include read-first docs, current state, commands/checks, risks/hazards, and next actions.
+- 0.5.1 adds Memory Views as an advanced generated lens and documents the refresh flow as `bd init`, `bd views`, then `bd ready`.
 
 ## 0.4.x Direction
 
