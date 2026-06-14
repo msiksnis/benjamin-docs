@@ -24,6 +24,10 @@ describe("scopes and anchors", () => {
       const manifest = JSON.parse(readFileSync(join(dir, ".benjamin-docs/manifest.json"), "utf8")) as {
         docs: string[];
       };
+      const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as {
+        watch?: Array<{ label?: string; paths: string[]; docs: string[] }>;
+      };
+      const featureWatch = config.watch?.find((rule) => rule.label === "feature/booking-capacity");
       assert.deepEqual(
         scopes.scopes.find((scope) => scope.id === "booking-capacity"),
         {
@@ -35,6 +39,11 @@ describe("scopes and anchors", () => {
         },
       );
       assert.equal(manifest.docs.includes("benjamin-docs/features/booking-capacity/brief.md"), true);
+      assert.ok(featureWatch);
+      assert.ok(featureWatch.docs.includes("benjamin-docs/features/booking-capacity/brief.md"));
+      assert.ok(featureWatch.docs.includes("benjamin-docs/features/booking-capacity/plan.md"));
+      assert.ok(featureWatch.docs.includes("benjamin-docs/features/booking-capacity/decisions.md"));
+      assert.ok(featureWatch.docs.includes("benjamin-docs/features/booking-capacity/handoff.md"));
     });
   });
 

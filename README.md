@@ -209,7 +209,7 @@ benjamin-docs init --help
 
 `review --changed` checks git-changed work for likely project-memory updates. Use `benjamin-docs review --changed --since main` in PR-style workflows. The mapping from changed files to docs comes from `watch` rules in `.benjamin-docs/config.json`; `init` seeds generic defaults you can adapt to your stack.
 
-`review` and `ready` also catch quiet rot: many source files changed since the engineering docs last changed, docs referencing files that no longer exist, and stale Memory Views.
+`review` and `ready` also catch quiet rot: status-bearing docs that are not covered by any watch rule, many source files changed since the engineering docs last changed, docs referencing files that no longer exist, and stale Memory Views.
 
 ## Local Development
 

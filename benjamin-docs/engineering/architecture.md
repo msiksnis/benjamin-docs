@@ -3,9 +3,9 @@ title: Architecture
 scope: project
 scope_id: project
 audience: [developer, agent]
-status: draft
+status: review
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: session-capture
 ---
 
@@ -51,10 +51,13 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 
 `bd review --changed` is an advanced, deterministic git-diff pass layered onto the existing review command. It compares changed tracked and untracked files against `HEAD` by default, or a caller-provided `--since <git-ref>`.
 
-Since 0.7.0 the changed-file-to-doc mapping is stack-agnostic and configurable. `.benjamin-docs/config.json` holds `watch` rules, each with glob `paths` and target `docs`; `init` seeds generic defaults covering database/schema files, application code, tests, and configuration/workflow files. Projects without `watch` in config fall back to the same generic defaults at runtime. The old Supabase- and Next.js-specific hardcoded paths are gone.
+Since 0.7.0 the changed-file-to-doc mapping is stack-agnostic and configurable. `.benjamin-docs/config.json` holds `watch` rules, each with glob `paths` and target `docs`; `init` seeds generic defaults covering database/schema files, application code, tests, configuration/workflow files, and project memory/status docs. Projects without `watch` in config fall back to the same generic defaults at runtime. The old Supabase- and Next.js-specific hardcoded paths are gone.
 
-Plain `bd review` (and therefore `bd ready`) also runs three deterministic staleness checks:
+Since 0.8.0, `review` also checks watch-rule coverage for status-bearing docs. A doc with `freshness: status`, a top-level project/handoff status doc, or an active feature doc must be matched by at least one watch rule. Otherwise `review` warns that changed work can never flag the doc stale, and `ready` fails through the normal review gate. Feature scope creation appends a feature-specific watch rule for the scope's four docs so new active feature memory starts covered.
 
+Plain `bd review` (and therefore `bd ready`) also runs deterministic staleness checks:
+
+- Freshness coverage: warns when a status-bearing or active feature doc is not matched by any watch rule.
 - Doc churn: warns when ten or more source files changed in git since `engineering/architecture.md` or `engineering/code-map.md` last changed, unless the doc has uncommitted edits.
 - Path liveness: warns when `architecture.md`, `code-map.md`, or `agent-brief.md` reference an inline-code path whose first segment exists in the repo but whose full path does not.
 - Memory View freshness: warns when generated views under `views/` no longer match what the current source docs would render.

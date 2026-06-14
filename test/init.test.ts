@@ -64,7 +64,27 @@ describe("init", () => {
       const labels = (config.watch ?? []).map((rule) => rule.label);
       assert.ok(labels.includes("database/schema"));
       assert.ok(labels.includes("application code"));
+      const watchedDocs = new Set((config.watch ?? []).flatMap((rule) => rule.docs));
+      assert.ok(watchedDocs.has("benjamin-docs/project/brief.md"));
+      assert.ok(watchedDocs.has("benjamin-docs/project/roadmap.md"));
+      assert.ok(watchedDocs.has("benjamin-docs/project/open-questions.md"));
+      assert.ok(watchedDocs.has("benjamin-docs/handoff/human-brief.md"));
+      assert.ok(watchedDocs.has("benjamin-docs/handoff/agent-brief.md"));
+      assert.ok(watchedDocs.has("benjamin-docs/features/index.md"));
+      assert.ok(watchedDocs.has("benjamin-docs/engineering/architecture.md"));
+      assert.ok(watchedDocs.has("benjamin-docs/engineering/code-map.md"));
+      assert.ok(watchedDocs.has("benjamin-docs/releases/changelog.md"));
       assert.ok((config.watch ?? []).every((rule) => rule.paths.length > 0 && rule.docs.length > 0));
+    });
+  });
+
+  it("marks status-bearing starter docs for freshness review", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+
+      assert.match(readFileSync(join(dir, "benjamin-docs/project/roadmap.md"), "utf8"), /freshness: status/);
+      assert.match(readFileSync(join(dir, "benjamin-docs/handoff/human-brief.md"), "utf8"), /freshness: status/);
+      assert.match(readFileSync(join(dir, "benjamin-docs/handoff/agent-brief.md"), "utf8"), /freshness: status/);
     });
   });
 

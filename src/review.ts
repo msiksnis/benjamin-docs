@@ -173,6 +173,7 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
     reviewCodebaseDocs(docsRoot, manifestDocs, warnings);
   }
 
+  reviewFreshnessCoverage(root, docsRoot, manifestDocs, watchRules, warnings);
   reviewDocChurn(root, docsRoot, warnings);
   reviewViewsFreshness(root, warnings);
 
@@ -230,6 +231,47 @@ function reviewChangedWork(root: string, docsRoot: string, rules: WatchRule[], s
 
 function expectedRuleDocs(rules: WatchRule[]): string[] {
   return [...new Set(rules.flatMap((rule) => rule.docs))].sort();
+}
+
+function reviewFreshnessCoverage(root: string, docsRoot: string, manifestDocs: string[], rules: WatchRule[], warnings: ReviewIssue[]): void {
+  const coveredDocs = new Set(expectedRuleDocs(rules));
+
+  for (const doc of manifestDocs) {
+    if (!isBenjaminSourceDoc(doc, docsRoot)) continue;
+    if (coveredDocs.has(doc)) continue;
+
+    let parsed;
+    try {
+      parsed = parseMarkdown(readFileSync(rootPath(root, doc), "utf8"));
+    } catch {
+      continue;
+    }
+
+    if (parsed.frontmatter.status === "archived" || parsed.frontmatter.status === "stale") continue;
+    if (!isFreshnessSensitiveDoc(docsRoot, doc, parsed.frontmatter)) continue;
+
+    warnings.push({
+      path: doc,
+      message:
+        "Freshness blind spot: status-bearing doc is not matched by any watch rule, so changed work can never be flagged stale. Add it to .benjamin-docs/config.json watch docs or mark it stale/archived when inactive.",
+    });
+  }
+}
+
+function isFreshnessSensitiveDoc(docsRoot: string, doc: string, frontmatter: ReturnType<typeof parseMarkdown>["frontmatter"]): boolean {
+  if (frontmatter.freshness === "status") return true;
+  if (
+    [
+      `${docsRoot}/project/brief.md`,
+      `${docsRoot}/project/roadmap.md`,
+      `${docsRoot}/handoff/human-brief.md`,
+      `${docsRoot}/handoff/agent-brief.md`,
+    ].includes(doc)
+  ) {
+    return true;
+  }
+
+  return frontmatter.scope === "feature" && doc.startsWith(`${docsRoot}/features/`) && !doc.endsWith("/index.md");
 }
 
 function getChangedFiles(root: string, since: string): ChangedFilesResult {

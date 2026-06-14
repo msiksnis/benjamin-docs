@@ -62,6 +62,44 @@ describe("review", () => {
     });
   });
 
+  it("warns when status-bearing docs have no watch coverage", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReviewBaseline(dir);
+      setConfigWatch(dir, [
+        { label: "api handlers", paths: ["handlers/**"], docs: ["benjamin-docs/engineering/code-map.md"] },
+      ]);
+
+      const result = runCliResult(["review"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /status: passed with warnings/);
+      assert.match(result.stdout, /project\/roadmap\.md: Freshness blind spot/);
+      assert.match(result.stdout, /handoff\/human-brief\.md: Freshness blind spot/);
+      assert.match(result.stdout, /handoff\/agent-brief\.md: Freshness blind spot/);
+      assert.match(result.stdout, /can never be flagged stale/);
+    });
+  });
+
+  it("warns when active feature docs have no watch coverage", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReviewBaseline(dir);
+      runCliResult(["scope", "create", "feature", "audit-remediation"], dir);
+      setConfigWatch(dir, [
+        { label: "api handlers", paths: ["handlers/**"], docs: ["benjamin-docs/engineering/code-map.md"] },
+      ]);
+
+      const result = runCliResult(["review"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /features\/audit-remediation\/brief\.md: Freshness blind spot/);
+      assert.match(result.stdout, /features\/audit-remediation\/plan\.md: Freshness blind spot/);
+      assert.match(result.stdout, /features\/audit-remediation\/decisions\.md: Freshness blind spot/);
+      assert.match(result.stdout, /features\/audit-remediation\/handoff\.md: Freshness blind spot/);
+    });
+  });
+
   it("warns when the agent brief lacks continuation proof", () => {
     withTempDir((dir) => {
       runCliResult(["init", "--mode", "codebase"], dir);

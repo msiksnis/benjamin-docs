@@ -1,6 +1,7 @@
 import type {
   KNOWN_AUDIENCES,
   KNOWN_FOCUS_TYPES,
+  KNOWN_FRESHNESS,
   KNOWN_SCOPES,
   KNOWN_SOURCES,
   KNOWN_STATUSES,
@@ -13,6 +14,7 @@ export type Audience = (typeof KNOWN_AUDIENCES)[number];
 export type DocStatus = (typeof KNOWN_STATUSES)[number];
 export type Visibility = (typeof KNOWN_VISIBILITIES)[number];
 export type DocSource = (typeof KNOWN_SOURCES)[number];
+export type DocFreshness = (typeof KNOWN_FRESHNESS)[number];
 
 export interface DocFrontmatter {
   title: string;
@@ -23,6 +25,7 @@ export interface DocFrontmatter {
   visibility: Visibility;
   updated: string;
   source: DocSource;
+  freshness?: DocFreshness;
 }
 
 export interface ParsedMarkdown {

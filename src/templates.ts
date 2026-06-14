@@ -12,6 +12,7 @@ export function doc(
   scopeId: string,
   audience: DocFrontmatter["audience"],
   body: string,
+  freshness?: DocFrontmatter["freshness"],
 ): string {
   return serializeMarkdown(
     {
@@ -23,6 +24,7 @@ export function doc(
       visibility: "private",
       updated: today(),
       source: "manual",
+      ...(freshness ? { freshness } : {}),
     },
     body,
   );
@@ -50,6 +52,7 @@ export function workspaceDocs(docsRoot: string): Array<{ path: string; content: 
           "",
           "List important boundaries or things this project is not trying to do.",
         ].join("\n"),
+        "status",
       ),
     },
     {
@@ -76,6 +79,7 @@ export function workspaceDocs(docsRoot: string): Array<{ path: string; content: 
           "",
           "List ideas that are intentionally out of scope for now.",
         ].join("\n"),
+        "status",
       ),
     },
     {
@@ -106,8 +110,9 @@ export function workspaceDocs(docsRoot: string): Array<{ path: string; content: 
           "",
           "Use this for a concise handoff to another person.",
           "",
-          "Include the plain-language status, important decisions, risks, and next actions.",
+          "Keep durable context here. For volatile counts, phase names, or exact next items, point to one canonical status source instead of repeating the same fact in several docs.",
         ].join("\n"),
+        "status",
       ),
     },
     {
@@ -132,7 +137,7 @@ export function workspaceDocs(docsRoot: string): Array<{ path: string; content: 
           "",
           "## Current State",
           "",
-          "Summarize what exists now, what is done, and what is still uncertain.",
+          "Summarize durable state. For volatile counts, phase names, or exact next items, point to one canonical status source instead of repeating the same fact in several docs.",
           "",
           "## Commands And Checks",
           "",
@@ -146,6 +151,7 @@ export function workspaceDocs(docsRoot: string): Array<{ path: string; content: 
           "",
           "List the next concrete actions for a human or agent.",
         ].join("\n"),
+        "status",
       ),
     },
     {
@@ -233,6 +239,7 @@ export function featureDocs(slug: string, docsRoot = DEFAULT_DOCS_ROOT): Array<{
           "",
           "List in-scope and out-of-scope work.",
         ].join("\n"),
+        "status",
       ),
     },
     {
@@ -255,6 +262,7 @@ export function featureDocs(slug: string, docsRoot = DEFAULT_DOCS_ROOT): Array<{
           "",
           "List tests, checks, reviews, or manual verification required before handoff.",
         ].join("\n"),
+        "status",
       ),
     },
     {
@@ -277,6 +285,7 @@ export function featureDocs(slug: string, docsRoot = DEFAULT_DOCS_ROOT): Array<{
           "",
           "Record options that were considered but not chosen.",
         ].join("\n"),
+        "status",
       ),
     },
     {
@@ -307,6 +316,7 @@ export function featureDocs(slug: string, docsRoot = DEFAULT_DOCS_ROOT): Array<{
           "",
           "List read-first docs, current status, checks to run, risks, and exact next actions for this feature.",
         ].join("\n"),
+        "status",
       ),
     },
   ];

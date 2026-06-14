@@ -5,11 +5,19 @@ scope_id: release
 audience: [developer, business, public]
 status: review
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: manual
 ---
 
 # Changelog
+
+## 0.8.0
+
+- Added freshness coverage review: `review` and therefore `ready` now warn when status-bearing docs or active feature docs are not matched by any `watch` rule, because those docs can never be flagged stale by changed work.
+- Added optional `freshness: status` frontmatter for docs that carry volatile project state.
+- Expanded default `watch` coverage so `init` seeds project brief, roadmap, handoff, feature index, engineering, and changelog docs into the freshness graph instead of covering only engineering docs.
+- Updated feature-scope creation so `scope create feature <slug>` appends a feature-specific watch rule for the four feature docs it creates.
+- Revised starter handoff templates to discourage repeated volatile counts or phase names; prefer one canonical status source and pointers from durable handoff docs.
 
 ## 0.7.0
 

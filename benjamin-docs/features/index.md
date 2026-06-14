@@ -3,10 +3,10 @@ title: Features Index
 scope: project
 scope_id: project
 audience: [developer, designer, agent, business]
-status: draft
+status: review
 visibility: private
-updated: 2026-06-11
-source: manual
+updated: 2026-06-14
+source: session-capture
 ---
 
 # Features Index
@@ -15,7 +15,7 @@ This index points to active and historical Benjamin Docs feature scopes. Use it 
 
 ## Active
 
-- [Freshness And Lifecycle](./freshness-and-lifecycle/brief.md): 0.7.0 scope for stack-agnostic changed-work review through configurable watch rules, git churn and path liveness staleness checks, Memory View freshness in the readiness gate, and scope lifecycle status with archived views exclusion.
+- [Freshness And Lifecycle](./freshness-and-lifecycle/brief.md): 0.7.0 and 0.8.0 scope for stack-agnostic changed-work review, watch-rule coverage warnings for status docs and active feature docs, git churn and path liveness staleness checks, Memory View freshness in the readiness gate, and scope lifecycle status with archived views exclusion.
 
 ## Shipped (archived)
 

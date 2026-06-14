@@ -3,10 +3,11 @@ title: Project Brief
 scope: project
 scope_id: project
 audience: [developer, designer, business, agent]
-status: draft
+status: review
 visibility: private
-updated: 2026-06-03
-source: manual
+updated: 2026-06-14
+source: session-capture
+freshness: status
 ---
 
 # Project Brief

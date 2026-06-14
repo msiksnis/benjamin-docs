@@ -11,3 +11,4 @@ export const KNOWN_AUDIENCES = ["developer", "designer", "agent", "business", "p
 export const KNOWN_STATUSES = ["draft", "review", "approved", "stale", "archived"] as const;
 export const KNOWN_VISIBILITIES = ["private", "unlisted", "public"] as const;
 export const KNOWN_SOURCES = ["session-capture", "manual", "codebase-scan", "release-sync"] as const;
+export const KNOWN_FRESHNESS = ["status"] as const;

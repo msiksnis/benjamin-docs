@@ -5,8 +5,9 @@ scope_id: project
 audience: [developer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: session-capture
+freshness: status
 ---
 
 # Roadmap
@@ -35,8 +36,8 @@ source: session-capture
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.6.0`.
-- Working package version: `0.7.0` for trustworthy freshness and lifecycle.
+- Current published release: `0.7.0`.
+- Working package version: `0.8.0` for freshness coverage / staleness blind-spot protection.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -46,6 +47,7 @@ source: session-capture
 - The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
 - Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
 - `bd review --changed` is implemented as an advanced, warning-only freshness check for source changes that probably need Benjamin Docs updates.
+- `bd review` / `bd ready` now flag status-bearing docs and active feature docs that have no watch-rule coverage.
 
 ## Immediate Next Work
 
@@ -56,7 +58,25 @@ source: session-capture
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Dogfood `bd review --changed` on real projects where agents have added features after BD initialization; tune false positives before making changed-work review stricter or adding it to `ready`.
+- Publish `0.8.0`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood the blind-spot warnings on older initialized projects.
+
+## 0.8.0 Goal
+
+`benjamin-docs@0.8.0` closes the staleness blind spot found during real audit-remediation work: detailed feature docs stayed current, but top-level handoff and roadmap docs drifted while `ready` stayed green.
+
+Target state:
+
+- `review` and `ready` warn when status-bearing docs or active feature docs are not matched by any `watch` rule.
+- New starter status docs carry `freshness: status` frontmatter.
+- Default watch rules cover every starter doc created by `init`.
+- `scope create feature <slug>` appends watch coverage for the feature docs it creates.
+- Starter handoff templates separate durable context from volatile status facts and nudge agents toward one canonical status source.
+
+Deferred from 0.8.0:
+
+- Duplicate volatile-fact detection for repeated counts or exact next-item claims.
+- Cross-repo/sibling-repo freshness expectations.
+- Automatic migration of old project configs beyond surfacing blind spots through `review`/`ready`.
 
 ## 0.7.0 Goal
 

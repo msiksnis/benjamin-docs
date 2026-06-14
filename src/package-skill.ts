@@ -34,8 +34,16 @@ export function packageSkill(options: PackageSkillOptions = {}): PackageSkillRes
     { path: `${SKILL_NAME}/SKILL.md`, data: skill },
   ];
 
-  mkdirSync(dirname(zipPath), { recursive: true });
-  writeFileSync(zipPath, createZip(entries));
+  try {
+    mkdirSync(dirname(zipPath), { recursive: true });
+    writeFileSync(zipPath, createZip(entries));
+  } catch (error) {
+    if (isPermissionError(error)) {
+      throw new Error(formatPackageSkillPermissionError(zipPath));
+    }
+
+    throw error;
+  }
 
   return {
     zipPath,
@@ -67,6 +75,15 @@ export function formatPackageSkillResult(result: PackageSkillResult): string {
   ].join("\n");
 }
 
+export function formatPackageSkillPermissionError(zipPath: string): string {
+  return [
+    `Cannot write Claude skill zip to ${zipPath}.`,
+    "",
+    "Your terminal may not have permission to write there. On macOS, grant terminal access to Downloads, or choose another output path:",
+    "  benjamin-docs package-skill --out ./benjamin-docs-skill.zip",
+  ].join("\n");
+}
+
 function resolveOutputPath(out: string | undefined, homeDir: string): string {
   if (!out) return getDefaultSkillZipPath(homeDir);
 
@@ -79,6 +96,12 @@ function expandHome(path: string, homeDir: string): string {
   if (path === "~") return homeDir;
   if (path.startsWith("~/")) return join(homeDir, path.slice(2));
   return path;
+}
+
+function isPermissionError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const code = (error as NodeJS.ErrnoException).code;
+  return code === "EPERM" || code === "EACCES";
 }
 
 function getBundledSkillPath(): string {

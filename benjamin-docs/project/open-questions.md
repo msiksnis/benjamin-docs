@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-10
+updated: 2026-06-14
 source: session-capture
 ---
 
@@ -19,6 +19,14 @@ source: session-capture
 - Is the doc-churn threshold of 10 source files right for active repos, or should it scale with repo size?
 - Do the default watch globs over-warn in monorepos where `src/**` is very large?
 - Should the path liveness check expand beyond `architecture.md`, `code-map.md`, and `agent-brief.md`?
+
+## 0.8.0 Freshness Coverage
+
+- Decision: `review` and `ready` should warn when status-bearing docs or active feature docs have zero watch-rule coverage.
+- Decision: use optional `freshness: status` frontmatter for volatile current-state docs.
+- Decision: feature scope creation should append watch coverage for the docs it creates.
+- Deferred: detecting duplicated volatile facts such as repeated counts, exact next-item claims, or phase names.
+- Deferred: cross-repo freshness expectations for projects split across sibling repos.
 
 ## 0.4.0 Capture Quality
 

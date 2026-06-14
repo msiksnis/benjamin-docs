@@ -5,15 +5,16 @@ scope_id: freshness-and-lifecycle
 audience: [developer, designer, agent]
 status: review
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: session-capture
+freshness: status
 ---
 
 # Freshness And Lifecycle Brief
 
 ## Outcome
 
-`benjamin-docs@0.7.0` makes the readiness gate harder to fool and the project memory harder to rot. The changed-work review works for any stack, staleness is detected from git facts instead of phrasing, and shipped or abandoned work can be archived so derived views stay current.
+`benjamin-docs@0.8.0` closes the staleness blind spot found after 0.7.0 dogfooding. The readiness gate now surfaces status-bearing docs and active feature docs that are outside the watch graph, because those docs can never be flagged stale by changed work.
 
 ## Why
 
@@ -22,6 +23,9 @@ The 0.6.0 review hardcoded one user's stack (Supabase migrations, Next.js `src/a
 ## Scope
 
 - Configurable `watch` rules in `.benjamin-docs/config.json` mapping changed-file globs to docs, with generic stack-agnostic defaults.
+- Freshness coverage warnings for status-bearing docs and active feature docs matched by zero watch rules.
+- Optional `freshness: status` frontmatter for docs that carry volatile current-state claims.
+- Feature scope creation appends a feature-specific watch rule for the docs it creates.
 - Git churn staleness warnings for `engineering/architecture.md` and `engineering/code-map.md`.
 - Path liveness warnings for missing inline-code path references in engineering docs and the agent brief.
 - Memory View freshness checking inside plain `review`, so `ready` fails on stale views.

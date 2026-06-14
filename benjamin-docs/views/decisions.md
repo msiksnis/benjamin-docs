@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: manual
 ---
 
@@ -15,7 +15,7 @@ Derived from decision and rejected-option sections across managed Benjamin docs.
 
 ## [Freshness And Lifecycle Decisions](../features/freshness-and-lifecycle/decisions.md)
 
-Source: `benjamin-docs/features/freshness-and-lifecycle/decisions.md` (updated 2026-06-11)
+Source: `benjamin-docs/features/freshness-and-lifecycle/decisions.md` (updated 2026-06-14)
 
 ### Decisions
 
@@ -27,6 +27,10 @@ Source: `benjamin-docs/features/freshness-and-lifecycle/decisions.md` (updated 2
 - View freshness runs inside plain `review` so `ready` fails on stale views, but `views` regeneration stays an explicit command. `review` stays read-only; checks must not mutate the project.
 - Views exclude both `archived` and `stale` statuses: archived means done or abandoned, stale means flagged-as-outdated, and neither belongs in a current-memory lens. The source docs keep the content either way.
 - `views` only rewrites files whose body changed, so the frontmatter `updated` date stays meaningful and diffs stay clean.
+- `ready` should fail on freshness blind spots through plain `review`, not through a separate command or AI review mode. The problem is coverage visibility: BD cannot prove prose true, but it can prove whether a status doc is reachable by the configured watch graph.
+- `freshness: status` is intentionally narrow. It marks docs whose present-tense status can rot, without creating a broad lifecycle taxonomy in frontmatter.
+- `scope create feature <slug>` appends a feature-specific watch rule. Active feature docs are volatile by default, and relying on users to hand-edit config after every feature scope would recreate the original blind spot.
+- Starter handoff templates now discourage duplicated volatile facts. Exact counters, phase names, and next-item claims should have one canonical home with pointers elsewhere.
 
 ### Rejected Options
 
@@ -34,10 +38,11 @@ Source: `benjamin-docs/features/freshness-and-lifecycle/decisions.md` (updated 2
 - Keeping per-stack hardcoded paths with more stacks added: rejected; data-driven rules scale, hardcoded lists do not.
 - An LLM-based review mode: rejected for this milestone; the CLI's value is being the deterministic referee the LLM cannot fudge.
 - A separate `bd archive` command: rejected; `scope status` covers the lifecycle with one generic verb and no new top-level command.
+- A semantic prose checker: rejected for this milestone; deterministic coverage warnings are the product contract, and prose truth remains the agent/human responsibility.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-11)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-14)
 
 ### Recent Decisions
 
@@ -64,6 +69,7 @@ Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-11)
 - 0.5.1 added Memory Views as an advanced generated lens and documents the refresh flow as `bd init`, `bd views`, then `bd ready`.
 - 0.6.0 adds `bd review --changed` after the Atelier audit showed agents may update feature docs while leaving project-level docs stale. The first implementation is deterministic and warning-only.
 - 0.7.0 makes the gate trustworthy for any stack: watch rules move the changed-file-to-doc mapping into config, staleness is measured from git facts (churn since engineering docs last changed) and filesystem facts (path liveness), stale Memory Views fail `ready`, and `scope status` archives finished work out of views. All checks stay deterministic; `review` stays read-only.
+- 0.8.0 closes the watch-coverage blind spot: status-bearing docs and active feature docs now warn when no watch rule can ever flag them stale, new starter docs carry `freshness: status`, and feature scope creation appends feature-specific watch coverage.
 
 ## [Baseline Capture Guide](../project/baseline-capture.md)
 

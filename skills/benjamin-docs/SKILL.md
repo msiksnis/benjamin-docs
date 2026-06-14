@@ -214,10 +214,13 @@ Use this completion loop:
 
 `review` and `ready` also report deterministic staleness signals. Fix them by updating docs, not by weakening them:
 
+- "Freshness blind spot": a status-bearing or active feature doc is not matched by any `watch` rule, so changed work can never flag it stale; add the doc to the relevant watch rule, add a feature-specific rule, or mark the stale/finished scope archived.
 - "source files changed since this doc last changed in git": re-verify `architecture.md` or `code-map.md` against the current code and update what changed.
 - "References missing path": the doc points at a file that no longer exists; fix the reference.
 - "Memory View is stale": run `views` to regenerate.
 - "May need update because changed source files affect ...": the warning names the watched area; update that doc or state why no update is needed. The mapping comes from `watch` rules in `.benjamin-docs/config.json`, which can be adapted per project.
+
+For volatile project state, prefer one canonical status source and point to it from handoff docs instead of repeating exact counts, phase names, or next-item claims in many places.
 
 Expected doc targets:
 

@@ -54,6 +54,26 @@ describe("ready", () => {
     });
   });
 
+  it("fails when status-bearing docs can never be flagged stale", () => {
+    withTempDir((dir) => {
+      runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReadyBaseline(dir);
+      setConfigWatch(dir, [
+        { label: "api handlers", paths: ["handlers/**"], docs: ["benjamin-docs/engineering/code-map.md"] },
+      ]);
+
+      const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /status: not ready/);
+      assert.match(result.stdout, /fail\s+review/);
+      assert.match(result.stdout, /project\/roadmap\.md: Freshness blind spot/);
+      assert.match(result.stdout, /handoff\/agent-brief\.md: Freshness blind spot/);
+    });
+  });
+
   it("fails when the agent brief does not prove continuation", () => {
     withTempDir((dir) => {
       runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
@@ -180,4 +200,11 @@ function writeBaselineDoc(root: string, path: string, title: string, body: strin
 
 function capturedBody(seed: string): string {
   return `${seed}\n\nIt records concrete decisions, risks, current status, and next actions. The doc should be useful to a person arriving cold and to an agent that needs enough context to continue without asking the owner to repeat the whole project history.`;
+}
+
+function setConfigWatch(root: string, watch: Array<{ label?: string; paths: string[]; docs: string[] }>): void {
+  const configPath = join(root, ".benjamin-docs/config.json");
+  const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+  config.watch = watch;
+  writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 }

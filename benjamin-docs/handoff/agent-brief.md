@@ -5,8 +5,9 @@ scope_id: agent-brief
 audience: [agent]
 status: review
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: session-capture
+freshness: status
 ---
 
 # Agent Brief
@@ -21,8 +22,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.6.0` published on npm.
-- Working package version: `0.7.0` for trustworthy freshness and lifecycle.
+- Package status: `0.7.0` published on npm.
+- Working package version: `0.8.0` for freshness coverage / staleness blind-spot protection.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -37,7 +38,7 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.6.0 is published. The 0.7.0 work is implemented and tested locally: configurable `watch` rules for changed-work mapping, git churn staleness, path liveness, Memory View freshness inside `review`/`ready`, `scope status` lifecycle with frontmatter cascade, and grouped lifecycle-aware views. Publish is pending.
+Current state: 0.7.0 is published. The 0.8.0 work is implemented and release checks pass locally: freshness coverage warnings for status-bearing and active feature docs, `freshness: status` frontmatter, broader default watch rules, feature-scope watch registration, and templates that separate durable handoff context from volatile status facts. `npm publish` was attempted on 2026-06-14 but blocked because the local npm session is unauthenticated (`npm whoami` returns E401); `npm view benjamin-docs version` still reports 0.7.0.
 
 Commands/checks to run before handoff:
 
@@ -48,9 +49,9 @@ pnpm run release:check
 node dist/src/cli.js ready
 ```
 
-Risks/hazards: do not add more primary commands, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. The churn threshold (10 files) and default watch globs are first guesses; tune from dogfooding before tightening.
+Risks/hazards: do not add more primary commands, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc.
 
-Next actions: run the full verification gates, publish 0.7.0, smoke-test a fresh npm install, tag the release, then dogfood the new checks on a non-Node project.
+Next actions: authenticate npm, publish 0.8.0 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood the blind-spot warnings on older initialized projects.
 
 ## Implemented So Far
 
@@ -94,6 +95,7 @@ Next actions: run the full verification gates, publish 0.7.0, smoke-test a fresh
 - 0.5.1 added Memory Views as an advanced generated lens and documents the refresh flow as `bd init`, `bd views`, then `bd ready`.
 - 0.6.0 adds `bd review --changed` after the Atelier audit showed agents may update feature docs while leaving project-level docs stale. The first implementation is deterministic and warning-only.
 - 0.7.0 makes the gate trustworthy for any stack: watch rules move the changed-file-to-doc mapping into config, staleness is measured from git facts (churn since engineering docs last changed) and filesystem facts (path liveness), stale Memory Views fail `ready`, and `scope status` archives finished work out of views. All checks stay deterministic; `review` stays read-only.
+- 0.8.0 closes the watch-coverage blind spot: status-bearing docs and active feature docs now warn when no watch rule can ever flag them stale, new starter docs carry `freshness: status`, and feature scope creation appends feature-specific watch coverage.
 
 ## 0.4.x Direction
 

@@ -1,10 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { inflateRawSync } from "node:zlib";
 import { packageSkill, SKILL_ZIP_NAME } from "../src/package-skill.js";
-import { runCli, withTempDir } from "./helpers.js";
+import { runCli, runCliResult, withTempDir } from "./helpers.js";
 
 describe("package-skill", () => {
   it("creates a Claude upload zip in Downloads by default", () => {
@@ -37,6 +37,24 @@ describe("package-skill", () => {
 
       assert.match(output, /skill\.zip/);
       assert.equal(existsSync(join(dir, "skill.zip")), true);
+    });
+  });
+
+  it("explains how to recover when the output path is not writable", { skip: process.platform === "win32" }, () => {
+    withTempDir((dir) => {
+      const locked = join(dir, "locked");
+      mkdirSync(locked);
+      chmodSync(locked, 0o500);
+
+      try {
+        const result = runCliResult(["package-skill", "--out", join(locked, "skill.zip")], dir, { BENJAMIN_DOCS_HOME: dir });
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Cannot write Claude skill zip to/);
+        assert.match(result.stderr, /benjamin-docs package-skill --out \.\/benjamin-docs-skill\.zip/);
+      } finally {
+        chmodSync(locked, 0o700);
+      }
     });
   });
 });

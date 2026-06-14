@@ -5,8 +5,9 @@ scope_id: freshness-and-lifecycle
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: session-capture
+freshness: status
 ---
 
 # Freshness And Lifecycle Decisions
@@ -21,6 +22,10 @@ source: session-capture
 - View freshness runs inside plain `review` so `ready` fails on stale views, but `views` regeneration stays an explicit command. `review` stays read-only; checks must not mutate the project.
 - Views exclude both `archived` and `stale` statuses: archived means done or abandoned, stale means flagged-as-outdated, and neither belongs in a current-memory lens. The source docs keep the content either way.
 - `views` only rewrites files whose body changed, so the frontmatter `updated` date stays meaningful and diffs stay clean.
+- `ready` should fail on freshness blind spots through plain `review`, not through a separate command or AI review mode. The problem is coverage visibility: BD cannot prove prose true, but it can prove whether a status doc is reachable by the configured watch graph.
+- `freshness: status` is intentionally narrow. It marks docs whose present-tense status can rot, without creating a broad lifecycle taxonomy in frontmatter.
+- `scope create feature <slug>` appends a feature-specific watch rule. Active feature docs are volatile by default, and relying on users to hand-edit config after every feature scope would recreate the original blind spot.
+- Starter handoff templates now discourage duplicated volatile facts. Exact counters, phase names, and next-item claims should have one canonical home with pointers elsewhere.
 
 ## Rejected Options
 
@@ -28,3 +33,4 @@ source: session-capture
 - Keeping per-stack hardcoded paths with more stacks added: rejected; data-driven rules scale, hardcoded lists do not.
 - An LLM-based review mode: rejected for this milestone; the CLI's value is being the deterministic referee the LLM cannot fudge.
 - A separate `bd archive` command: rejected; `scope status` covers the lifecycle with one generic verb and no new top-level command.
+- A semantic prose checker: rejected for this milestone; deterministic coverage warnings are the product contract, and prose truth remains the agent/human responsibility.

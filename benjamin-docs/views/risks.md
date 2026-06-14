@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: draft
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: manual
 ---
 
@@ -15,7 +15,7 @@ Derived from risk, hazard, assumption, and open-question sections across managed
 
 ## [Freshness And Lifecycle Handoff](../features/freshness-and-lifecycle/handoff.md)
 
-Source: `benjamin-docs/features/freshness-and-lifecycle/handoff.md` (updated 2026-06-11)
+Source: `benjamin-docs/features/freshness-and-lifecycle/handoff.md` (updated 2026-06-14)
 
 ### Risks / Open Questions
 
@@ -23,3 +23,4 @@ Source: `benjamin-docs/features/freshness-and-lifecycle/handoff.md` (updated 202
 - The generic default watch globs may over-warn in monorepos where `src/**` is huge; per-project `watch` customization is the escape hatch.
 - Existing projects will see a one-time "Memory View is stale" warning after upgrading because the renderer changed; `bd views` resolves it.
 - Path liveness skips references whose first segment does not exist in the repo, so fully deleted top-level directories silently stop being checked.
+- Older projects with custom `watch` rules will not be silently migrated; `review` / `ready` surface blind spots so humans or agents can update config deliberately.

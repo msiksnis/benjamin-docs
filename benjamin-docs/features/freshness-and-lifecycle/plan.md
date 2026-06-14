@@ -5,8 +5,9 @@ scope_id: freshness-and-lifecycle
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-11
+updated: 2026-06-14
 source: session-capture
+freshness: status
 ---
 
 # Freshness And Lifecycle Plan
@@ -20,6 +21,7 @@ source: session-capture
 5. Refactor `src/views.ts` to expose `renderMemoryViews`, filter archived and stale docs and scopes, group sections per doc, order by updated date, and skip unchanged writes; add the freshness check to `review`.
 6. Add `setScopeStatus` to `src/scopes.ts` with frontmatter cascade; wire CLI, drawer, and scope help.
 7. Update and extend tests; update README and SKILL.md; bump to 0.7.0; dogfood on this repo.
+8. 0.8.0 follow-up: add freshness coverage warnings, `freshness: status`, broader default watch coverage, feature-scope watch registration, and template guidance to avoid duplicated volatile status facts.
 
 ## Validation
 

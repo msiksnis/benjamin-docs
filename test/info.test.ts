@@ -33,6 +33,7 @@ describe("info commands", () => {
       assert.match(output, /benjamin-docs views/);
       assert.match(output, /benjamin-docs init[\s\S]*benjamin-docs views[\s\S]*benjamin-docs ready/);
       assert.match(output, /Use the benjamin-docs skill to create a project from this chat/);
+      assert.match(output, /benjamin-docs package-skill/);
       assert.match(output, /benjamin-docs commands/);
       assert.doesNotMatch(output, /benjamin-docs validate/);
       assert.doesNotMatch(output, /benjamin-docs doctor --strict/);

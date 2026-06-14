@@ -1,10 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
-import { CONFIG_DIR, KNOWN_STATUSES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
+import { CONFIG_DIR, CONFIG_FILE, KNOWN_STATUSES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { parseMarkdown, serializeMarkdown } from "./frontmatter.js";
 import { readGeneratedJson, rootPath, writeGeneratedJson, writeGeneratedText, writeGeneratedTextIfMissing } from "./fsx.js";
 import { readConfig } from "./project-config.js";
 import { featureDocs, today } from "./templates.js";
-import type { DocStatus, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
+import type { BenjaminDocsConfig, DocStatus, ManifestFile, ScopeRecord, ScopesFile, WatchRule } from "./types.js";
+import { defaultWatchRules } from "./watch.js";
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const METADATA_LABEL = "Metadata path";
@@ -49,6 +50,7 @@ export function createScope(root: string, kind: string, id: string): string[] {
     if (!manifest.docs.includes(file.path)) manifest.docs.push(file.path);
   }
   writeGeneratedJson(root, manifestPath, manifest, METADATA_LABEL);
+  addFeatureWatchRule(root, config, id, docs.map((file) => file.path));
   return written;
 }
 
@@ -111,4 +113,42 @@ function titleFromSlug(slug: string): string {
     .filter(Boolean)
     .map((part) => `${part.slice(0, 1).toUpperCase()}${part.slice(1)}`)
     .join(" ");
+}
+
+function addFeatureWatchRule(root: string, config: BenjaminDocsConfig, id: string, docs: string[]): void {
+  const label = `feature/${id}`;
+  const watch = config.watch ?? defaultWatchRules(config.docsRoot);
+  if (watch.some((rule) => rule.label === label)) return;
+
+  const nextConfig: BenjaminDocsConfig = {
+    ...config,
+    watch: [
+      ...watch,
+      {
+        label,
+        paths: featureWatchPaths(),
+        docs,
+      },
+    ],
+  };
+  writeGeneratedJson(root, `${CONFIG_DIR}/${CONFIG_FILE}`, nextConfig, METADATA_LABEL);
+}
+
+function featureWatchPaths(): string[] {
+  return [
+    "src/**",
+    "app/**",
+    "apps/**",
+    "lib/**",
+    "pages/**",
+    "components/**",
+    "server/**",
+    "api/**",
+    "**/*.sql",
+    "**/migrations/**",
+    "README.md",
+    "docs/**",
+    ".claude/**",
+    ".cursor/**",
+  ];
 }

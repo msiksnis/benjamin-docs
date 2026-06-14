@@ -1,4 +1,4 @@
-import { KNOWN_AUDIENCES, KNOWN_SCOPES, KNOWN_SOURCES, KNOWN_STATUSES, KNOWN_VISIBILITIES } from "./constants.js";
+import { KNOWN_AUDIENCES, KNOWN_FRESHNESS, KNOWN_SCOPES, KNOWN_SOURCES, KNOWN_STATUSES, KNOWN_VISIBILITIES } from "./constants.js";
 import type { DocFrontmatter, ParsedMarkdown } from "./types.js";
 
 const ORDER: Array<keyof DocFrontmatter> = [
@@ -10,6 +10,7 @@ const ORDER: Array<keyof DocFrontmatter> = [
   "visibility",
   "updated",
   "source",
+  "freshness",
 ];
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -43,7 +44,10 @@ export function parseMarkdown(markdown: string): ParsedMarkdown {
 }
 
 export function serializeMarkdown(frontmatter: DocFrontmatter, body: string): string {
-  const lines = ORDER.map((key) => `${key}: ${serializeValue(frontmatter[key])}`);
+  const lines = ORDER.flatMap((key) => {
+    const value = frontmatter[key];
+    return value === undefined ? [] : [`${key}: ${serializeValue(value)}`];
+  });
   return `---\n${lines.join("\n")}\n---\n\n${body.replace(/^\n+/, "")}`;
 }
 
@@ -71,6 +75,7 @@ function validateFrontmatter(frontmatter: Record<string, unknown>): DocFrontmatt
   const visibility = knownValue("visibility", requiredString(frontmatter, "visibility"), KNOWN_VISIBILITIES);
   const source = knownValue("source", requiredString(frontmatter, "source"), KNOWN_SOURCES);
   const audience = requiredAudience(frontmatter);
+  const freshness = optionalKnownValue("freshness", frontmatter.freshness, KNOWN_FRESHNESS);
 
   return {
     title: requiredString(frontmatter, "title"),
@@ -81,6 +86,7 @@ function validateFrontmatter(frontmatter: Record<string, unknown>): DocFrontmatt
     visibility,
     updated: requiredDate(frontmatter),
     source,
+    ...(freshness ? { freshness } : {}),
   };
 }
 
@@ -143,4 +149,13 @@ function knownValue<const T extends readonly string[]>(field: string, value: str
   }
 
   return value as T[number];
+}
+
+function optionalKnownValue<const T extends readonly string[]>(field: string, value: unknown, knownValues: T): T[number] | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") {
+    throw new Error(`Frontmatter field ${field} must be a string`);
+  }
+
+  return knownValue(field, value, knownValues);
 }

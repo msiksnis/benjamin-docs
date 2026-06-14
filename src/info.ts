@@ -35,6 +35,9 @@ export function getHelpText(): string {
     "Then ask your agent:",
     "  Capture the current project baseline with benjamin-docs in plain language.",
     "",
+    "For Claude.ai or Claude Desktop skill upload:",
+    "  benjamin-docs package-skill",
+    "",
     "For every command, run the interactive drawer:",
     "  benjamin-docs commands",
   ].join("\n");
