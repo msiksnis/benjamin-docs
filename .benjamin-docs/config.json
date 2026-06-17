@@ -6,7 +6,13 @@
   "watch": [
     {
       "label": "database/schema",
-      "paths": ["**/*.sql", "**/migrations/**", "**/*.prisma", "db/schema.rb", "**/database.types.*"],
+      "paths": [
+        "**/*.sql",
+        "**/migrations/**",
+        "**/*.prisma",
+        "db/schema.rb",
+        "**/database.types.*"
+      ],
       "docs": [
         "benjamin-docs/project/brief.md",
         "benjamin-docs/project/roadmap.md",
@@ -19,7 +25,10 @@
     },
     {
       "label": "application code",
-      "paths": ["src/**", "skills/**"],
+      "paths": [
+        "src/**",
+        "skills/**"
+      ],
       "docs": [
         "benjamin-docs/project/brief.md",
         "benjamin-docs/project/roadmap.md",
@@ -32,12 +41,23 @@
     },
     {
       "label": "tests",
-      "paths": ["test/**", "**/*.test.*"],
-      "docs": ["benjamin-docs/handoff/agent-brief.md", "benjamin-docs/engineering/code-map.md"]
+      "paths": [
+        "test/**",
+        "**/*.test.*"
+      ],
+      "docs": [
+        "benjamin-docs/handoff/agent-brief.md",
+        "benjamin-docs/engineering/code-map.md"
+      ]
     },
     {
       "label": "configuration/workflow",
-      "paths": ["package.json", "tsconfig*.json", ".github/workflows/**", "pnpm-workspace.yaml"],
+      "paths": [
+        "package.json",
+        "tsconfig*.json",
+        ".github/workflows/**",
+        "pnpm-workspace.yaml"
+      ],
       "docs": [
         "benjamin-docs/project/roadmap.md",
         "benjamin-docs/handoff/agent-brief.md",
@@ -48,7 +68,14 @@
     },
     {
       "label": "project memory/status",
-      "paths": ["README.md", "docs/**", "tasks/**", ".claude/**", ".cursor/**", "AGENTS.md"],
+      "paths": [
+        "README.md",
+        "docs/**",
+        "tasks/**",
+        ".claude/**",
+        ".cursor/**",
+        "AGENTS.md"
+      ],
       "docs": [
         "benjamin-docs/project/brief.md",
         "benjamin-docs/project/roadmap.md",
