@@ -27,6 +27,7 @@ export function normalizeConfig(config: BenjaminDocsConfig): BenjaminDocsConfig 
     focus: config.focus ?? defaultFocusForMode(config.mode),
     feature: config.feature,
     watch: config.watch,
+    export: config.export,
   };
 }
 

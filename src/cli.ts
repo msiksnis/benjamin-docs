@@ -8,7 +8,17 @@ import { installAgentContracts } from "./agent-contracts.js";
 import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
 import { allCommands, getCommandsText, type CommandEntry } from "./commands.js";
 import { runDoctor } from "./doctor.js";
-import { exportAudience } from "./export.js";
+import {
+  exportAppDocumentation,
+  exportAudience,
+  exportFeature,
+  exportHandoff,
+  exportProjectSummary,
+  formatFeatureExportReadiness,
+  listFeatureExportChoices,
+  type ExportDetail,
+  type ExportProfile,
+} from "./export.js";
 import { initProject, looksLikeCodebase, promoteToCodebase, type InitProjectOptions } from "./init.js";
 import { getAnchorHelpText, getHelpText, getInitHelpText, getIntroductionText, getPackageVersion, getScopeHelpText } from "./info.js";
 import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
@@ -204,15 +214,48 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "export") {
-    const audienceIndex = argv.indexOf("--audience");
-    const audience = audienceIndex === -1 ? undefined : argv[audienceIndex + 1];
-    if (!audience) {
-      throw new Error("Usage: benjamin-docs export --audience <audience>");
+    const options = parseExportArgs(argv.slice(1));
+    if (options.list) {
+      console.log(formatFeatureExportReadiness(cwd));
+      return 0;
     }
 
-    const written = exportAudience(cwd, audience);
-    console.log(`Exported ${audience} bundle. ${written.length} files written.`);
-    return 0;
+    if (options.feature) {
+      const result = exportFeature(cwd, options.feature, { profile: options.profile, detail: options.detail, includeArchived: options.includeArchived });
+      console.log(result.output);
+      return 0;
+    }
+
+    if (options.type === "app") {
+      const result = exportAppDocumentation(cwd, { profile: options.profile, detail: options.detail });
+      console.log(result.output);
+      return 0;
+    }
+
+    if (options.type === "handoff") {
+      const result = exportHandoff(cwd, { profile: options.profile, detail: options.detail });
+      console.log(result.output);
+      return 0;
+    }
+
+    if (options.type === "summary") {
+      const result = exportProjectSummary(cwd, { profile: options.profile, detail: options.detail });
+      console.log(result.output);
+      return 0;
+    }
+
+    if (options.audience) {
+      const written = exportAudience(cwd, options.audience);
+      console.log(`Exported ${options.audience} bundle. ${written.length} files written.`);
+      return 0;
+    }
+
+    if (process.stdin.isTTY && process.stdout.isTTY) {
+      return runExportDrawer(cwd);
+    }
+
+    console.log("bd export is an interactive guide. Run it in a terminal, or ask your agent to use direct export flags.");
+    return 1;
   }
 
   if (command === "promote") {
@@ -322,6 +365,93 @@ function parseReviewArgs(args: string[]): ReviewOptions {
   }
 
   return options;
+}
+
+interface ExportArgs {
+  audience?: string;
+  feature?: string;
+  profile?: ExportProfile;
+  detail?: ExportDetail;
+  type?: "app" | "handoff" | "summary";
+  list?: boolean;
+  includeArchived?: boolean;
+}
+
+function parseExportArgs(args: string[]): ExportArgs {
+  const options: ExportArgs = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === "--audience") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs export --audience <audience>");
+      options.audience = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--feature") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs export --feature <feature>");
+      options.feature = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--profile") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs export --profile <customer|developer>");
+      options.profile = parseExportProfile(value);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--detail") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs export --detail <brief|standard|detailed>");
+      options.detail = parseExportDetail(value);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--type") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs export --type <app|handoff|summary>");
+      options.type = parseExportType(value);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--include-archived") {
+      options.includeArchived = true;
+      continue;
+    }
+
+    if (arg === "--list") {
+      options.list = true;
+      continue;
+    }
+
+    throw new Error("Usage: benjamin-docs export [--audience <audience>] [--feature <feature> --profile <customer|developer>] [--type <app|handoff|summary>]");
+  }
+
+  return options;
+}
+
+function parseExportProfile(value: string): ExportProfile {
+  if (value === "customer" || value === "developer") return value;
+  throw new Error("Usage: benjamin-docs export --profile <customer|developer>");
+}
+
+function parseExportDetail(value: string): ExportDetail {
+  if (value === "brief" || value === "standard" || value === "detailed") return value;
+  throw new Error("Usage: benjamin-docs export --detail <brief|standard|detailed>");
+}
+
+function parseExportType(value: string): "app" | "handoff" | "summary" {
+  if (value === "app" || value === "handoff" || value === "summary") return value;
+  throw new Error("Usage: benjamin-docs export --type <app|handoff|summary>");
 }
 
 function applyInitDefaults(options: InitProjectOptions): InitProjectOptions {
@@ -483,6 +613,89 @@ async function runCommandDrawer(cwd: string): Promise<number> {
   console.log("");
 
   return main(args, cwd);
+}
+
+async function runExportDrawer(cwd: string): Promise<number> {
+  const choices = ["Full app documentation", "Feature documentation", "Customer handoff", "Developer handoff", "Project summary"];
+  const selected = await selectChoice("What do you want to export?", choices, {
+    allowCancel: true,
+    hint: "Use Up/Down, j/k, or type a number. Press Enter to continue. Press q or Esc to cancel.",
+  });
+
+  if (selected === undefined) {
+    console.log("No export selected.");
+    return 0;
+  }
+
+  const detail = await promptForExportDetail();
+  if (detail === undefined) {
+    console.log("No export selected.");
+    return 0;
+  }
+
+  if (selected === 0) {
+    const result = exportAppDocumentation(cwd, { profile: "customer", detail });
+    console.log(result.output);
+    return 0;
+  }
+
+  if (selected === 2) {
+    const result = exportHandoff(cwd, { profile: "customer", detail });
+    console.log(result.output);
+    return 0;
+  }
+
+  if (selected === 3) {
+    const result = exportHandoff(cwd, { profile: "developer", detail });
+    console.log(result.output);
+    return 0;
+  }
+
+  if (selected === 4) {
+    const result = exportProjectSummary(cwd, { profile: "customer", detail });
+    console.log(result.output);
+    return 0;
+  }
+
+  const features = listFeatureExportChoices(cwd);
+  if (features.length === 0) {
+    console.log("No feature scopes found. Create one with `bd scope create feature <slug>` or ask your agent to plan the feature first.");
+    return 0;
+  }
+
+  const featureIndex = await selectChoice(
+    "Which feature?",
+    features.map((feature) => feature.label),
+    {
+      allowCancel: true,
+      hint: "Use Up/Down, j/k, or type a number. Press Enter to export. Press q or Esc to cancel.",
+    },
+  );
+
+  if (featureIndex === undefined) {
+    console.log("No feature selected.");
+    return 0;
+  }
+
+  const feature = features[featureIndex];
+  if (!feature) {
+    console.log("No feature selected.");
+    return 0;
+  }
+
+  const result = exportFeature(cwd, feature.scope.id, { profile: "customer", detail });
+  console.log(result.output);
+  return 0;
+}
+
+async function promptForExportDetail(): Promise<ExportDetail | undefined> {
+  const details: ExportDetail[] = ["brief", "standard", "detailed"];
+  const selected = await selectChoice("How much detail?", ["Brief", "Standard", "Detailed"], {
+    allowCancel: true,
+    hint: "Use Up/Down, j/k, or type a number. Press Enter to continue. Press q or Esc to cancel.",
+  });
+
+  return selected === undefined ? undefined : details[selected];
 }
 
 async function promptForCommandEntry(): Promise<CommandEntry | undefined> {
@@ -650,6 +863,7 @@ async function selectChoice(question: string, choices: string[], options: Select
       }
     };
 
+    input.resume();
     input.on("keypress", onKeypress);
     render();
   });

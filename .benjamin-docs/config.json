@@ -103,6 +103,31 @@
         "benjamin-docs/features/freshness-and-lifecycle/decisions.md",
         "benjamin-docs/features/freshness-and-lifecycle/handoff.md"
       ]
+    },
+    {
+      "label": "feature/guided-export-workflow",
+      "paths": [
+        "src/**",
+        "app/**",
+        "apps/**",
+        "lib/**",
+        "pages/**",
+        "components/**",
+        "server/**",
+        "api/**",
+        "**/*.sql",
+        "**/migrations/**",
+        "README.md",
+        "docs/**",
+        ".claude/**",
+        ".cursor/**"
+      ],
+      "docs": [
+        "benjamin-docs/features/guided-export-workflow/brief.md",
+        "benjamin-docs/features/guided-export-workflow/plan.md",
+        "benjamin-docs/features/guided-export-workflow/decisions.md",
+        "benjamin-docs/features/guided-export-workflow/handoff.md"
+      ]
     }
   ]
 }

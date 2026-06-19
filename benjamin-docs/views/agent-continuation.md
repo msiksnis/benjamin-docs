@@ -5,7 +5,7 @@ scope_id: project
 audience: [agent]
 status: draft
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: manual
 ---
 
@@ -13,31 +13,36 @@ source: manual
 
 Derived from continuation-proof, read-first, current-state, check, risk, and next-action sections for future agents.
 
-## [Freshness And Lifecycle Handoff](../features/freshness-and-lifecycle/handoff.md)
+## [Guided Export Workflow Handoff](../features/guided-export-workflow/handoff.md)
 
-Source: `benjamin-docs/features/freshness-and-lifecycle/handoff.md` (updated 2026-06-14)
+Source: `benjamin-docs/features/guided-export-workflow/handoff.md` (updated 2026-06-19)
 
 ### Risks / Open Questions
 
-- The churn threshold (10 source files) is a first guess; dogfooding on active projects should tune it.
-- The generic default watch globs may over-warn in monorepos where `src/**` is huge; per-project `watch` customization is the escape hatch.
-- Existing projects will see a one-time "Memory View is stale" warning after upgrading because the renderer changed; `bd views` resolves it.
-- Path liveness skips references whose first segment does not exist in the repo, so fully deleted top-level directories silently stop being checked.
-- Older projects with custom `watch` rules will not be silently migrated; `review` / `ready` surface blind spots so humans or agents can update config deliberately.
+- Exported Markdown is regenerated on demand. It does not auto-update while the project changes; source docs stay authoritative and rerunning `bd export` overwrites generated artifacts with fresh metadata.
+- Customer readiness checks are deterministic and conservative; agents still need to verify implementation semantics against code.
+- The customer profile currently treats private `brief.md` or `handoff.md` as blocking, so agents must make customer-safe source docs unlisted/public before export.
+- PDF and hosted publishing remain deferred.
 
 ### Next Actions
 
-- Authenticate npm, publish 0.8.0 from a freshly packed tarball, smoke-test a fresh install, update the installed/uploadable skill artifacts if needed, and tag the release.
-- Dogfood the freshness blind-spot warnings on older initialized projects and tune the default watch graph.
-- Consider `--json` output for `ready`/`review` plus a GitHub Action as the next milestone.
+- Finish command/help/skill/docs updates.
+- Run focused tests, full `pnpm check`, `review --changed`, and `ready`.
+- If checks pass, consider whether to archive or keep this feature scope active for the next export milestones.
 
 ### Continuation Proof
 
-Read first: `benjamin-docs/features/freshness-and-lifecycle/brief.md`, `src/watch.ts`, `src/review.ts`, `src/views.ts`.
+Read first:
 
-Current status: code, docs, installed skills, Claude upload zip, `bd ready`, and `pnpm run release:check` are done on this machine; npm publish is blocked by authentication.
+- `docs/superpowers/specs/2026-06-19-guided-export-workflow-design.md`
+- `docs/superpowers/plans/2026-06-19-guided-export-workflow.md`
+- `src/export.ts`
+- `src/cli.ts`
+- `test/validate-export.test.ts`
 
-Checks to run:
+Current status: implementation is underway and focused export tests pass. Remaining work is broad verification and any fixes from full checks.
+
+Checks:
 
 ```bash
 pnpm check
@@ -45,13 +50,9 @@ node dist/src/cli.js review --changed --since HEAD
 node dist/src/cli.js ready
 ```
 
-Risks: keep all new checks warning-only inside `review`; keep `review` read-only; do not add primary commands.
-
-Exact next action: run `npm login`, then publish `benjamin-docs@0.8.0` from a freshly packed tarball.
-
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-14)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-19)
 
 ### Current State
 
@@ -63,8 +64,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.7.0` published on npm.
-- Working package version: `0.8.0` for freshness coverage / staleness blind-spot protection.
+- Package status: `0.8.0` published on npm.
+- Working package version: `0.9.0` for guided local exports.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -79,17 +80,20 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.7.0 is published. The 0.8.0 work is implemented and release checks pass locally: freshness coverage warnings for status-bearing and active feature docs, `freshness: status` frontmatter, broader default watch rules, feature-scope watch registration, and templates that separate durable handoff context from volatile status facts. `npm publish` was attempted on 2026-06-14 but blocked because the local npm session is unauthenticated (`npm whoami` returns E401); `npm view benjamin-docs version` still reports 0.7.0.
+Current state: 0.8.0 is published. The 0.9.0 work is implemented and release checks pass locally: guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, and regenerated export behavior.
+
+Active change: guided export is being added as the next product step. `bd export` is the human-facing UX. Direct flags such as `bd export --feature <slug> --profile customer`, `bd export --type app --profile customer`, and `bd export --type handoff --profile customer` are for agents and scripts. Exported Markdown files under `exports/` are regenerated snapshots, not maintained source docs. Customer feature exports should be concise Markdown, show readiness before selection, block when docs are not export-ready, and prompt the agent to verify implementation against the docs before exporting.
 
 Commands/checks to run before handoff:
 
 ```bash
 pnpm check
+node --test dist/test/validate-export.test.js dist/test/commands.test.js dist/test/info.test.js
 node dist/src/cli.js review --changed --since HEAD
 pnpm run release:check
 node dist/src/cli.js ready
 ```
 
-Risks/hazards: do not add more primary commands, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc.
+Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc.
 
-Next actions: authenticate npm, publish 0.8.0 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood the blind-spot warnings on older initialized projects.
+Next actions: publish 0.9.0 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood guided exports on real projects.

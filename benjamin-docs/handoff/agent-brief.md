@@ -5,7 +5,7 @@ scope_id: agent-brief
 audience: [agent]
 status: review
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: session-capture
 freshness: status
 ---
@@ -22,8 +22,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.7.0` published on npm.
-- Working package version: `0.8.0` for freshness coverage / staleness blind-spot protection.
+- Package status: `0.8.0` published on npm.
+- Working package version: `0.9.0` for guided local exports.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -38,27 +38,30 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.7.0 is published. The 0.8.0 work is implemented and release checks pass locally: freshness coverage warnings for status-bearing and active feature docs, `freshness: status` frontmatter, broader default watch rules, feature-scope watch registration, and templates that separate durable handoff context from volatile status facts. `npm publish` was attempted on 2026-06-14 but blocked because the local npm session is unauthenticated (`npm whoami` returns E401); `npm view benjamin-docs version` still reports 0.7.0.
+Current state: 0.8.0 is published. The 0.9.0 work is implemented and release checks pass locally: guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, and regenerated export behavior.
+
+Active change: guided export is being added as the next product step. `bd export` is the human-facing UX. Direct flags such as `bd export --feature <slug> --profile customer`, `bd export --type app --profile customer`, and `bd export --type handoff --profile customer` are for agents and scripts. Exported Markdown files under `exports/` are regenerated snapshots, not maintained source docs. Customer feature exports should be concise Markdown, show readiness before selection, block when docs are not export-ready, and prompt the agent to verify implementation against the docs before exporting.
 
 Commands/checks to run before handoff:
 
 ```bash
 pnpm check
+node --test dist/test/validate-export.test.js dist/test/commands.test.js dist/test/info.test.js
 node dist/src/cli.js review --changed --since HEAD
 pnpm run release:check
 node dist/src/cli.js ready
 ```
 
-Risks/hazards: do not add more primary commands, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc.
+Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc.
 
-Next actions: authenticate npm, publish 0.8.0 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood the blind-spot warnings on older initialized projects.
+Next actions: publish 0.9.0 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood guided exports on real projects.
 
 ## Implemented So Far
 
 - TypeScript CLI with no runtime dependencies.
-- Main commands: `init`, `ready`, `help`.
+- Main commands: `init`, `ready`, `export`, `help`.
 - Advanced drawer: `commands`, with numbered interactive selection in real terminals.
-- Advanced commands include `status`, `next`, `validate`, `review`, `review --changed`, `doctor`, `export --audience <audience>`, `scope create feature <slug>`, `scope status <id> <status>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
+- Advanced commands include `status`, `next`, `validate`, `review`, `review --changed`, `doctor`, `views`, `export --audience <audience>`, `export --list`, `export --feature <slug> --profile <profile>`, `export --type <app|handoff|summary> --profile <profile>`, `scope create feature <slug>`, `scope status <id> <status>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
 - Short binary alias: `bd`.
 - Planning-mode docs created by `init`.
 - Codebase-mode docs created by `promote --to codebase`.
@@ -67,7 +70,7 @@ Next actions: authenticate npm, publish 0.8.0 from a freshly packed tarball, smo
 - Validation for frontmatter, metadata, anchors, links, symlink safety, and project-root containment.
 - `ready` gate that combines validation, docs review, setup checks, and agent guidance health.
 - Root and child `AGENTS.md` support that preserves existing user-owned instructions.
-- Export bundles for audience-specific handoff.
+- Export bundles for audience-specific handoff plus guided generated snapshots for feature docs, app docs, customer/developer handoffs, and project summaries.
 - A `skills/benjamin-docs/SKILL.md` file for agent session capture and constructive challenge.
 
 ## Recent Decisions

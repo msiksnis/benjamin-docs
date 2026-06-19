@@ -5,11 +5,26 @@ scope_id: release
 audience: [developer, business, public]
 status: review
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: manual
 ---
 
 # Changelog
+
+## 0.9.0
+
+- Added `bd export` to the main command surface as the guided local export entrypoint.
+- Added guided Markdown exports for full app documentation, feature documentation, customer handoff, developer handoff, and project summary.
+- Added direct export flags for agents and scripts: `--list`, `--feature`, `--profile customer|developer`, `--detail brief|standard|detailed`, `--type app|handoff|summary`, and `--include-archived`.
+- Added customer and developer feature Markdown exports under `exports/features/`.
+- Preserved existing `export --audience <audience>` behavior for audience-filtered bundles.
+- Added slug/title feature matching with typo suggestions and missing-feature agent prompts.
+- Added feature readiness labels before export: ready, blocked, or archived.
+- Added deterministic customer export readiness blocks for private, thin, unverified, path-like, archived, or leak-risky feature docs.
+- Added generated snapshot metadata: source docs, latest source-doc update, source commit, dirty state, detail level, and export time.
+- Added configurable customer leak phrases through `.benjamin-docs/config.json` `export.blockedPhrases`.
+- Documented that generated files under `exports/` are snapshots and should be regenerated with `bd export` after source docs or implementation changes.
+- Updated skill guidance so agents verify implementation against docs before customer-facing exports.
 
 ## 0.8.0
 

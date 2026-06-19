@@ -29,6 +29,7 @@ describe("info commands", () => {
       assert.match(output, /Repo-local project memory/);
       assert.match(output, /benjamin-docs init/);
       assert.match(output, /benjamin-docs ready/);
+      assert.match(output, /benjamin-docs export/);
       assert.match(output, /benjamin-docs help/);
       assert.match(output, /benjamin-docs views/);
       assert.match(output, /benjamin-docs init[\s\S]*benjamin-docs views[\s\S]*benjamin-docs ready/);
@@ -62,6 +63,7 @@ describe("info commands", () => {
       assert.match(output, /benjamin-docs init/);
       assert.match(output, /benjamin-docs views/);
       assert.match(output, /benjamin-docs ready/);
+      assert.match(output, /benjamin-docs export/);
       assert.match(output, /benjamin-docs help/);
       assert.match(output, /benjamin-docs commands/);
       assert.match(output, /Capture the current project baseline with benjamin-docs/);

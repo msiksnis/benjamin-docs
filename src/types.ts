@@ -39,6 +39,10 @@ export interface WatchRule {
   docs: string[];
 }
 
+export interface ExportConfig {
+  blockedPhrases?: string[];
+}
+
 export interface BenjaminDocsConfig {
   version: 1;
   mode: "planning" | "codebase";
@@ -46,6 +50,7 @@ export interface BenjaminDocsConfig {
   focus: FocusType;
   feature?: string;
   watch?: WatchRule[];
+  export?: ExportConfig;
 }
 
 export interface ScopeRecord {

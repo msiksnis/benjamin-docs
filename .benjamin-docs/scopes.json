@@ -62,6 +62,13 @@
       "kind": "feature",
       "title": "Freshness And Lifecycle",
       "path": "benjamin-docs/features/freshness-and-lifecycle",
+      "status": "archived"
+    },
+    {
+      "id": "guided-export-workflow",
+      "kind": "feature",
+      "title": "Guided Export Workflow",
+      "path": "benjamin-docs/features/guided-export-workflow",
       "status": "draft"
     }
   ]

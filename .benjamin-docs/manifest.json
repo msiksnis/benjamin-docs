@@ -38,6 +38,10 @@
     "benjamin-docs/features/freshness-and-lifecycle/brief.md",
     "benjamin-docs/features/freshness-and-lifecycle/plan.md",
     "benjamin-docs/features/freshness-and-lifecycle/decisions.md",
-    "benjamin-docs/features/freshness-and-lifecycle/handoff.md"
+    "benjamin-docs/features/freshness-and-lifecycle/handoff.md",
+    "benjamin-docs/features/guided-export-workflow/brief.md",
+    "benjamin-docs/features/guided-export-workflow/plan.md",
+    "benjamin-docs/features/guided-export-workflow/decisions.md",
+    "benjamin-docs/features/guided-export-workflow/handoff.md"
   ]
 }

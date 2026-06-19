@@ -123,6 +123,42 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 15. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
 16. Report changed files, generated views when refreshed, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
 
+## Export Workflow
+
+Use this workflow when the user asks to export feature docs, app docs, customer handoff docs, or a concise project deliverable.
+
+Human-facing rule:
+
+- Teach people `bd export` or `benjamin-docs export` as the normal command.
+- Do not make ordinary users memorize feature slugs, profiles, or advanced flags.
+
+Agent/automation rule:
+
+- Agents may use direct flags when the target is clear:
+  - `bd export --list`
+  - `bd export --feature <slug> --profile customer`
+  - `bd export --feature <slug> --profile developer`
+  - `bd export --type app --profile customer`
+  - `bd export --type handoff --profile customer`
+  - `bd export --type summary --profile customer`
+  - `bd export --audience <audience>`
+- Treat direct flags as an API for agents and scripts, not as the primary human UX.
+- Generated export files under `exports/` are snapshots. They do not update automatically while the project changes. Keep source docs current, then rerun `bd export` to overwrite the generated artifact with current content, `exported_at`, source docs, source commit, and dirty-state metadata.
+- Use `--detail brief`, `--detail standard`, or `--detail detailed` only when automation needs to choose a conciseness level. For humans, let the guided menu ask.
+
+Before customer-facing feature exports:
+
+1. Verify the feature implementation against the Benjamin Docs source docs.
+2. Check whether documented behavior, limitations, roles, UI flow, and edge cases match the actual code.
+3. If the docs are stale, thin, private-only, or implementation verification is missing, update the docs before retrying export.
+4. Customer-facing exports should use safe language. Do not leak agent-only notes, implementation risks, secrets, environment details, or private internal instructions.
+
+If `bd export` blocks with a readiness prompt, follow that prompt first. Do not bypass a blocked customer export unless the user explicitly accepts the risk.
+
+When a feature does not exist, do not invent export content. Create or update the feature scope first, then make the docs export-ready.
+
+When a feature name is misspelled and BD suggests a close match, use the suggested existing feature only if it matches the user's intent.
+
 ## Existing Project Baseline Workflow
 
 Use this workflow when the user asks to document an existing app, capture the current project baseline, initialize Benjamin Docs in a codebase, or prepare a repo for future agents.

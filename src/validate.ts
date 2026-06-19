@@ -145,6 +145,18 @@ function validateConfig(config: BenjaminDocsConfig, errors: string[]): void {
     errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: feature must be a string`);
   }
   if (config.watch !== undefined) validateWatchRules(config.watch, errors);
+  if (config.export !== undefined) validateExportConfig(config.export, errors);
+}
+
+function validateExportConfig(config: unknown, errors: string[]): void {
+  if (!isRecord(config)) {
+    errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: export must be an object`);
+    return;
+  }
+
+  if (config.blockedPhrases !== undefined && !isStringArray(config.blockedPhrases)) {
+    errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: export.blockedPhrases must be an array of strings`);
+  }
 }
 
 function validateWatchRules(watch: unknown, errors: string[]): void {
@@ -182,6 +194,10 @@ function validateWatchRules(watch: unknown, errors: string[]): void {
 
 function isNonEmptyStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === "string" && item.length > 0);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
 function validateManifest(root: string, realRoot: string, manifest: ManifestFile, errors: string[]): void {
