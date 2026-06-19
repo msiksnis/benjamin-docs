@@ -3,9 +3,9 @@ title: Freshness And Lifecycle Plan
 scope: feature
 scope_id: freshness-and-lifecycle
 audience: [developer, agent]
-status: review
+status: archived
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: session-capture
 freshness: status
 ---

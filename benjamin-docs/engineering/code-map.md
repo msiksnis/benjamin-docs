@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: session-capture
 ---
 
@@ -25,7 +25,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/init.ts` creates `.benjamin-docs/`, `benjamin-docs/`, starter docs, manifest, scopes, and anchors. It also seeds default `watch` rules into config and preserves custom rules on re-init.
 - `src/templates.ts` contains starter Markdown docs and frontmatter defaults.
 - `src/scopes.ts` creates feature scopes and updates scope lifecycle status. Scope creation writes the four feature docs, adds them to the manifest, and appends a feature-specific watch rule. `setScopeStatus` cascades a new status and updated date into the scope's managed docs.
-- `src/export.ts` exports audience-specific bundles.
+- `src/export.ts` exports audience-specific bundles and task-based feature documentation. It owns feature matching, customer/developer profile rendering, customer export readiness checks, implementation-verification prompts, and generated Markdown under `exports/`.
 - `src/status.ts` summarizes the current initialized project.
 
 ## Validation And Review

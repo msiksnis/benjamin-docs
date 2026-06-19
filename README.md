@@ -67,10 +67,24 @@ Start here:
 ```bash
 benjamin-docs init
 benjamin-docs ready
+benjamin-docs export
 benjamin-docs help
 ```
 
-`init` creates project memory. `ready` checks setup, validation, docs quality, and continuation readiness. `help` shows the simple path.
+`init` creates project memory. `ready` checks setup, validation, docs quality, and continuation readiness. `export` opens guided local exports for docs and handoffs. `help` shows the simple path.
+
+Exports are generated snapshots under `exports/`. They are not the source of truth. Keep `benjamin-docs/` current, then rerun `benjamin-docs export` to regenerate a fresh Markdown handoff with current source metadata and timestamp.
+
+## What's New In 0.9.0
+
+`bd export` now turns maintained Benjamin Docs source files into concise local deliverables:
+
+- Guided export menu for app docs, feature docs, customer handoffs, developer handoffs, and project summaries.
+- Feature readiness labels before export: ready, blocked, or archived.
+- Customer feature exports that block private, thin, unverified, or risky docs before writing output.
+- Brief, standard, and detailed Markdown export levels.
+- Generated snapshot metadata: source docs, latest source-doc update, source commit, dirty state, and export time.
+- Agent/script export flags for automation while keeping the human command surface simple.
 
 For the full command drawer:
 
@@ -198,6 +212,9 @@ Useful advanced examples:
 ```bash
 benjamin-docs views
 benjamin-docs review --changed
+benjamin-docs export --list
+benjamin-docs export --feature checkout-redesign --profile customer
+benjamin-docs export --type handoff --profile customer
 benjamin-docs anchor add homepage pages/index.js
 benjamin-docs anchor list
 benjamin-docs scope create feature checkout-redesign

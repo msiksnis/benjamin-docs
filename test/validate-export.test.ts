@@ -5,6 +5,71 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runCli, runCliResult, withTempDir } from "./helpers.js";
 
+function customerFeatureBrief(slug: string, title: string): string {
+  return [
+    "---",
+    `title: ${title} Brief`,
+    "scope: feature",
+    `scope_id: ${slug}`,
+    "audience: [developer, designer, agent, user]",
+    "status: review",
+    "visibility: unlisted",
+    "updated: 2026-06-19",
+    "source: manual",
+    "freshness: status",
+    "---",
+    "",
+    `# ${title}`,
+    "",
+    "## What It Is",
+    "",
+    "This feature lets an operator safely remove an owner from active operations.",
+    "",
+    "## When To Use It",
+    "",
+    "Use it when an owner account should no longer be active.",
+    "",
+    "## How To Use It",
+    "",
+    "1. Open Owners.",
+    "2. Select the owner.",
+    "3. Choose Delete and confirm.",
+    "",
+    "## Known Limits",
+    "",
+    "Deletion cannot be undone.",
+  ].join("\n");
+}
+
+function customerFeatureHandoff(slug: string, title: string): string {
+  return [
+    "---",
+    `title: ${title} Handoff`,
+    "scope: feature",
+    `scope_id: ${slug}`,
+    "audience: [developer, agent, user]",
+    "status: review",
+    "visibility: unlisted",
+    "updated: 2026-06-19",
+    "source: manual",
+    "---",
+    "",
+    `# ${title} Handoff`,
+    "",
+    "## Implementation Verification",
+    "",
+    "Implementation verified: yes",
+    "",
+    "## Known Limits",
+    "",
+    "Deletion may be unavailable when historical records must be preserved.",
+    "",
+    "## Support Notes",
+    "",
+    "Contact support if deletion is blocked.",
+  ].join("\n");
+}
+
 describe("validate", () => {
   it("passes for a freshly initialized project", () => {
     withTempDir((dir) => {
@@ -424,6 +489,190 @@ describe("status and export", () => {
 
       assert.equal(result.status, 1);
       assert.match(result.stderr, /benjamin-docs is not initialized/);
+    });
+  });
+
+  it("exports concise customer feature documentation", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      const result = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /Exported feature documentation/);
+      const outputPath = join(dir, "exports/features/owner-delete-customer.md");
+      assert.equal(existsSync(outputPath), true);
+      const output = readFileSync(outputPath, "utf8");
+      assert.match(output, /# Owner Delete/);
+      assert.match(output, /## What It Is/);
+      assert.match(output, /## How To Use It/);
+      assert.match(output, /2\. Select the owner/);
+      assert.match(output, /Deletion cannot be undone/);
+      assert.match(output, /## Verification/);
+      assert.match(output, /Implementation verified: yes/);
+      assert.doesNotMatch(output, /Owner Delete Handoff/);
+      assert.match(output, /implementation_verified: true/);
+      assert.match(output, /generated: true/);
+      assert.match(output, /source_commit:/);
+      assert.match(output, /source_dirty:/);
+      assert.match(output, /Regenerate this file with bd export/);
+      assert.doesNotMatch(output, /Agent Brief|Commands And Checks/);
+    });
+  });
+
+  it("regenerates feature exports from current source docs", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      const briefPath = join(dir, "benjamin-docs/features/owner-delete/brief.md");
+      writeFileSync(briefPath, customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      runCli(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+      writeFileSync(
+        briefPath,
+        customerFeatureBrief("owner-delete", "Owner Delete").replace("safely remove an owner", "quickly deactivate an owner"),
+        "utf8",
+      );
+      runCli(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      const output = readFileSync(join(dir, "exports/features/owner-delete-customer.md"), "utf8");
+      assert.match(output, /quickly deactivate an owner/);
+      assert.doesNotMatch(output, /safely remove an owner/);
+      assert.match(output, /Generated snapshot/);
+    });
+  });
+
+  it("prints feature export readiness", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      runCli(["scope", "create", "feature", "staff-payroll"], dir);
+      runCli(["scope", "create", "feature", "legacy-flow"], dir);
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+      runCli(["scope", "status", "legacy-flow", "archived"], dir);
+
+      const output = runCli(["export", "--list"], dir);
+
+      assert.match(output, /Feature export readiness/);
+      assert.match(output, /Owner Delete \(owner-delete\) - ready/);
+      assert.match(output, /Staff Payroll \(staff-payroll\) - blocked:/);
+      assert.match(output, /Legacy Flow \(legacy-flow\) - archived/);
+    });
+  });
+
+  it("exports app documentation, handoff, summary, and detail variants", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      runCli(["scope", "create", "feature", "leak-risk"], dir);
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(
+        join(dir, "benjamin-docs/features/leak-risk/brief.md"),
+        customerFeatureBrief("leak-risk", "Leak Risk").replace("This feature lets", "internal only. This feature lets"),
+        "utf8",
+      );
+      writeFileSync(join(dir, "benjamin-docs/features/leak-risk/handoff.md"), customerFeatureHandoff("leak-risk", "Leak Risk"), "utf8");
+
+      const app = runCli(["export", "--type", "app", "--profile", "customer"], dir);
+      const handoff = runCli(["export", "--type", "handoff", "--profile", "customer", "--detail", "brief"], dir);
+      const developer = runCli(["export", "--type", "handoff", "--profile", "developer", "--detail", "detailed"], dir);
+      const summary = runCli(["export", "--type", "summary"], dir);
+
+      assert.match(app, /Exported customer app documentation/);
+      assert.match(handoff, /Exported customer handoff/);
+      assert.match(developer, /Exported developer handoff/);
+      assert.match(summary, /Exported customer project summary/);
+      assert.equal(existsSync(join(dir, "exports/app/customer-app-documentation.md")), true);
+      assert.equal(existsSync(join(dir, "exports/handoff/customer-handoff-brief.md")), true);
+      assert.equal(existsSync(join(dir, "exports/handoff/developer-handoff-detailed.md")), true);
+      assert.equal(existsSync(join(dir, "exports/summary/customer-project-summary-brief.md")), true);
+      const appOutput = readFileSync(join(dir, "exports/app/customer-app-documentation.md"), "utf8");
+      assert.match(appOutput, /# App Documentation/);
+      assert.match(appOutput, /## Core Workflows/);
+      assert.match(appOutput, /Owner Delete: ready/);
+      assert.match(appOutput, /Leak Risk: blocked: not export-ready/);
+      assert.doesNotMatch(appOutput, /internal only/);
+    });
+  });
+
+  it("uses configured customer export blocked phrases", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      const configPath = join(dir, ".benjamin-docs/config.json");
+      const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+      config.export = { blockedPhrases: ["operator-only"] };
+      writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+      const briefPath = join(dir, "benjamin-docs/project/brief.md");
+      writeFileSync(briefPath, `${readFileSync(briefPath, "utf8")}\n\noperator-only note.\n`, "utf8");
+
+      const result = runCliResult(["export", "--type", "app", "--profile", "customer"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Possible customer-facing leak risk: operator-only/);
+      assert.equal(existsSync(join(dir, "exports/app/customer-app-documentation.md")), false);
+    });
+  });
+
+  it("suggests a close feature match instead of exporting the wrong feature", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+
+      const result = runCliResult(["export", "--feature", "owener-delete"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Feature "owener-delete" was not found/);
+      assert.match(result.stderr, /Did you mean "owner-delete"/);
+      assert.match(result.stderr, /bd export --feature owner-delete/);
+    });
+  });
+
+  it("rejects path-like feature queries", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      const result = runCliResult(["export", "--feature", "../owner-delete", "--profile", "customer"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Feature must be a feature slug or title, not a path/);
+      assert.equal(existsSync(join(dir, "exports/features/owner-delete-customer.md")), false);
+    });
+  });
+
+  it("prints an agent prompt when a feature does not exist", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+
+      const result = runCliResult(["export", "--feature", "staff-payroll"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Feature "staff-payroll" does not exist/);
+      assert.match(result.stderr, /Next prompt:/);
+      assert.match(result.stderr, /Create a Benjamin Docs feature scope for staff-payroll/);
+    });
+  });
+
+  it("blocks customer feature export when docs need agent verification", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+
+      const result = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Feature export readiness: blocked/);
+      assert.match(result.stderr, /Customer-facing feature export should be verified against implementation first/);
+      assert.match(result.stderr, /Verify the owner-delete feature implementation against its Benjamin Docs/);
+      assert.equal(existsSync(join(dir, "exports/features/owner-delete-customer.md")), false);
     });
   });
 

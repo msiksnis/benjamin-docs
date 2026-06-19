@@ -3,9 +3,9 @@ title: Freshness And Lifecycle Handoff
 scope: feature
 scope_id: freshness-and-lifecycle
 audience: [developer, agent]
-status: review
+status: archived
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: session-capture
 freshness: status
 ---
@@ -14,7 +14,7 @@ freshness: status
 
 ## Status
 
-0.7.0 is published. The 0.8.0 freshness-coverage follow-up is implemented and release checks pass: status-bearing docs and active feature docs now warn when no watch rule can ever flag them stale, new starter status docs carry `freshness: status`, and feature scope creation adds feature-specific watch coverage. Not yet published to npm: a 2026-06-14 publish attempt was blocked because the local npm session is unauthenticated (`npm whoami` returns E401), and the registry still reports 0.7.0.
+0.8.0 is published. The freshness-coverage follow-up shipped: status-bearing docs and active feature docs now warn when no watch rule can ever flag them stale, new starter status docs carry `freshness: status`, and feature scope creation adds feature-specific watch coverage.
 
 ## Risks / Open Questions
 
@@ -26,7 +26,7 @@ freshness: status
 
 ## Next Actions
 
-- Authenticate npm, publish 0.8.0 from a freshly packed tarball, smoke-test a fresh install, update the installed/uploadable skill artifacts if needed, and tag the release.
+- Keep dogfooding freshness checks on older initialized projects and tune watch rules only when warnings are noisy or misleading.
 - Dogfood the freshness blind-spot warnings on older initialized projects and tune the default watch graph.
 - Consider `--json` output for `ready`/`review` plus a GitHub Action as the next milestone.
 
@@ -34,7 +34,7 @@ freshness: status
 
 Read first: `benjamin-docs/features/freshness-and-lifecycle/brief.md`, `src/watch.ts`, `src/review.ts`, `src/views.ts`.
 
-Current status: code, docs, installed skills, Claude upload zip, `bd ready`, and `pnpm run release:check` are done on this machine; npm publish is blocked by authentication.
+Current status: shipped in 0.8.0. Keep this scope as historical context for freshness behavior.
 
 Checks to run:
 
@@ -46,4 +46,4 @@ node dist/src/cli.js ready
 
 Risks: keep all new checks warning-only inside `review`; keep `review` read-only; do not add primary commands.
 
-Exact next action: run `npm login`, then publish `benjamin-docs@0.8.0` from a freshly packed tarball.
+Exact next action: use this scope only when adjusting freshness coverage behavior.

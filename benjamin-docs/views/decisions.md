@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: manual
 ---
 
@@ -13,36 +13,35 @@ source: manual
 
 Derived from decision and rejected-option sections across managed Benjamin docs.
 
-## [Freshness And Lifecycle Decisions](../features/freshness-and-lifecycle/decisions.md)
+## [Guided Export Workflow Decisions](../features/guided-export-workflow/decisions.md)
 
-Source: `benjamin-docs/features/freshness-and-lifecycle/decisions.md` (updated 2026-06-14)
+Source: `benjamin-docs/features/guided-export-workflow/decisions.md` (updated 2026-06-19)
 
 ### Decisions
 
-- Watch rules live in `.benjamin-docs/config.json` as data, not code, because users must be able to adapt the mapping to their stack without a release. `init` seeds generic defaults and preserves custom rules on re-init.
-- The glob matcher is hand-rolled (`*`, `**`, `?`) to keep the zero-runtime-dependency rule.
-- Doc churn is measured against git history (files changed since the doc's last commit, threshold 10) because git facts are stack-agnostic and cannot be gamed by wording. A doc with uncommitted edits is treated as fresh.
-- Path liveness only checks inline-code references whose first path segment exists in the repo. This avoids false positives on examples like GitHub slugs while still catching renamed or deleted files.
-- Stale-claim patterns are generic ("not implemented yet", "does not exist yet") and scoped to `architecture.md` and `code-map.md` only, because those docs describe the present. Roadmaps legitimately describe unbuilt work.
-- View freshness runs inside plain `review` so `ready` fails on stale views, but `views` regeneration stays an explicit command. `review` stays read-only; checks must not mutate the project.
-- Views exclude both `archived` and `stale` statuses: archived means done or abandoned, stale means flagged-as-outdated, and neither belongs in a current-memory lens. The source docs keep the content either way.
-- `views` only rewrites files whose body changed, so the frontmatter `updated` date stays meaningful and diffs stay clean.
-- `ready` should fail on freshness blind spots through plain `review`, not through a separate command or AI review mode. The problem is coverage visibility: BD cannot prove prose true, but it can prove whether a status doc is reachable by the configured watch graph.
-- `freshness: status` is intentionally narrow. It marks docs whose present-tense status can rot, without creating a broad lifecycle taxonomy in frontmatter.
-- `scope create feature <slug>` appends a feature-specific watch rule. Active feature docs are volatile by default, and relying on users to hand-edit config after every feature scope would recreate the original blind spot.
-- Starter handoff templates now discourage duplicated volatile facts. Exact counters, phase names, and next-item claims should have one canonical home with pointers elsewhere.
+- `bd export` is the human-facing UX. Users should not need to learn many customer-facing commands.
+- Export flags are an API for agents and scripts. Direct commands such as `bd export --feature <slug> --profile customer` remain available, but they belong in advanced help and skill guidance.
+- Generated exports are disposable artifacts under `exports/`; source docs under `benjamin-docs/` remain the maintained truth.
+- Exported Markdown is a snapshot, not a live view. Rerunning `bd export` regenerates the file from current Benjamin Docs sources and writes fresh metadata.
+- Customer feature exports require concise user-facing content and implementation-verification evidence before writing output.
+- The CLI performs deterministic readiness checks and prompt generation, while agents perform semantic implementation verification.
+- Customer exports use customer-relevant source docs (`brief.md` and `handoff.md`) rather than private implementation docs such as `plan.md` and `decisions.md`.
+- Direct feature queries accept slugs or titles, but not path-like strings. Inputs containing path separators are rejected before typo/title matching.
+- The guided menu exposes detail levels, but agents/scripts can use `--detail brief|standard|detailed`.
+- App, handoff, and summary exports are assembled summaries from maintained docs, not raw doc dumps.
+- Customer export leak checks use default blocked phrases plus optional `.benjamin-docs/config.json` `export.blockedPhrases`.
 
 ### Rejected Options
 
-- Auto-regenerating views inside `ready`: rejected because a gate that mutates the working tree is surprising in CI and weakens the "checks are read-only" rule.
-- Keeping per-stack hardcoded paths with more stacks added: rejected; data-driven rules scale, hardcoded lists do not.
-- An LLM-based review mode: rejected for this milestone; the CLI's value is being the deterministic referee the LLM cannot fudge.
-- A separate `bd archive` command: rejected; `scope status` covers the lifecycle with one generic verb and no new top-level command.
-- A semantic prose checker: rejected for this milestone; deterministic coverage warnings are the product contract, and prose truth remains the agent/human responsibility.
+- Do not make PDF the first-class output yet. Markdown must be good before PDF is useful.
+- Do not create or plan a missing feature during export. Export should explain the missing feature and give the agent prompt to create/update docs.
+- Do not auto-export the closest feature match after a typo. Suggest the match and require user/agent confirmation.
+- Do not promote every export flag in the README. The simple path stays `bd export`.
+- Do not silently normalize path-like feature input such as `../feature-name` into a real feature slug.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-14)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-19)
 
 ### Recent Decisions
 

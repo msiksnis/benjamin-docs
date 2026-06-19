@@ -7,6 +7,7 @@ export interface CommandEntry {
 export const mainCommands: CommandEntry[] = [
   { command: "benjamin-docs init", args: ["init"], description: "Set up local project memory and optional agent guidance." },
   { command: "benjamin-docs ready", args: ["ready"], description: "Check whether project memory is handoff-ready." },
+  { command: "benjamin-docs export", args: ["export"], description: "Open guided export for feature docs, app docs, and handoffs." },
   { command: "benjamin-docs help", args: ["help"], description: "Show the short getting-started guide." },
 ];
 
@@ -19,7 +20,6 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
   { command: "benjamin-docs doctor --strict", args: ["doctor", "--strict"], description: "Run setup checks as a strict gate." },
   { command: "benjamin-docs views", args: ["views"], description: "Generate local Memory Views from managed docs." },
-  { command: "benjamin-docs export --audience developer", args: ["export", "--audience", "developer"], description: "Build a local audience-specific Markdown bundle." },
   { command: "benjamin-docs scope create feature <slug>", args: ["scope", "create", "feature", "<slug>"], description: "Create feature docs and metadata." },
   { command: "benjamin-docs scope status <slug> <status>", args: ["scope", "status", "<slug>", "<status>"], description: "Update a scope status, e.g. archive a shipped feature." },
   { command: "benjamin-docs anchor add <id> <file>", args: ["anchor", "add", "<id>", "<file>"], description: "Link a stable code anchor to docs." },

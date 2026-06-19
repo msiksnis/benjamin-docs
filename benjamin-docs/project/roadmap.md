@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: session-capture
 freshness: status
 ---
@@ -36,8 +36,8 @@ freshness: status
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.7.0`.
-- Working package version: `0.8.0` for freshness coverage / staleness blind-spot protection.
+- Current published release: `0.8.0`.
+- Working package version: `0.9.0` for guided local exports.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -48,17 +48,38 @@ freshness: status
 - Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
 - `bd review --changed` is implemented as an advanced, warning-only freshness check for source changes that probably need Benjamin Docs updates.
 - `bd review` / `bd ready` now flag status-bearing docs and active feature docs that have no watch-rule coverage.
+- Guided `bd export` is implemented as the human-facing export path, with advanced direct flags reserved for agents and scripts.
 
 ## Immediate Next Work
 
-- Keep the CLI command surface stable. Do not add more top-level commands unless a repeated real workflow proves the need.
+- Keep the CLI command surface stable. `bd export` is the only new human-facing command promoted for the customer-handoff workflow; keep detailed export flags in advanced/agent guidance.
 - Polish the 0.4.x simple path so `bd init` is enough in normal codebase use.
 - Dogfood 0.4.x on more real projects and record where the skill produces weak, vague, or overconfident docs.
 - Implement 0.5.0 as a continuation-quality milestone: prove that a future human or agent can continue from the docs without the original chat.
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.8.0`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood the blind-spot warnings on older initialized projects.
+- Publish `0.9.0`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood guided exports on real projects.
+
+## Guided Export Goal
+
+The 0.9.0 export milestone turns existing project and feature memory into concise local deliverables without making people learn many commands.
+
+Target state:
+
+- `bd export` opens a guided menu for human users.
+- Feature documentation, app documentation, customer handoff, developer handoff, and project summary can be exported as concise Markdown under `exports/`.
+- Agents and scripts can use direct flags such as `bd export --feature <slug> --profile customer` and `bd export --type handoff --profile customer`.
+- Customer-facing feature exports run deterministic readiness checks before writing output.
+- If a feature does not exist, is misspelled, or is not export-ready, BD gives a precise next agent prompt instead of inventing content.
+- Customer-facing exports require implementation-verification evidence in the source docs before they are treated as ready.
+- Generated exports are snapshots with source-doc, source-commit, dirty-state, detail-level, and export-time metadata.
+
+Deferred from this milestone:
+
+- PDF rendering.
+- Hosted publishing.
+- Screenshot capture.
 
 ## 0.8.0 Goal
 

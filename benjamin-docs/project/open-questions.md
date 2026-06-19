@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-14
+updated: 2026-06-19
 source: session-capture
 ---
 
@@ -46,6 +46,16 @@ source: session-capture
 - Decision: do not add new primary commands for 0.4.0 unless dogfooding proves a repeated workflow cannot fit under `init`, `ready`, `help`, or `commands`.
 - Should starter-template detection be centralized with template definitions to avoid drift?
 - Should release and handoff scopes get first-class create commands later, or should BD keep those as starter docs only?
+
+## Guided Export
+
+- Decision: `bd export` is the only human-facing export command; detailed flags remain an agent/script API.
+- Decision: customer-facing feature exports should require implementation-verification evidence before writing output.
+- Decision: generated exports are snapshots. They do not auto-update; rerunning `bd export` regenerates them from current source docs with fresh metadata.
+- Decision: `bd export` now covers feature docs, full app docs, customer handoff, developer handoff, project summary, readiness listing, and brief/standard/detailed output levels.
+- Decision: Markdown is the first export format; PDF and hosted publishing stay deferred.
+- Should readiness checks eventually support a user-approved `--force` path, or should customer-facing exports stay blocked until docs are fixed?
+- What is the right source format for future screenshot-backed exports?
 
 ## Dogfooding
 
