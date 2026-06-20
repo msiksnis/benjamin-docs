@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: manual
 ---
 
@@ -13,9 +13,28 @@ source: manual
 
 Derived from decision and rejected-option sections across managed Benjamin docs.
 
+## [Agent Reliability Decisions](../features/agent-reliability/decisions.md)
+
+Source: `benjamin-docs/features/agent-reliability/decisions.md` (updated 2026-06-20)
+
+### Decisions
+
+- Keep the user-facing BD surface very small. New reliability work should be agent-facing, advanced, or automatic through repo-local guidance.
+- Customer-facing feature export verification should require explicit evidence recorded by an agent, not just a hidden phrase.
+- `bd export --verify <feature> --evidence "<what the agent checked>"` is an advanced command for agents and scripts. It updates the feature handoff's Implementation Verification section so later customer exports can pass readiness.
+- The CLI records verification evidence but does not claim to semantically inspect the product. Agents still own the actual implementation-vs-docs comparison.
+- Changed-work review should not warn on archived or stale docs, even when an old watch rule still matches changed source files.
+- Keep generated exports under `exports/` as disposable snapshots inside the active project root.
+
+### Rejected Options
+
+- Do not make export verification another primary human command.
+- Do not let customer-facing export silently pass because the docs look polished; implementation evidence is required.
+- Do not build a background daemon in this slice. BD can strengthen the agent contract and deterministic checks without pretending it runs autonomously.
+
 ## [Guided Export Workflow Decisions](../features/guided-export-workflow/decisions.md)
 
-Source: `benjamin-docs/features/guided-export-workflow/decisions.md` (updated 2026-06-19)
+Source: `benjamin-docs/features/guided-export-workflow/decisions.md` (updated 2026-06-20)
 
 ### Decisions
 
@@ -24,6 +43,7 @@ Source: `benjamin-docs/features/guided-export-workflow/decisions.md` (updated 20
 - Generated exports are disposable artifacts under `exports/`; source docs under `benjamin-docs/` remain the maintained truth.
 - Exported Markdown is a snapshot, not a live view. Rerunning `bd export` regenerates the file from current Benjamin Docs sources and writes fresh metadata.
 - Customer feature exports require concise user-facing content and implementation-verification evidence before writing output.
+- Agents record implementation-verification evidence with `bd export --verify <feature> --evidence "<what was checked>"`; the command updates the feature handoff instead of making agents hand-edit a magic phrase.
 - The CLI performs deterministic readiness checks and prompt generation, while agents perform semantic implementation verification.
 - Customer exports use customer-relevant source docs (`brief.md` and `handoff.md`) rather than private implementation docs such as `plan.md` and `decisions.md`.
 - Direct feature queries accept slugs or titles, but not path-like strings. Inputs containing path separators are rejected before typo/title matching.
@@ -41,7 +61,7 @@ Source: `benjamin-docs/features/guided-export-workflow/decisions.md` (updated 20
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-19)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-20)
 
 ### Recent Decisions
 
@@ -69,6 +89,8 @@ Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-19)
 - 0.6.0 adds `bd review --changed` after the Atelier audit showed agents may update feature docs while leaving project-level docs stale. The first implementation is deterministic and warning-only.
 - 0.7.0 makes the gate trustworthy for any stack: watch rules move the changed-file-to-doc mapping into config, staleness is measured from git facts (churn since engineering docs last changed) and filesystem facts (path liveness), stale Memory Views fail `ready`, and `scope status` archives finished work out of views. All checks stay deterministic; `review` stays read-only.
 - 0.8.0 closes the watch-coverage blind spot: status-bearing docs and active feature docs now warn when no watch rule can ever flag them stale, new starter docs carry `freshness: status`, and feature scope creation appends feature-specific watch coverage.
+- 2026-06-20 direction: users expect BD to make agent-led development safer as they write and review less code themselves. The CLI should stay simple for humans, while agents use richer commands and repo guidance to maintain, verify, repair, and export project memory.
+- 2026-06-20 daycare export dogfood: `/Users/marty/Important/daycare-platform-cloudflare-bd-export-scenarios` is a sibling Git worktree for export scenarios. It is acceptable as an isolated fixture, but not a good normal artifact location because it looks like a duplicate real project. `bd export` itself writes under `exports/` inside the current project root; future scenario worktrees should be clearly temporary or removed after use.
 
 ## [Baseline Capture Guide](../project/baseline-capture.md)
 

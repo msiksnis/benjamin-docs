@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: session-capture
 ---
 
@@ -37,8 +37,12 @@ source: session-capture
 
 ## Agent Guidance
 
+- Decision: BD should keep the human command surface very small and put the real operational burden on agents through advanced commands, generated guidance, and deterministic gates.
+- Decision: users should be able to trust that after `bd init`, agents will maintain and use project memory as part of normal work instead of asking the user to remember every refresh or verification step.
 - If a user requested agent guidance but an existing unmarked `AGENTS.md` was preserved, should `bd ready` fail or report a stronger warning?
 - Should generated `AGENTS.md` remain short, or include a slightly stronger operating contract for scope choice, evidence, and closeout?
+- Should BD add optional automation hooks or agent-stop recipes so freshness checks run without depending only on agent discipline?
+- How should BD explain the boundary between "agents should keep this updated" and "there is no background daemon unless the user's agent environment invokes one"?
 
 ## Templates And Review
 
@@ -61,5 +65,7 @@ source: session-capture
 
 - BD now passes its own `bd ready` checks on the published 0.4.x workflow.
 - `/Users/marty/Important/atelier-beaute` was used as a disposable real-project test for 0.3.x.
+- `/Users/marty/Important/daycare-platform-cloudflare-bd-export-scenarios` is a sibling Git worktree used for guided-export scenarios. It is useful as an isolated fixture, but confusing in the user's project folder because it resembles a second real app checkout.
 - Which second real project should be the 0.4.0 dogfood target after `atelier-beaute`?
 - Should dogfooding include a fresh-agent exercise that only sees `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`?
+- Should dogfood worktrees be created under a dedicated scratch/worktrees folder instead of beside real projects in `~/Important`?

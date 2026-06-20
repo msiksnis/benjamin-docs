@@ -5,7 +5,7 @@ scope_id: guided-export-workflow
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: manual
 freshness: status
 ---
@@ -19,6 +19,7 @@ freshness: status
 - Generated exports are disposable artifacts under `exports/`; source docs under `benjamin-docs/` remain the maintained truth.
 - Exported Markdown is a snapshot, not a live view. Rerunning `bd export` regenerates the file from current Benjamin Docs sources and writes fresh metadata.
 - Customer feature exports require concise user-facing content and implementation-verification evidence before writing output.
+- Agents record implementation-verification evidence with `bd export --verify <feature> --evidence "<what was checked>"`; the command updates the feature handoff instead of making agents hand-edit a magic phrase.
 - The CLI performs deterministic readiness checks and prompt generation, while agents perform semantic implementation verification.
 - Customer exports use customer-relevant source docs (`brief.md` and `handoff.md`) rather than private implementation docs such as `plan.md` and `decisions.md`.
 - Direct feature queries accept slugs or titles, but not path-like strings. Inputs containing path separators are rejected before typo/title matching.

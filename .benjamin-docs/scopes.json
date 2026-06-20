@@ -70,6 +70,13 @@
       "title": "Guided Export Workflow",
       "path": "benjamin-docs/features/guided-export-workflow",
       "status": "draft"
+    },
+    {
+      "id": "agent-reliability",
+      "kind": "feature",
+      "title": "Agent Reliability",
+      "path": "benjamin-docs/features/agent-reliability",
+      "status": "draft"
     }
   ]
 }

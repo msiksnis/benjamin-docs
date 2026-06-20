@@ -128,6 +128,31 @@
         "benjamin-docs/features/guided-export-workflow/decisions.md",
         "benjamin-docs/features/guided-export-workflow/handoff.md"
       ]
+    },
+    {
+      "label": "feature/agent-reliability",
+      "paths": [
+        "src/**",
+        "app/**",
+        "apps/**",
+        "lib/**",
+        "pages/**",
+        "components/**",
+        "server/**",
+        "api/**",
+        "**/*.sql",
+        "**/migrations/**",
+        "README.md",
+        "docs/**",
+        ".claude/**",
+        ".cursor/**"
+      ],
+      "docs": [
+        "benjamin-docs/features/agent-reliability/brief.md",
+        "benjamin-docs/features/agent-reliability/plan.md",
+        "benjamin-docs/features/agent-reliability/decisions.md",
+        "benjamin-docs/features/agent-reliability/handoff.md"
+      ]
     }
   ]
 }

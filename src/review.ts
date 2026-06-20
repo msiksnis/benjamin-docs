@@ -219,6 +219,10 @@ function reviewChangedWork(root: string, docsRoot: string, rules: WatchRule[], s
       continue;
     }
 
+    if (isInactiveDoc(root, doc)) {
+      continue;
+    }
+
     if (!docsChanged.includes(doc)) {
       warnings.push({ path: doc, message: `May need update because changed source files affect ${areas.join(", ")}.` });
     }
@@ -272,6 +276,15 @@ function isFreshnessSensitiveDoc(docsRoot: string, doc: string, frontmatter: Ret
   }
 
   return frontmatter.scope === "feature" && doc.startsWith(`${docsRoot}/features/`) && !doc.endsWith("/index.md");
+}
+
+function isInactiveDoc(root: string, doc: string): boolean {
+  try {
+    const parsed = parseMarkdown(readFileSync(rootPath(root, doc), "utf8"));
+    return parsed.frontmatter.status === "archived" || parsed.frontmatter.status === "stale";
+  } catch {
+    return false;
+  }
 }
 
 function getChangedFiles(root: string, since: string): ChangedFilesResult {

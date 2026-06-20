@@ -217,6 +217,38 @@ describe("review", () => {
     });
   });
 
+  it("does not warn changed-work review for archived feature docs", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReviewBaseline(dir);
+      runCliResult(["scope", "create", "feature", "old-experiment"], dir);
+      runCliResult(["scope", "status", "old-experiment", "archived"], dir);
+      setConfigWatch(dir, [
+        {
+          label: "feature/old-experiment",
+          paths: ["src/**"],
+          docs: [
+            "benjamin-docs/features/old-experiment/brief.md",
+            "benjamin-docs/features/old-experiment/plan.md",
+            "benjamin-docs/features/old-experiment/decisions.md",
+            "benjamin-docs/features/old-experiment/handoff.md",
+          ],
+        },
+      ]);
+      writeSourceFile(dir, "src/old-experiment.ts", "export const value = 1;\n");
+      commitAll(dir, "baseline");
+
+      writeSourceFile(dir, "src/old-experiment.ts", "export const value = 2;\n");
+      appendDocBody(dir, "benjamin-docs/releases/changelog.md", "## Next\n\n- Recorded current source changes.");
+
+      const result = runCliResult(["review", "--changed", "--since", "HEAD"], dir);
+
+      assert.equal(result.status, 0);
+      assert.doesNotMatch(result.stdout, /features\/old-experiment/);
+      assert.doesNotMatch(result.stdout, /May need update because changed source files affect feature\/old-experiment/);
+    });
+  });
+
   it("warns when engineering docs reference paths that no longer exist", () => {
     withTempDir((dir) => {
       runCliResult(["init", "--mode", "codebase"], dir);

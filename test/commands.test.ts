@@ -19,12 +19,13 @@ describe("commands", () => {
       assert.match(output, /benjamin-docs review --changed/);
       assert.match(output, /benjamin-docs doctor/);
       assert.match(output, /benjamin-docs views/);
+      assert.match(output, /benjamin-docs export --verify <slug>/);
       assert.match(output, /benjamin-docs anchor list/);
       assert.match(output, /benjamin-docs install-skill/);
       assert.match(output, /benjamin-docs package-skill/);
       assert.match(output, /\s+1\. benjamin-docs init/);
       assert.match(output, /benjamin-docs scope status <slug> <status>/);
-      assert.match(output, /\s+19\. benjamin-docs chat-project/);
+      assert.match(output, /\s+20\. benjamin-docs chat-project/);
       assert.doesNotMatch(output, /benjamin-docs export --audience developer/);
       assert.match(output, /type a number/);
     });
@@ -33,16 +34,17 @@ describe("commands", () => {
   it("maps every drawer entry to runnable cli args", () => {
     const commands = allCommands();
 
-    assert.equal(commands.length, 19);
+    assert.equal(commands.length, 20);
     assert.deepEqual(commands[0]?.args, ["init"]);
     assert.deepEqual(commands[1]?.args, ["ready"]);
     assert.deepEqual(commands[2]?.args, ["export"]);
     assert.deepEqual(commands[6]?.args, ["validate"]);
     assert.deepEqual(commands[8]?.args, ["review", "--changed"]);
     assert.deepEqual(commands[11]?.args, ["views"]);
-    assert.deepEqual(commands[12]?.args, ["scope", "create", "feature", "<slug>"]);
-    assert.deepEqual(commands[13]?.args, ["scope", "status", "<slug>", "<status>"]);
-    assert.deepEqual(commands[14]?.args, ["anchor", "add", "<id>", "<file>"]);
-    assert.deepEqual(commands[15]?.args, ["anchor", "list"]);
+    assert.deepEqual(commands[12]?.args, ["export", "--verify", "<slug>", "--evidence", "<evidence>"]);
+    assert.deepEqual(commands[13]?.args, ["scope", "create", "feature", "<slug>"]);
+    assert.deepEqual(commands[14]?.args, ["scope", "status", "<slug>", "<status>"]);
+    assert.deepEqual(commands[15]?.args, ["anchor", "add", "<id>", "<file>"]);
+    assert.deepEqual(commands[16]?.args, ["anchor", "list"]);
   });
 });

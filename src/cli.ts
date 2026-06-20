@@ -16,6 +16,7 @@ import {
   exportProjectSummary,
   formatFeatureExportReadiness,
   listFeatureExportChoices,
+  recordFeatureExportVerification,
   type ExportDetail,
   type ExportProfile,
 } from "./export.js";
@@ -220,6 +221,12 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
       return 0;
     }
 
+    if (options.verify) {
+      const result = recordFeatureExportVerification(cwd, options.verify, { evidence: options.evidence ?? "" });
+      console.log(result.output);
+      return 0;
+    }
+
     if (options.feature) {
       const result = exportFeature(cwd, options.feature, { profile: options.profile, detail: options.detail, includeArchived: options.includeArchived });
       console.log(result.output);
@@ -375,6 +382,8 @@ interface ExportArgs {
   type?: "app" | "handoff" | "summary";
   list?: boolean;
   includeArchived?: boolean;
+  verify?: string;
+  evidence?: string;
 }
 
 function parseExportArgs(args: string[]): ExportArgs {
@@ -395,6 +404,22 @@ function parseExportArgs(args: string[]): ExportArgs {
       const value = args[index + 1];
       if (!value) throw new Error("Usage: benjamin-docs export --feature <feature>");
       options.feature = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--verify") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs export --verify <feature> --evidence \"<what the agent checked>\"");
+      options.verify = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--evidence") {
+      const value = args[index + 1];
+      if (!value) throw new Error("Usage: benjamin-docs export --verify <feature> --evidence \"<what the agent checked>\"");
+      options.evidence = value;
       index += 1;
       continue;
     }
@@ -433,7 +458,11 @@ function parseExportArgs(args: string[]): ExportArgs {
       continue;
     }
 
-    throw new Error("Usage: benjamin-docs export [--audience <audience>] [--feature <feature> --profile <customer|developer>] [--type <app|handoff|summary>]");
+    throw new Error("Usage: benjamin-docs export [--audience <audience>] [--feature <feature> --profile <customer|developer>] [--verify <feature> --evidence \"<what the agent checked>\"] [--type <app|handoff|summary>]");
+  }
+
+  if (options.verify && !options.evidence) {
+    throw new Error("Usage: benjamin-docs export --verify <feature> --evidence \"<what the agent checked>\"");
   }
 
   return options;
@@ -730,6 +759,11 @@ async function resolveCommandEntryArgs(entry: CommandEntry): Promise<string[]> {
 
     if (arg === "<status>") {
       args.push(await promptRequiredLine("Status (draft|review|approved|stale|archived): "));
+      continue;
+    }
+
+    if (arg === "<evidence>") {
+      args.push(await promptRequiredLine("Verification evidence: "));
       continue;
     }
 

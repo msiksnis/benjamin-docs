@@ -5,7 +5,7 @@ scope_id: agent-brief
 audience: [agent]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: session-capture
 freshness: status
 ---
@@ -22,8 +22,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.8.0` published on npm.
-- Working package version: `0.9.0` for guided local exports.
+- Package status: `0.9.0` published on npm.
+- Working package version: `0.9.1` for the first Agent Reliability patch on top of guided local exports.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -38,9 +38,11 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.8.0 is published. The 0.9.0 work is implemented and release checks pass locally: guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, and regenerated export behavior.
+Current state: 0.9.0 is published. The 0.9.1 work is implemented and release checks pass locally: agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, and changed-work review skipping inactive docs.
 
 Active change: guided export is being added as the next product step. `bd export` is the human-facing UX. Direct flags such as `bd export --feature <slug> --profile customer`, `bd export --type app --profile customer`, and `bd export --type handoff --profile customer` are for agents and scripts. Exported Markdown files under `exports/` are regenerated snapshots, not maintained source docs. Customer feature exports should be concise Markdown, show readiness before selection, block when docs are not export-ready, and prompt the agent to verify implementation against the docs before exporting.
+
+Product direction: keep humans out of the operational weeds. The user-facing surface should stay very simple and easy to trust; agents should carry the 10x larger command/workflow burden in the background. Future work should make agents reliably update memory after implementation, run freshness and readiness checks, repair stale docs/views/scopes, verify exports against implementation, and use advanced commands without asking the user to manage those details.
 
 Commands/checks to run before handoff:
 
@@ -52,9 +54,9 @@ pnpm run release:check
 node dist/src/cli.js ready
 ```
 
-Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc.
+Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
 
-Next actions: publish 0.9.0 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood guided exports on real projects.
+Next actions: publish 0.9.1 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood guided exports and Agent Reliability on real projects. After 0.9.1, prioritize fresh-agent dogfood, clearer `ready` repair output, guided freshness repair, and feature lifecycle polish.
 
 ## Implemented So Far
 
@@ -99,6 +101,8 @@ Next actions: publish 0.9.0 from a freshly packed tarball, smoke-test a fresh np
 - 0.6.0 adds `bd review --changed` after the Atelier audit showed agents may update feature docs while leaving project-level docs stale. The first implementation is deterministic and warning-only.
 - 0.7.0 makes the gate trustworthy for any stack: watch rules move the changed-file-to-doc mapping into config, staleness is measured from git facts (churn since engineering docs last changed) and filesystem facts (path liveness), stale Memory Views fail `ready`, and `scope status` archives finished work out of views. All checks stay deterministic; `review` stays read-only.
 - 0.8.0 closes the watch-coverage blind spot: status-bearing docs and active feature docs now warn when no watch rule can ever flag them stale, new starter docs carry `freshness: status`, and feature scope creation appends feature-specific watch coverage.
+- 2026-06-20 direction: users expect BD to make agent-led development safer as they write and review less code themselves. The CLI should stay simple for humans, while agents use richer commands and repo guidance to maintain, verify, repair, and export project memory.
+- 2026-06-20 daycare export dogfood: `/Users/marty/Important/daycare-platform-cloudflare-bd-export-scenarios` is a sibling Git worktree for export scenarios. It is acceptable as an isolated fixture, but not a good normal artifact location because it looks like a duplicate real project. `bd export` itself writes under `exports/` inside the current project root; future scenario worktrees should be clearly temporary or removed after use.
 
 ## 0.4.x Direction
 

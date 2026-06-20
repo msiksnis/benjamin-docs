@@ -42,6 +42,10 @@
     "benjamin-docs/features/guided-export-workflow/brief.md",
     "benjamin-docs/features/guided-export-workflow/plan.md",
     "benjamin-docs/features/guided-export-workflow/decisions.md",
-    "benjamin-docs/features/guided-export-workflow/handoff.md"
+    "benjamin-docs/features/guided-export-workflow/handoff.md",
+    "benjamin-docs/features/agent-reliability/brief.md",
+    "benjamin-docs/features/agent-reliability/plan.md",
+    "benjamin-docs/features/agent-reliability/decisions.md",
+    "benjamin-docs/features/agent-reliability/handoff.md"
   ]
 }

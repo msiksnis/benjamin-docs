@@ -2,8 +2,9 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { CONFIG_DIR, KNOWN_AUDIENCES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { assertGeneratedPathSafe, ensureGeneratedDir, lstatIfExists, readGeneratedJson, rootPath, writeGeneratedText } from "./fsx.js";
-import { parseMarkdown } from "./frontmatter.js";
+import { parseMarkdown, serializeMarkdown } from "./frontmatter.js";
 import { readConfig } from "./project-config.js";
+import { today } from "./templates.js";
 import type { Audience, BenjaminDocsConfig, ManifestFile, ParsedMarkdown, ScopeRecord, ScopesFile } from "./types.js";
 import { validateProject } from "./validate.js";
 
@@ -19,6 +20,11 @@ export interface ExportFeatureOptions {
 export interface ExportDocumentOptions {
   profile?: ExportProfile;
   detail?: ExportDetail;
+}
+
+export interface RecordFeatureVerificationOptions {
+  evidence: string;
+  date?: string;
 }
 
 export interface ExportResult {
@@ -234,10 +240,88 @@ export function exportProjectSummary(root: string, options: ExportDocumentOption
   };
 }
 
+export function recordFeatureExportVerification(root: string, query: string, options: RecordFeatureVerificationOptions): ExportResult {
+  assertFeatureQuerySafe(query);
+  assertVerificationEvidence(options.evidence);
+  assertProjectExportable(root);
+
+  const match = findFeatureMatch(root, query);
+  if (!match.scope) {
+    if (match.suggestion) {
+      throw new Error(
+        [
+          `Feature "${query}" was not found.`,
+          "",
+          `Did you mean "${match.suggestion.id}"?`,
+          "",
+          "Run:",
+          `  bd export --verify ${match.suggestion.id} --evidence "<what the agent checked>"`,
+        ].join("\n"),
+      );
+    }
+
+    throw new Error(
+      [
+        `Feature "${query}" does not exist in Benjamin Docs yet.`,
+        "",
+        "Next prompt:",
+        `  Create a Benjamin Docs feature scope for ${query}, plan the feature,`,
+        "  verify it against the implementation, and make it export-ready for concise customer documentation.",
+      ].join("\n"),
+    );
+  }
+
+  if (match.scope.status === "archived") {
+    throw new Error(`Feature "${match.scope.id}" is archived. Reactivate it before recording new export verification.`);
+  }
+
+  const relativePath = `${match.scope.path}/handoff.md`;
+  const handoff = readSourceDoc(root, relativePath);
+  if (!handoff) {
+    throw new Error(
+      [
+        `Feature "${match.scope.id}" is missing its handoff doc: ${relativePath}`,
+        "",
+        "Next prompt:",
+        `  Create or repair ${relativePath}, then verify the feature implementation before export.`,
+      ].join("\n"),
+    );
+  }
+
+  const date = options.date ?? today();
+  const verification = [
+    "Implementation verified: yes",
+    "",
+    `Verified on ${date}.`,
+    "",
+    "Evidence:",
+    `- ${normalizeVerificationEvidence(options.evidence)}`,
+  ].join("\n");
+  const body = replaceOrAppendSection(handoff.parsed.body, "Implementation Verification", verification);
+  const frontmatter = { ...handoff.parsed.frontmatter, updated: date };
+  writeGeneratedText(root, relativePath, serializeMarkdown(frontmatter, body));
+
+  return {
+    written: [rootPath(root, ...relativePath.split("/"))],
+    output: [
+      `Recorded export verification for ${match.scope.id} in ${relativePath}`,
+      "",
+      "Next:",
+      `  bd export --feature ${match.scope.id} --profile customer`,
+    ].join("\n"),
+  };
+}
+
 function assertProjectExportable(root: string): void {
   const validation = validateProject(root);
   if (validation.errors.length > 0) {
     throw new Error(["Cannot export while validation has errors:", ...validation.errors.map((error) => `- ${error}`)].join("\n"));
+  }
+}
+
+function assertVerificationEvidence(evidence: string): void {
+  if (!evidence.trim()) {
+    throw new Error("Usage: benjamin-docs export --verify <feature> --evidence \"<what the agent checked>\"");
   }
 }
 
@@ -701,6 +785,26 @@ function extractSection(markdown: string, heading: string): string {
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = markdown.match(new RegExp(`(?:^|\\n)##\\s+${escaped}\\s*\\n([\\s\\S]*?)(?=\\n#{1,6}\\s+|$)`, "i"));
   return match?.[1]?.trim() ?? "";
+}
+
+function replaceOrAppendSection(markdown: string, heading: string, body: string): string {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const sectionPattern = new RegExp(`(^|\\n)##\\s+${escaped}\\s*\\n[\\s\\S]*?(?=\\n#{1,6}\\s+|$)`, "i");
+  const nextSection = `## ${heading}\n\n${body.trim()}`;
+  const trimmed = markdown.trimEnd();
+
+  if (sectionPattern.test(trimmed)) {
+    return trimmed.replace(sectionPattern, (match, prefix: string) => `${prefix}${nextSection}`);
+  }
+
+  return `${trimmed}\n\n${nextSection}`;
+}
+
+function normalizeVerificationEvidence(evidence: string): string {
+  return evidence
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/^\s*[-*]\s+/, "");
 }
 
 function firstParagraph(markdown: string): string {

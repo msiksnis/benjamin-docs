@@ -136,6 +136,7 @@ Agent/automation rule:
 
 - Agents may use direct flags when the target is clear:
   - `bd export --list`
+  - `bd export --verify <slug> --evidence "<what the agent checked>"`
   - `bd export --feature <slug> --profile customer`
   - `bd export --feature <slug> --profile developer`
   - `bd export --type app --profile customer`
@@ -150,8 +151,9 @@ Before customer-facing feature exports:
 
 1. Verify the feature implementation against the Benjamin Docs source docs.
 2. Check whether documented behavior, limitations, roles, UI flow, and edge cases match the actual code.
-3. If the docs are stale, thin, private-only, or implementation verification is missing, update the docs before retrying export.
-4. Customer-facing exports should use safe language. Do not leak agent-only notes, implementation risks, secrets, environment details, or private internal instructions.
+3. Record the verification with `bd export --verify <slug> --evidence "<what the agent checked>"`. Evidence should name the routes, components, mutations, RPCs, tests, workflows, or manual checks actually inspected.
+4. If the docs are stale, thin, private-only, or implementation verification is missing, update the docs before retrying export.
+5. Customer-facing exports should use safe language. Do not leak agent-only notes, implementation risks, secrets, environment details, or private internal instructions.
 
 If `bd export` blocks with a readiness prompt, follow that prompt first. Do not bypass a blocked customer export unless the user explicitly accepts the risk.
 

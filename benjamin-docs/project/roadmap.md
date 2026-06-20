@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: session-capture
 freshness: status
 ---
@@ -36,8 +36,8 @@ freshness: status
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.8.0`.
-- Working package version: `0.9.0` for guided local exports.
+- Current published release: `0.9.0`.
+- Working package version: `0.9.1` for the first Agent Reliability patch on top of guided local exports.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -53,13 +53,14 @@ freshness: status
 ## Immediate Next Work
 
 - Keep the CLI command surface stable. `bd export` is the only new human-facing command promoted for the customer-handoff workflow; keep detailed export flags in advanced/agent guidance.
+- Treat the next product arc as agent reliability, not more user workflow. Humans should know only a few obvious commands while agents handle refresh, changed-work review, readiness repair, export verification, scope lifecycle, and customer-safe export preparation.
 - Polish the 0.4.x simple path so `bd init` is enough in normal codebase use.
 - Dogfood 0.4.x on more real projects and record where the skill produces weak, vague, or overconfident docs.
 - Implement 0.5.0 as a continuation-quality milestone: prove that a future human or agent can continue from the docs without the original chat.
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.9.0`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood guided exports on real projects.
+- Publish `0.9.1`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood guided exports and Agent Reliability on real projects.
 
 ## Guided Export Goal
 
@@ -80,6 +81,18 @@ Deferred from this milestone:
 - PDF rendering.
 - Hosted publishing.
 - Screenshot capture.
+
+## Agent Reliability Follow-Ups
+
+These should all be considered part of the next direction, but they should remain agent-led or advanced workflows rather than new primary user commands.
+
+- Export verification workflow: make customer-facing exports depend on recorded implementation verification, with agents responsible for checking docs against the app/code before exporting.
+- Fresh-agent dogfood test: prove continuation quality by asking a new agent to continue from only `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
+- Better `bd ready` explanations: group failures into repair categories such as update docs, run views, archive stale scope, add watch coverage, verify implementation, or fix setup.
+- Guided freshness repair: give agents an advanced repair path for stale views, uncovered status docs, missing paths, and shipped/abandoned feature scopes.
+- Feature lifecycle polish: when features ship or are abandoned, help agents archive scopes, refresh views, update changelog/handoff context, and keep generated exports from treating old work as active.
+
+Dogfood finding from `/Users/marty/Important/daycare-platform-cloudflare-bd-export-scenarios`: export outputs correctly live under `exports/` relative to the active project root, but the daycare export scenario was created as a sibling Git worktree. That is acceptable for an isolated test fixture, but it is confusing as a normal user-facing artifact because it looks like a second real project. Future dogfood fixtures should live in a clearly temporary/worktrees area or be removed after validation; normal `bd export` usage should happen inside the actual project and write to that project's `exports/` directory.
 
 ## 0.8.0 Goal
 

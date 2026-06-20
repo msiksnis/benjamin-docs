@@ -5,7 +5,7 @@ scope_id: guided-export-workflow
 audience: [developer, designer, agent]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: manual
 freshness: status
 ---
@@ -25,6 +25,7 @@ In scope for the first implementation:
 - Promote `bd export` as the simple human export entrypoint.
 - Preserve `export --audience` for existing agent/script workflows.
 - Add direct feature export flags for agents: `--feature`, `--profile`, and `--include-archived`.
+- Add an agent-facing verification flag: `--verify <feature> --evidence "<what was checked>"`.
 - Support `customer` and `developer` feature export profiles.
 - Match feature queries by slug or title and suggest close matches for typos.
 - Reject path-like feature queries before matching so `--feature` cannot normalize traversal-looking input into a valid feature slug.

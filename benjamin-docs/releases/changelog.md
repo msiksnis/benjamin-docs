@@ -5,11 +5,17 @@ scope_id: release
 audience: [developer, business, public]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: manual
 ---
 
 # Changelog
+
+## 0.9.1
+
+- Added `bd export --verify <feature> --evidence "<what was checked>"` so agents can record implementation verification before customer-facing feature export.
+- Changed-work review now skips archived and stale docs when watch rules match source changes, avoiding update warnings for inactive feature memory.
+- Added the Agent Reliability feature scope to track the next product arc: simple human UX, richer agent-led upkeep, verification, repair, and lifecycle workflows.
 
 ## 0.9.0
 

@@ -20,6 +20,7 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
   { command: "benjamin-docs doctor --strict", args: ["doctor", "--strict"], description: "Run setup checks as a strict gate." },
   { command: "benjamin-docs views", args: ["views"], description: "Generate local Memory Views from managed docs." },
+  { command: "benjamin-docs export --verify <slug>", args: ["export", "--verify", "<slug>", "--evidence", "<evidence>"], description: "Record agent implementation verification before customer export." },
   { command: "benjamin-docs scope create feature <slug>", args: ["scope", "create", "feature", "<slug>"], description: "Create feature docs and metadata." },
   { command: "benjamin-docs scope status <slug> <status>", args: ["scope", "status", "<slug>", "<status>"], description: "Update a scope status, e.g. archive a shipped feature." },
   { command: "benjamin-docs anchor add <id> <file>", args: ["anchor", "add", "<id>", "<file>"], description: "Link a stable code anchor to docs." },

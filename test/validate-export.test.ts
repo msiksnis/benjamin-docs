@@ -676,6 +676,60 @@ describe("status and export", () => {
     });
   });
 
+  it("records agent verification evidence before customer feature export", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(
+        join(dir, "benjamin-docs/features/owner-delete/handoff.md"),
+        customerFeatureHandoff("owner-delete", "Owner Delete").replace("Implementation verified: yes", "Implementation verification is pending."),
+        "utf8",
+      );
+
+      const blocked = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+      assert.equal(blocked.status, 1);
+      assert.match(blocked.stderr, /Customer-facing feature export should be verified against implementation first/);
+
+      const verified = runCliResult([
+        "export",
+        "--verify",
+        "owner-delete",
+        "--evidence",
+        "Checked owner page, delete mutation, cascade RPC, and cache updates.",
+      ], dir);
+
+      assert.equal(verified.status, 0);
+      assert.match(verified.stdout, /Recorded export verification for owner-delete/);
+      assert.match(verified.stdout, /bd export --feature owner-delete --profile customer/);
+
+      const handoff = readFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), "utf8");
+      assert.match(handoff, /updated: 20\d\d-\d\d-\d\d/);
+      assert.match(handoff, /## Implementation Verification/);
+      assert.match(handoff, /Implementation verified: yes/);
+      assert.match(handoff, /Evidence:\n- Checked owner page, delete mutation, cascade RPC, and cache updates\./);
+      assert.doesNotMatch(handoff, /Implementation verification is pending/);
+
+      const exported = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+      assert.equal(exported.status, 0);
+      const output = readFileSync(join(dir, "exports/features/owner-delete-customer.md"), "utf8");
+      assert.match(output, /implementation_verified: true/);
+      assert.match(output, /Checked owner page, delete mutation, cascade RPC, and cache updates\./);
+    });
+  });
+
+  it("requires verification evidence when recording feature export verification", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+
+      const result = runCliResult(["export", "--verify", "owner-delete"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Usage: benjamin-docs export --verify <feature> --evidence/);
+    });
+  });
+
   it("exports docs for an audience while preserving docs-relative structure", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);

@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: session-capture
 ---
 
@@ -72,7 +72,7 @@ The CLI treats generated paths as project-relative paths. It rejects absolute pa
 
 Chat-to-project is intentionally gated by the skill rather than by magic background behavior. The agent must ask before creating files and must suggest `~/Documents/Benjamin Docs/<Project Name>` for chat-only projects unless the user gives an explicit path.
 
-Guided export keeps the same local-first boundary. `bd export` is the human-facing UX, while direct export flags are treated as an agent/script API. The CLI can deterministically assemble Markdown feature exports and block customer-facing output when source docs are private, thin, or not implementation-verified, but it does not perform deep semantic code verification. Agents own the implementation-vs-docs comparison before customer exports.
+Guided export keeps the same local-first boundary. `bd export` is the human-facing UX, while direct export flags are treated as an agent/script API. The CLI can deterministically assemble Markdown feature exports, record agent-provided implementation evidence with `bd export --verify <feature> --evidence "<what was checked>"`, and block customer-facing output when source docs are private, thin, or not implementation-verified. It does not perform deep semantic code verification. Agents own the implementation-vs-docs comparison before customer exports.
 
 ## Release Shape
 

@@ -5,7 +5,7 @@ scope_id: guided-export-workflow
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: manual
 freshness: status
 ---
@@ -18,6 +18,7 @@ Implementation follows `docs/superpowers/plans/2026-06-19-guided-export-workflow
 
 - Add tests for direct customer feature export, typo suggestions, missing feature prompts, readiness blocks, and legacy audience export behavior.
 - Extend `src/export.ts` with feature discovery, slug/title matching, profile rendering, customer readiness checks, implementation-verification prompts, and Markdown writing under `exports/features/`.
+- Extend `src/export.ts` with agent-facing implementation verification recording through `bd export --verify <feature> --evidence "<what was checked>"`.
 - Extend `src/export.ts` with readiness labels, app documentation, customer/developer handoffs, project summary exports, snapshot metadata, detail levels, and configurable customer leak phrases.
 - Wire `src/cli.ts` so `bd export` opens a guided menu in TTYs and direct flags work for agents/scripts.
 - Promote `export` into the main command drawer without exposing every flag in the main README flow.

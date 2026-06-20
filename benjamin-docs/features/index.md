@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, agent, business]
 status: review
 visibility: private
-updated: 2026-06-19
+updated: 2026-06-20
 source: session-capture
 ---
 
@@ -15,6 +15,7 @@ This index points to active and historical Benjamin Docs feature scopes. Use it 
 
 ## Active
 
+- [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, readiness repair, freshness repair, lifecycle cleanup, and fresh-agent dogfooding through advanced workflows.
 - [Guided Export Workflow](./guided-export-workflow/brief.md): 0.9.0 scope for the human-facing `bd export` menu, app/feature/handoff/summary Markdown snapshots, readiness labels, detail levels, customer/developer profiles, feature matching, readiness blocks, snapshot metadata, and implementation-verification prompts.
 
 ## Shipped (archived)
