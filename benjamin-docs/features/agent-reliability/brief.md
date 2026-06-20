@@ -24,6 +24,7 @@ In scope:
 
 - Record feature export verification with evidence through an agent-facing command.
 - Improve readiness and freshness repair guidance so agents know what to fix.
+- Surface recorded environment/tooling blockers in `bd ready` without treating documented local prerequisites as project-memory failures.
 - Dogfood fresh-agent continuation from only repo-local BD artifacts.
 - Polish feature lifecycle cleanup after shipped or abandoned work.
 - Keep these workflows advanced or agent-led rather than expanding the main human command list.

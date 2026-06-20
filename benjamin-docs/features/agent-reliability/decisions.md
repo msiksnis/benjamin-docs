@@ -20,9 +20,12 @@ freshness: status
 - The CLI records verification evidence but does not claim to semantically inspect the product. Agents still own the actual implementation-vs-docs comparison.
 - Changed-work review should not warn on archived or stale docs, even when an old watch rule still matches changed source files.
 - Keep generated exports under `exports/` as disposable snapshots inside the active project root.
+- `bd ready` should distinguish recorded local prerequisites from BD setup/doc failures. Missing tools or services such as `cargo` or PostgreSQL should appear under a dedicated environment/tooling category when agents documented them in project memory.
+- BD should not run arbitrary project build/test commands by itself in this slice; agents still own executing project checks and recording blockers in handoff docs.
 
 ## Rejected Options
 
 - Do not make export verification another primary human command.
 - Do not let customer-facing export silently pass because the docs look polished; implementation evidence is required.
 - Do not build a background daemon in this slice. BD can strengthen the agent contract and deterministic checks without pretending it runs autonomously.
+- Do not treat every documented blocked project check as a readiness failure. A project can be handoff-ready when the blocker is clearly recorded as local environment state.

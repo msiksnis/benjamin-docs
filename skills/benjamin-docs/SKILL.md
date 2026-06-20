@@ -121,7 +121,8 @@ When confirming a chat-created project, keep the message mobile-friendly. Prefer
 13. Then run the local CLI command with `ready` as the primary gate.
 14. Use `review --changed` when git history is available to catch source changes that probably need project-memory updates.
 15. Use lower-level checks such as `validate`, `review`, or `doctor --strict` when debugging a failed `ready` result or when the user asks for that specific check.
-16. Report changed files, generated views when refreshed, key decisions captured, unresolved questions, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
+16. When project checks are blocked by local prerequisites, record that plainly in handoff docs as an environment/tooling blocker, for example missing `cargo`, unavailable `uv`/Bun, PostgreSQL not listening, or Docker not running. Do not frame those as implementation failures unless the project itself is broken after the prerequisite is available.
+17. Report changed files, generated views when refreshed, key decisions captured, unresolved questions, environment/tooling blockers, and whether `ready` passed when readiness was relevant. Mention lower-level checks only if you ran them.
 
 ## Export Workflow
 

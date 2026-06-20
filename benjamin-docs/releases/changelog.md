@@ -11,11 +11,12 @@ source: manual
 
 # Changelog
 
-## 0.9.1
+## 0.9.2
 
 - Added `bd export --verify <feature> --evidence "<what was checked>"` so agents can record implementation verification before customer-facing feature export.
 - Changed-work review now skips archived and stale docs when watch rules match source changes, avoiding update warnings for inactive feature memory.
 - Added the Agent Reliability feature scope to track the next product arc: simple human UX, richer agent-led upkeep, verification, repair, and lifecycle workflows.
+- `bd ready` now surfaces recorded environment/tooling blockers from Benjamin source docs under a dedicated non-failing category, so agents can report missing local prerequisites such as `cargo` or PostgreSQL separately from BD setup/doc failures.
 
 ## 0.9.0
 

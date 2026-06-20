@@ -54,6 +54,35 @@ describe("ready", () => {
     });
   });
 
+  it("surfaces recorded environment and tooling blockers without failing readiness", () => {
+    withTempDir((dir) => {
+      runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["init", "--mode", "codebase"], dir);
+      writeReadyBaseline(dir);
+      appendDocBody(
+        dir,
+        "benjamin-docs/handoff/agent-brief.md",
+        "## Local Environment Blockers\n\n- Rust checks are blocked because cargo is not installed on this machine.\n- Backend pytest is blocked because PostgreSQL was not listening on 127.0.0.1:5432 and the connection was refused.\n",
+      );
+      appendDocBody(
+        dir,
+        "benjamin-docs/project/brief.md",
+        "## Product Behavior\n\nBD can surface environment blockers such as missing cargo or PostgreSQL not listening when agents record concrete check results.\n",
+      );
+
+      const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /status: ready/);
+      assert.match(result.stdout, /Recorded Environment \/ Tooling Blockers/);
+      assert.match(result.stdout, /cargo is not installed/);
+      assert.match(result.stdout, /PostgreSQL was not listening/);
+      assert.match(result.stdout, /not BD setup failures/);
+      assert.doesNotMatch(result.stdout, /such as missing cargo/);
+    });
+  });
+
   it("fails when status-bearing docs can never be flagged stale", () => {
     withTempDir((dir) => {
       runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
@@ -207,4 +236,9 @@ function setConfigWatch(root: string, watch: Array<{ label?: string; paths: stri
   const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
   config.watch = watch;
   writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+}
+
+function appendDocBody(root: string, path: string, body: string): void {
+  const fullPath = join(root, path);
+  writeFileSync(fullPath, `${readFileSync(fullPath, "utf8").trimEnd()}\n\n${body}`, "utf8");
 }

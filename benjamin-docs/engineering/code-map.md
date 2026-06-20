@@ -35,7 +35,8 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/watch.ts` holds the `WatchRule` defaults, including broad baseline coverage for project, handoff, feature-index, engineering, and release docs, plus the zero-dependency glob matcher and `resolveWatchRules` for config-or-default resolution.
 - `src/views.ts` renders Memory Views: it filters out archived/stale docs and scopes, orders sources by updated date, groups sections per source doc, and only rewrites view files whose body changed. `renderMemoryViews` is also used by review for the freshness check.
 - `src/doctor.ts` checks CLI version, installed skills, Claude Desktop upload zip, project initialization, and validation. `--strict` turns setup gaps and validation warnings into failures.
-- `src/ready.ts` is the handoff gate. It combines validation, docs review, `doctor --strict`, and agent guidance checks, and fails when any of those checks is not clean.
+- `src/environment.ts` scans Benjamin-managed source docs for recorded local environment/tooling blockers such as missing commands or unavailable services.
+- `src/ready.ts` is the handoff gate. It combines validation, docs review, `doctor --strict`, and agent guidance checks, and fails when any of those checks is not clean. It also surfaces recorded environment/tooling blockers as a non-failing handoff category when project docs captured them.
 
 ## Filesystem And Metadata
 
@@ -63,7 +64,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - Changed-work review tests in `test/review.test.ts` create git fixture repos and verify `review --changed --since HEAD` warns for source changes without source-doc updates, custom watch rules, missing watch-rule docs, generic stale not-implemented claims, doc churn, path liveness, Memory View freshness, and archived feature docs that should not trigger update warnings.
 - `test/views.test.ts` covers view generation, stable rewrites, archived-scope exclusion, and per-doc section grouping.
 - `test/scopes-anchors.test.ts` covers feature-scope watch registration, `scope status` cascade, and rejection of unknown scopes and statuses.
-- `test/ready.test.ts` covers the combined handoff gate, including failure when status docs have no freshness coverage.
+- `test/ready.test.ts` covers the combined handoff gate, including failure when status docs have no freshness coverage and non-failing surfacing of recorded environment/tooling blockers.
 - `test/fsx.test.ts` and `test/frontmatter.test.ts` cover low-level path and Markdown parsing behavior.
 
 ## Change Guide

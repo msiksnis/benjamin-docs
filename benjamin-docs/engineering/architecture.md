@@ -44,6 +44,7 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Watch-rule globs and stack-agnostic changed-file mapping live in `src/watch.ts`.
 - Memory Views rendering and lifecycle filtering live in `src/views.ts`.
 - Setup diagnostics live in `src/doctor.ts`.
+- Recorded local prerequisite detection lives in `src/environment.ts`.
 - Skill installation and Claude zip packaging live in `src/install-skill.ts` and `src/package-skill.ts`.
 - Agent-facing behavior lives in `skills/benjamin-docs/SKILL.md`.
 
@@ -73,6 +74,8 @@ The CLI treats generated paths as project-relative paths. It rejects absolute pa
 Chat-to-project is intentionally gated by the skill rather than by magic background behavior. The agent must ask before creating files and must suggest `~/Documents/Benjamin Docs/<Project Name>` for chat-only projects unless the user gives an explicit path.
 
 Guided export keeps the same local-first boundary. `bd export` is the human-facing UX, while direct export flags are treated as an agent/script API. The CLI can deterministically assemble Markdown feature exports, record agent-provided implementation evidence with `bd export --verify <feature> --evidence "<what was checked>"`, and block customer-facing output when source docs are private, thin, or not implementation-verified. It does not perform deep semantic code verification. Agents own the implementation-vs-docs comparison before customer exports.
+
+Ready output now has a small environment/tooling lens. `src/environment.ts` scans Benjamin-managed source docs for concrete recorded blockers such as command-not-found, not-installed tools, connection-refused services, or not-listening databases. `src/ready.ts` prints those findings as "Recorded Environment / Tooling Blockers" without failing readiness when validation, review, doctor, and agent guidance are otherwise clean. This keeps local prerequisite problems visible while preserving the distinction between project-memory readiness and unavailable local services.
 
 ## Release Shape
 

@@ -25,39 +25,15 @@ Source: `benjamin-docs/features/agent-reliability/decisions.md` (updated 2026-06
 - The CLI records verification evidence but does not claim to semantically inspect the product. Agents still own the actual implementation-vs-docs comparison.
 - Changed-work review should not warn on archived or stale docs, even when an old watch rule still matches changed source files.
 - Keep generated exports under `exports/` as disposable snapshots inside the active project root.
+- `bd ready` should distinguish recorded local prerequisites from BD setup/doc failures. Missing tools or services such as `cargo` or PostgreSQL should appear under a dedicated environment/tooling category when agents documented them in project memory.
+- BD should not run arbitrary project build/test commands by itself in this slice; agents still own executing project checks and recording blockers in handoff docs.
 
 ### Rejected Options
 
 - Do not make export verification another primary human command.
 - Do not let customer-facing export silently pass because the docs look polished; implementation evidence is required.
 - Do not build a background daemon in this slice. BD can strengthen the agent contract and deterministic checks without pretending it runs autonomously.
-
-## [Guided Export Workflow Decisions](../features/guided-export-workflow/decisions.md)
-
-Source: `benjamin-docs/features/guided-export-workflow/decisions.md` (updated 2026-06-20)
-
-### Decisions
-
-- `bd export` is the human-facing UX. Users should not need to learn many customer-facing commands.
-- Export flags are an API for agents and scripts. Direct commands such as `bd export --feature <slug> --profile customer` remain available, but they belong in advanced help and skill guidance.
-- Generated exports are disposable artifacts under `exports/`; source docs under `benjamin-docs/` remain the maintained truth.
-- Exported Markdown is a snapshot, not a live view. Rerunning `bd export` regenerates the file from current Benjamin Docs sources and writes fresh metadata.
-- Customer feature exports require concise user-facing content and implementation-verification evidence before writing output.
-- Agents record implementation-verification evidence with `bd export --verify <feature> --evidence "<what was checked>"`; the command updates the feature handoff instead of making agents hand-edit a magic phrase.
-- The CLI performs deterministic readiness checks and prompt generation, while agents perform semantic implementation verification.
-- Customer exports use customer-relevant source docs (`brief.md` and `handoff.md`) rather than private implementation docs such as `plan.md` and `decisions.md`.
-- Direct feature queries accept slugs or titles, but not path-like strings. Inputs containing path separators are rejected before typo/title matching.
-- The guided menu exposes detail levels, but agents/scripts can use `--detail brief|standard|detailed`.
-- App, handoff, and summary exports are assembled summaries from maintained docs, not raw doc dumps.
-- Customer export leak checks use default blocked phrases plus optional `.benjamin-docs/config.json` `export.blockedPhrases`.
-
-### Rejected Options
-
-- Do not make PDF the first-class output yet. Markdown must be good before PDF is useful.
-- Do not create or plan a missing feature during export. Export should explain the missing feature and give the agent prompt to create/update docs.
-- Do not auto-export the closest feature match after a typo. Suggest the match and require user/agent confirmation.
-- Do not promote every export flag in the README. The simple path stays `bd export`.
-- Do not silently normalize path-like feature input such as `../feature-name` into a real feature slug.
+- Do not treat every documented blocked project check as a readiness failure. A project can be handoff-ready when the blocker is clearly recorded as local environment state.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 

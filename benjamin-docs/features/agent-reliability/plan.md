@@ -19,7 +19,7 @@ This plan turns the user's product direction into small agent-led improvements. 
 1. Add an advanced export verification command so agents can record implementation evidence before customer-facing feature export. Done in the first slice.
 2. Skip archived/stale docs during changed-work watch warnings so inactive feature memory does not create agent busywork. Done in the first slice.
 3. Update command drawer, tests, public docs, project memory, and the bundled skill so agents discover the verification workflow.
-4. Improve `bd ready` failure output with grouped repair hints.
+4. Improve `bd ready` output with grouped repair hints. First slice done: `ready` now surfaces recorded environment/tooling blockers from source docs without failing readiness when the BD checks themselves are otherwise clean.
 5. Add a guided freshness repair path for agents covering stale views, uncovered status docs, missing paths, and lifecycle cleanup.
 6. Polish feature lifecycle closeout so agents archive shipped/abandoned scopes and refresh views/handoff/changelog context.
 7. Run a fresh-agent dogfood exercise that starts from only `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
@@ -27,6 +27,7 @@ This plan turns the user's product direction into small agent-led improvements. 
 ## Validation
 
 - `pnpm build`
+- `node --test dist/test/ready.test.js`
 - `node --test dist/test/validate-export.test.js`
 - `node --test dist/test/commands.test.js`
 - `pnpm check`

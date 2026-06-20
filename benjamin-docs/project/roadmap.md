@@ -36,8 +36,8 @@ freshness: status
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.9.0`.
-- Working package version: `0.9.1` for the first Agent Reliability patch on top of guided local exports.
+- Current published release: `0.9.1`.
+- Working package version: `0.9.2` for the Agent Reliability patch on top of guided local exports.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -60,7 +60,7 @@ freshness: status
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.9.1`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood guided exports and Agent Reliability on real projects.
+- Publish `0.9.2`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood guided exports and Agent Reliability on real projects.
 
 ## Guided Export Goal
 
@@ -89,6 +89,7 @@ These should all be considered part of the next direction, but they should remai
 - Export verification workflow: make customer-facing exports depend on recorded implementation verification, with agents responsible for checking docs against the app/code before exporting.
 - Fresh-agent dogfood test: prove continuation quality by asking a new agent to continue from only `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
 - Better `bd ready` explanations: group failures into repair categories such as update docs, run views, archive stale scope, add watch coverage, verify implementation, or fix setup.
+- Recorded environment/tooling blockers: done for the first slice. `bd ready` now surfaces clearly documented local prerequisites as their own non-failing category when the project memory captured them.
 - Guided freshness repair: give agents an advanced repair path for stale views, uncovered status docs, missing paths, and shipped/abandoned feature scopes.
 - Feature lifecycle polish: when features ship or are abandoned, help agents archive scopes, refresh views, update changelog/handoff context, and keep generated exports from treating old work as active.
 

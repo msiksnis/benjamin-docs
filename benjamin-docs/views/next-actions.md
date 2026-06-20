@@ -19,20 +19,10 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-2
 
 ### Next Actions
 
-- Improve `bd ready` output so failed checks include grouped repair hints.
+- Continue grouped `bd ready` repair hints beyond environment/tooling blockers, especially stale views, watch coverage, missing paths, and setup repair prompts.
 - Add a guided freshness repair path for agents.
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
-
-## [Guided Export Workflow Handoff](../features/guided-export-workflow/handoff.md)
-
-Source: `benjamin-docs/features/guided-export-workflow/handoff.md` (updated 2026-06-20)
-
-### Next Actions
-
-- Finish broad command/help/skill/docs review after the verification command.
-- Run focused tests, full `pnpm check`, `review --changed`, and `ready`.
-- If checks pass, consider whether to archive or keep this feature scope active for the next export milestones.
 
 ## [Roadmap](../project/roadmap.md)
 
@@ -48,4 +38,4 @@ Source: `benjamin-docs/project/roadmap.md` (updated 2026-06-20)
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.9.1`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood guided exports and Agent Reliability on real projects.
+- Publish `0.9.2`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood guided exports and Agent Reliability on real projects.

@@ -16,10 +16,10 @@ This index points to active and historical Benjamin Docs feature scopes. Use it 
 ## Active
 
 - [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, readiness repair, freshness repair, lifecycle cleanup, and fresh-agent dogfooding through advanced workflows.
-- [Guided Export Workflow](./guided-export-workflow/brief.md): 0.9.0 scope for the human-facing `bd export` menu, app/feature/handoff/summary Markdown snapshots, readiness labels, detail levels, customer/developer profiles, feature matching, readiness blocks, snapshot metadata, and implementation-verification prompts.
 
 ## Shipped (archived)
 
+- [Guided Export Workflow](./guided-export-workflow/brief.md): shipped in 0.9.0 and archived after 0.9.2 release prep. Human-facing `bd export` menu, app/feature/handoff/summary Markdown snapshots, readiness labels, detail levels, customer/developer profiles, feature matching, readiness blocks, snapshot metadata, and implementation-verification prompts.
 - [Freshness And Lifecycle](./freshness-and-lifecycle/brief.md): shipped in 0.8.0. Stack-agnostic changed-work review, watch-rule coverage warnings for status docs and active feature docs, git churn and path liveness staleness checks, Memory View freshness in the readiness gate, and scope lifecycle status with archived views exclusion.
 - [Agent-Ready Project Memory](./agent-ready-project-memory/brief.md): shipped in 0.4.x. Capture quality, agent operating contracts, context maps, and continuation quality.
 - [Session Capture](./session-capture/brief.md): early scope for turning chats into project memory; superseded by the bundled skill workflows.

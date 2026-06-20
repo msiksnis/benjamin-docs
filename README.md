@@ -75,7 +75,7 @@ benjamin-docs help
 
 Exports are generated snapshots under `exports/`. They are not the source of truth. Keep `benjamin-docs/` current, then rerun `benjamin-docs export` to regenerate a fresh Markdown handoff with current source metadata and timestamp.
 
-## What's New In 0.9.1
+## What's New In 0.9.2
 
 `bd export` now turns maintained Benjamin Docs source files into concise local deliverables:
 
@@ -83,6 +83,7 @@ Exports are generated snapshots under `exports/`. They are not the source of tru
 - Feature readiness labels before export: ready, blocked, or archived.
 - Customer feature exports that block private, thin, unverified, or risky docs before writing output.
 - Agent verification recording with `bd export --verify <feature> --evidence "<what was checked>"` before customer feature export.
+- `bd ready` now separates recorded environment/tooling blockers from project-memory failures.
 - Brief, standard, and detailed Markdown export levels.
 - Generated snapshot metadata: source docs, latest source-doc update, source commit, dirty state, and export time.
 - Agent/script export flags for automation while keeping the human command surface simple.

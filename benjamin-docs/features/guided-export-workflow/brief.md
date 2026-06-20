@@ -3,7 +3,7 @@ title: Guided Export Workflow Brief
 scope: feature
 scope_id: guided-export-workflow
 audience: [developer, designer, agent]
-status: review
+status: archived
 visibility: private
 updated: 2026-06-20
 source: manual

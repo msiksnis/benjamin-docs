@@ -23,10 +23,11 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-2
 - The command records a single evidence line for now. Future work may need richer structured verification history.
 - This should remain an advanced/agent workflow; humans should usually just run `bd export` or ask the agent for an export.
 - The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
+- The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
 
 ### Next Actions
 
-- Improve `bd ready` output so failed checks include grouped repair hints.
+- Continue grouped `bd ready` repair hints beyond environment/tooling blockers, especially stale views, watch coverage, missing paths, and setup repair prompts.
 - Add a guided freshness repair path for agents.
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
@@ -41,54 +42,21 @@ Read first:
 - `benjamin-docs/handoff/agent-brief.md`
 - `benjamin-docs/features/agent-reliability/plan.md`
 - `src/export.ts`
+- `src/environment.ts`
+- `src/ready.ts`
 - `src/cli.ts`
+- `test/ready.test.ts`
 - `test/validate-export.test.ts`
 
-Current status: first agent reliability slice is implemented and focused tests passed. The slice covers export verification recording plus one freshness-noise fix for inactive docs.
+Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, and recorded environment/tooling blocker surfacing in `ready`.
 
 Checks:
 
 ```bash
 pnpm build
+node --test dist/test/ready.test.js
 node --test dist/test/validate-export.test.js
 node --test dist/test/commands.test.js
-node dist/src/cli.js review --changed --since HEAD
-node dist/src/cli.js ready
-```
-
-## [Guided Export Workflow Handoff](../features/guided-export-workflow/handoff.md)
-
-Source: `benjamin-docs/features/guided-export-workflow/handoff.md` (updated 2026-06-20)
-
-### Risks / Open Questions
-
-- Exported Markdown is regenerated on demand. It does not auto-update while the project changes; source docs stay authoritative and rerunning `bd export` overwrites generated artifacts with fresh metadata.
-- Customer readiness checks are deterministic and conservative; agents still need to verify implementation semantics against code before recording evidence with `bd export --verify <feature> --evidence "<what was checked>"`.
-- The customer profile currently treats private `brief.md` or `handoff.md` as blocking, so agents must make customer-safe source docs unlisted/public before export.
-- PDF and hosted publishing remain deferred.
-
-### Next Actions
-
-- Finish broad command/help/skill/docs review after the verification command.
-- Run focused tests, full `pnpm check`, `review --changed`, and `ready`.
-- If checks pass, consider whether to archive or keep this feature scope active for the next export milestones.
-
-### Continuation Proof
-
-Read first:
-
-- `docs/superpowers/specs/2026-06-19-guided-export-workflow-design.md`
-- `docs/superpowers/plans/2026-06-19-guided-export-workflow.md`
-- `src/export.ts`
-- `src/cli.ts`
-- `test/validate-export.test.ts`
-
-Current status: implementation is underway and focused export tests pass. Remaining work is broad verification and any fixes from full checks.
-
-Checks:
-
-```bash
-pnpm check
 node dist/src/cli.js review --changed --since HEAD
 node dist/src/cli.js ready
 ```
@@ -107,8 +75,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.9.0` published on npm.
-- Working package version: `0.9.1` for the first Agent Reliability patch on top of guided local exports.
+- Package status: `0.9.1` published on npm.
+- Working package version: `0.9.2` for the Agent Reliability patch on top of guided local exports.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -123,7 +91,7 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.9.0 is published. The 0.9.1 work is implemented and release checks pass locally: agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, and changed-work review skipping inactive docs.
+Current state: 0.9.1 is published. The 0.9.2 work is implemented and release checks pass locally: agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
 
 Active change: guided export is being added as the next product step. `bd export` is the human-facing UX. Direct flags such as `bd export --feature <slug> --profile customer`, `bd export --type app --profile customer`, and `bd export --type handoff --profile customer` are for agents and scripts. Exported Markdown files under `exports/` are regenerated snapshots, not maintained source docs. Customer feature exports should be concise Markdown, show readiness before selection, block when docs are not export-ready, and prompt the agent to verify implementation against the docs before exporting.
 
@@ -141,4 +109,4 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
 
-Next actions: publish 0.9.1 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood guided exports and Agent Reliability on real projects. After 0.9.1, prioritize fresh-agent dogfood, clearer `ready` repair output, guided freshness repair, and feature lifecycle polish.
+Next actions: publish 0.9.2 from a freshly packed tarball, smoke-test a fresh npm install, tag the release, then dogfood guided exports and Agent Reliability on real projects. After 0.9.2, prioritize fresh-agent dogfood, broader grouped `ready` repair output, guided freshness repair, and feature lifecycle polish.

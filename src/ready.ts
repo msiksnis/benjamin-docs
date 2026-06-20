@@ -1,5 +1,6 @@
 import { checkAgentContracts } from "./agent-contracts.js";
 import { runDoctor } from "./doctor.js";
+import { findEnvironmentBlockers } from "./environment.js";
 import { reviewProject, type ReviewIssue } from "./review.js";
 import { validateProject } from "./validate.js";
 
@@ -19,6 +20,7 @@ export function checkReady(options: ReadyOptions = {}): ReadyResult {
   const review = reviewProject(cwd);
   const doctor = runDoctor({ cwd, commandPath: options.commandPath, strict: true });
   const agentContracts = checkAgentContracts(cwd);
+  const environmentBlockers = findEnvironmentBlockers(cwd);
 
   const validationOk = validation.errors.length === 0 && validation.warnings.length === 0;
   const reviewOk = review.errors.length === 0 && review.warnings.length === 0;
@@ -70,6 +72,13 @@ export function checkReady(options: ReadyOptions = {}): ReadyResult {
     lines.push("Agent Guidance");
     for (const error of agentContracts.errors) lines.push(`  - error: ${error}`);
     for (const warning of agentContracts.warnings) lines.push(`  - warning: ${warning}`);
+  }
+
+  if (environmentBlockers.length > 0) {
+    lines.push("");
+    lines.push("Recorded Environment / Tooling Blockers");
+    for (const blocker of environmentBlockers) lines.push(`  - ${blocker.path}: ${blocker.message}`);
+    lines.push("  These are local prerequisites recorded by project docs; they are not BD setup failures unless a check above failed.");
   }
 
   lines.push("");
