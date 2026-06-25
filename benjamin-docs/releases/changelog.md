@@ -5,7 +5,7 @@ scope_id: release
 audience: [developer, business, public]
 status: review
 visibility: private
-updated: 2026-06-20
+updated: 2026-06-25
 source: manual
 ---
 
@@ -17,6 +17,7 @@ source: manual
 - Changed-work review now skips archived and stale docs when watch rules match source changes, avoiding update warnings for inactive feature memory.
 - Added the Agent Reliability feature scope to track the next product arc: simple human UX, richer agent-led upkeep, verification, repair, and lifecycle workflows.
 - `bd ready` now surfaces recorded environment/tooling blockers from Benjamin source docs under a dedicated non-failing category, so agents can report missing local prerequisites such as `cargo` or PostgreSQL separately from BD setup/doc failures.
+- Backfilled GitHub Releases from `v0.5.1` through `v0.9.2` so the public release history matches the published npm package versions.
 
 ## 0.9.0
 

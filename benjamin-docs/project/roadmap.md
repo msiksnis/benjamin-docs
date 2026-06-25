@@ -36,14 +36,14 @@ freshness: status
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.9.1`.
-- Working package version: `0.9.2` for the Agent Reliability patch on top of guided local exports.
+- Current published release: `0.9.2`.
+- Working package version: `0.9.2`.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
-- `v0.4.2` is tagged and released on GitHub.
+- GitHub Releases are backfilled through `v0.9.2`; `v0.9.2` is the latest release and matches the current npm package version.
 - The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
 - Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
 - `bd review --changed` is implemented as an advanced, warning-only freshness check for source changes that probably need Benjamin Docs updates.
@@ -61,7 +61,7 @@ freshness: status
 - Keep the public README short, direct, and non-enterprise.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.9.2`, smoke-test a fresh install, update the bundled skill install/zip, tag the release, then dogfood guided exports and Agent Reliability on real projects.
+- Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and tagged.
 
 ## Guided Export Goal
 

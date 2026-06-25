@@ -32,7 +32,7 @@ Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-25)
 - Chat-created projects should default to `~/Documents/Benjamin Docs/<Project Name>` with human-readable names, e.g. `~/Documents/Benjamin Docs/Atelier Edits`; avoid agent-specific or dated session folders unless requested.
 - Chat-to-project confirmation copy should stay mobile-friendly: short sections, bullets for created files and captured content, and `Reply "yes" to create it`.
 - `benjamin-docs@0.4.2` is published on npm and verified from fresh temp-project installs.
-- `v0.4.2` is pushed to GitHub with release notes.
+- GitHub Releases are backfilled from `v0.5.1` through `v0.9.2`; `v0.9.2` is marked latest and points at the `release: prepare 0.9.2` commit.
 - The next milestone should focus on high-quality capture behavior, not more primary CLI commands.
 - Use pnpm for this project.
 - 0.4.1 polish should make `bd init` smart enough for normal codebase use: plain non-interactive init in an obvious codebase defaults to codebase memory with root and child agent guidance. Use `bd init --no-agent-contract` only when automation explicitly wants no repo-local guidance.
