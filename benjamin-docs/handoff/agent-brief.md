@@ -53,6 +53,7 @@ pnpm check
 node --test dist/test/validate-export.test.js dist/test/commands.test.js dist/test/info.test.js
 node dist/src/cli.js review --changed --since HEAD
 pnpm run release:check
+pnpm run release:verify-public
 node dist/src/cli.js ready
 ```
 
@@ -94,6 +95,7 @@ Next actions: dogfood guided exports and Agent Reliability on real projects. Aft
 - Chat-to-project confirmation copy should stay mobile-friendly: short sections, bullets for created files and captured content, and `Reply "yes" to create it`.
 - `benjamin-docs@0.4.2` is published on npm and verified from fresh temp-project installs.
 - GitHub Releases are backfilled from `v0.5.1` through `v0.9.2`; `v0.9.2` is marked latest and points at the `release: prepare 0.9.2` commit.
+- Future package releases should run `pnpm run release:github` immediately after npm publish, then `pnpm run release:verify-public`; a tag-push GitHub Action creates the release if a maintainer pushes the version tag manually.
 - The next milestone should focus on high-quality capture behavior, not more primary CLI commands.
 - Use pnpm for this project.
 - 0.4.1 polish should make `bd init` smart enough for normal codebase use: plain non-interactive init in an obvious codebase defaults to codebase memory with root and child agent guidance. Use `bd init --no-agent-contract` only when automation explicitly wants no repo-local guidance.

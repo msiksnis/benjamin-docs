@@ -13,6 +13,30 @@ source: manual
 
 Derived from decision and rejected-option sections across managed Benjamin docs.
 
+## [Agent Reliability Decisions](../features/agent-reliability/decisions.md)
+
+Source: `benjamin-docs/features/agent-reliability/decisions.md` (updated 2026-06-25)
+
+### Decisions
+
+- Keep the user-facing BD surface very small. New reliability work should be agent-facing, advanced, or automatic through repo-local guidance.
+- Customer-facing feature export verification should require explicit evidence recorded by an agent, not just a hidden phrase.
+- `bd export --verify <feature> --evidence "<what the agent checked>"` is an advanced command for agents and scripts. It updates the feature handoff's Implementation Verification section so later customer exports can pass readiness.
+- The CLI records verification evidence but does not claim to semantically inspect the product. Agents still own the actual implementation-vs-docs comparison.
+- Changed-work review should not warn on archived or stale docs, even when an old watch rule still matches changed source files.
+- Keep generated exports under `exports/` as disposable snapshots inside the active project root.
+- `bd ready` should distinguish recorded local prerequisites from BD setup/doc failures. Missing tools or services such as `cargo` or PostgreSQL should appear under a dedicated environment/tooling category when agents documented them in project memory.
+- BD should not run arbitrary project build/test commands by itself in this slice; agents still own executing project checks and recording blockers in handoff docs.
+- Package release hygiene should be scripted and verified instead of relying on agent memory. After npm publish, `release:github` owns tag/GitHub Release creation and `release:verify-public` confirms npm, tags, release object, and latest-release state.
+
+### Rejected Options
+
+- Do not make export verification another primary human command.
+- Do not let customer-facing export silently pass because the docs look polished; implementation evidence is required.
+- Do not build a background daemon in this slice. BD can strengthen the agent contract and deterministic checks without pretending it runs autonomously.
+- Do not treat every documented blocked project check as a readiness failure. A project can be handoff-ready when the blocker is clearly recorded as local environment state.
+- Do not leave GitHub Releases as a manual afterthought separate from the npm publish flow.
+
 ## [Agent Brief](../handoff/agent-brief.md)
 
 Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-25)
@@ -33,6 +57,7 @@ Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-25)
 - Chat-to-project confirmation copy should stay mobile-friendly: short sections, bullets for created files and captured content, and `Reply "yes" to create it`.
 - `benjamin-docs@0.4.2` is published on npm and verified from fresh temp-project installs.
 - GitHub Releases are backfilled from `v0.5.1` through `v0.9.2`; `v0.9.2` is marked latest and points at the `release: prepare 0.9.2` commit.
+- Future package releases should run `pnpm run release:github` immediately after npm publish, then `pnpm run release:verify-public`; a tag-push GitHub Action creates the release if a maintainer pushes the version tag manually.
 - The next milestone should focus on high-quality capture behavior, not more primary CLI commands.
 - Use pnpm for this project.
 - 0.4.1 polish should make `bd init` smart enough for normal codebase use: plain non-interactive init in an obvious codebase defaults to codebase memory with root and child agent guidance. Use `bd init --no-agent-contract` only when automation explicitly wants no repo-local guidance.
@@ -46,28 +71,6 @@ Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-25)
 - 2026-06-20 direction: users expect BD to make agent-led development safer as they write and review less code themselves. The CLI should stay simple for humans, while agents use richer commands and repo guidance to maintain, verify, repair, and export project memory.
 - 2026-06-20 daycare export dogfood: `/Users/marty/Important/daycare-platform-cloudflare-bd-export-scenarios` is a sibling Git worktree for export scenarios. It is acceptable as an isolated fixture, but not a good normal artifact location because it looks like a duplicate real project. `bd export` itself writes under `exports/` inside the current project root; future scenario worktrees should be clearly temporary or removed after use.
 - 2026-06-25 public-repo guardrail: future private commercial strategy, pricing, and paid SaaS planning belongs outside tracked public docs unless the user explicitly marks it public-safe.
-
-## [Agent Reliability Decisions](../features/agent-reliability/decisions.md)
-
-Source: `benjamin-docs/features/agent-reliability/decisions.md` (updated 2026-06-20)
-
-### Decisions
-
-- Keep the user-facing BD surface very small. New reliability work should be agent-facing, advanced, or automatic through repo-local guidance.
-- Customer-facing feature export verification should require explicit evidence recorded by an agent, not just a hidden phrase.
-- `bd export --verify <feature> --evidence "<what the agent checked>"` is an advanced command for agents and scripts. It updates the feature handoff's Implementation Verification section so later customer exports can pass readiness.
-- The CLI records verification evidence but does not claim to semantically inspect the product. Agents still own the actual implementation-vs-docs comparison.
-- Changed-work review should not warn on archived or stale docs, even when an old watch rule still matches changed source files.
-- Keep generated exports under `exports/` as disposable snapshots inside the active project root.
-- `bd ready` should distinguish recorded local prerequisites from BD setup/doc failures. Missing tools or services such as `cargo` or PostgreSQL should appear under a dedicated environment/tooling category when agents documented them in project memory.
-- BD should not run arbitrary project build/test commands by itself in this slice; agents still own executing project checks and recording blockers in handoff docs.
-
-### Rejected Options
-
-- Do not make export verification another primary human command.
-- Do not let customer-facing export silently pass because the docs look polished; implementation evidence is required.
-- Do not build a background daemon in this slice. BD can strengthen the agent contract and deterministic checks without pretending it runs autonomously.
-- Do not treat every documented blocked project check as a readiness failure. A project can be handoff-ready when the blocker is clearly recorded as local environment state.
 
 ## [Baseline Capture Guide](../project/baseline-capture.md)
 

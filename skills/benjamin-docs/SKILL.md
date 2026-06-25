@@ -273,6 +273,8 @@ Expected doc targets:
 
 If no Benjamin Docs update is needed, say why in the final response. The reason should be concrete, for example "only reformatted code; no behavior, workflow, architecture, or handoff context changed."
 
+For `benjamin-docs` package releases, do not stop after npm publish. After publishing the tarball, run `pnpm run release:github` to create or reuse the matching version tag and GitHub Release, then run `pnpm run release:verify-public` to confirm npm, the local tag, the origin tag, the GitHub Release, and GitHub's latest-release pointer all agree.
+
 ## Agent Guidance / AGENTS.md
 
 When initializing or updating a codebase, app, feature, or change project and the user wants future agents to work from project memory, prefer:

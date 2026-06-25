@@ -13,6 +13,60 @@ source: manual
 
 Derived from continuation-proof, read-first, current-state, check, risk, and next-action sections for future agents.
 
+## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
+
+Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-25)
+
+### Risks / Open Questions
+
+- Verification quality still depends on the agent actually checking the implementation before running the command.
+- The command records a single evidence line for now. Future work may need richer structured verification history.
+- This should remain an advanced/agent workflow; humans should usually just run `bd export` or ask the agent for an export.
+- The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
+- The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
+- Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.
+
+### Next Actions
+
+- Continue grouped `bd ready` repair hints beyond environment/tooling blockers, especially stale views, watch coverage, missing paths, and setup repair prompts.
+- Add a guided freshness repair path for agents.
+- Add lifecycle closeout polish for shipped or abandoned scopes.
+- Run the fresh-agent continuation dogfood exercise.
+
+### Continuation Proof
+
+Read first:
+
+- `benjamin-docs/project/brief.md`
+- `benjamin-docs/project/roadmap.md`
+- `benjamin-docs/project/open-questions.md`
+- `benjamin-docs/handoff/agent-brief.md`
+- `benjamin-docs/features/agent-reliability/plan.md`
+- `src/export.ts`
+- `src/environment.ts`
+- `src/ready.ts`
+- `scripts/release-github.mjs`
+- `.github/workflows/release.yml`
+- `src/cli.ts`
+- `test/ready.test.ts`
+- `test/validate-export.test.ts`
+
+Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, and recorded environment/tooling blocker surfacing in `ready`.
+
+Release guard status: implemented and verified against the current public `0.9.2` release.
+
+Checks:
+
+```bash
+pnpm build
+node --test dist/test/ready.test.js
+node --test dist/test/validate-export.test.js
+node --test dist/test/commands.test.js
+pnpm run release:verify-public
+node dist/src/cli.js review --changed --since HEAD
+node dist/src/cli.js ready
+```
+
 ## [Agent Brief](../handoff/agent-brief.md)
 
 Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-25)
@@ -58,57 +112,10 @@ pnpm check
 node --test dist/test/validate-export.test.js dist/test/commands.test.js dist/test/info.test.js
 node dist/src/cli.js review --changed --since HEAD
 pnpm run release:check
+pnpm run release:verify-public
 node dist/src/cli.js ready
 ```
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
 
 Next actions: dogfood guided exports and Agent Reliability on real projects. After 0.9.2, prioritize fresh-agent dogfood, broader grouped `ready` repair output, guided freshness repair, and feature lifecycle polish.
-
-## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
-
-Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-20)
-
-### Risks / Open Questions
-
-- Verification quality still depends on the agent actually checking the implementation before running the command.
-- The command records a single evidence line for now. Future work may need richer structured verification history.
-- This should remain an advanced/agent workflow; humans should usually just run `bd export` or ask the agent for an export.
-- The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
-- The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
-
-### Next Actions
-
-- Continue grouped `bd ready` repair hints beyond environment/tooling blockers, especially stale views, watch coverage, missing paths, and setup repair prompts.
-- Add a guided freshness repair path for agents.
-- Add lifecycle closeout polish for shipped or abandoned scopes.
-- Run the fresh-agent continuation dogfood exercise.
-
-### Continuation Proof
-
-Read first:
-
-- `benjamin-docs/project/brief.md`
-- `benjamin-docs/project/roadmap.md`
-- `benjamin-docs/project/open-questions.md`
-- `benjamin-docs/handoff/agent-brief.md`
-- `benjamin-docs/features/agent-reliability/plan.md`
-- `src/export.ts`
-- `src/environment.ts`
-- `src/ready.ts`
-- `src/cli.ts`
-- `test/ready.test.ts`
-- `test/validate-export.test.ts`
-
-Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, and recorded environment/tooling blocker surfacing in `ready`.
-
-Checks:
-
-```bash
-pnpm build
-node --test dist/test/ready.test.js
-node --test dist/test/validate-export.test.js
-node --test dist/test/commands.test.js
-node dist/src/cli.js review --changed --since HEAD
-node dist/src/cli.js ready
-```

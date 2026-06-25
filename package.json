@@ -42,6 +42,8 @@
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm build && pnpm test",
     "release:check": "pnpm check && node dist/src/cli.js validate && npm pack --dry-run",
+    "release:github": "node scripts/release-github.mjs release",
+    "release:verify-public": "node scripts/release-github.mjs verify",
     "prepublishOnly": "pnpm run release:check"
   },
   "engines": {

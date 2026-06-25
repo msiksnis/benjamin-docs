@@ -13,6 +13,17 @@ source: manual
 
 Derived from next-action and near-term work sections across managed Benjamin docs.
 
+## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
+
+Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-25)
+
+### Next Actions
+
+- Continue grouped `bd ready` repair hints beyond environment/tooling blockers, especially stale views, watch coverage, missing paths, and setup repair prompts.
+- Add a guided freshness repair path for agents.
+- Add lifecycle closeout polish for shipped or abandoned scopes.
+- Run the fresh-agent continuation dogfood exercise.
+
 ## [Roadmap](../project/roadmap.md)
 
 Source: `benjamin-docs/project/roadmap.md` (updated 2026-06-25)
@@ -29,14 +40,3 @@ Source: `benjamin-docs/project/roadmap.md` (updated 2026-06-25)
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
 - Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and tagged.
-
-## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
-
-Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-20)
-
-### Next Actions
-
-- Continue grouped `bd ready` repair hints beyond environment/tooling blockers, especially stale views, watch coverage, missing paths, and setup repair prompts.
-- Add a guided freshness repair path for agents.
-- Add lifecycle closeout polish for shipped or abandoned scopes.
-- Run the fresh-agent continuation dogfood exercise.

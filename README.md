@@ -247,7 +247,11 @@ pnpm run release:check
 tmpdir=$(mktemp -d)
 pnpm pack --pack-destination "$tmpdir"
 npm publish "$tmpdir"/benjamin-docs-*.tgz --access public
+pnpm run release:github
+pnpm run release:verify-public
 ```
+
+`release:github` confirms the just-published npm version exists, creates or reuses the matching `vX.Y.Z` git tag, pushes it, and creates the GitHub Release. A tag-push GitHub Action also creates the release if a maintainer pushes the version tag manually.
 
 ## Contributing
 

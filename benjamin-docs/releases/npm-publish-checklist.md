@@ -5,24 +5,18 @@ scope_id: release
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-06-04
+updated: 2026-06-25
 source: session-capture
 ---
 
 # npm Publish Checklist
 
-## First Public Package
+## Package
 
 Package name:
 
 ```text
 benjamin-docs
-```
-
-Initial version:
-
-```text
-0.1.0
 ```
 
 The package is distributed through the npm registry but public install docs should lead with pnpm:
@@ -52,14 +46,18 @@ This runs:
 Run:
 
 ```bash
-pnpm publish --access public
+tmpdir=$(mktemp -d)
+pnpm pack --pack-destination "$tmpdir"
+npm publish "$tmpdir"/benjamin-docs-*.tgz --access public
+pnpm run release:github
+pnpm run release:verify-public
 ```
 
 After publishing:
 
 - Confirm `pnpm add -g benjamin-docs` works in a clean environment.
 - Confirm `benjamin-docs introduce` works from outside the repo.
-- Create and push a git tag for the published version, for example `v0.5.1`.
+- Confirm GitHub shows the published version as the latest Release.
 - Update release notes if anything changed after this checklist.
 
 ## Boundary

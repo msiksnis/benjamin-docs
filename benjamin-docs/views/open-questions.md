@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: draft
 visibility: private
-updated: 2026-06-20
+updated: 2026-06-25
 source: manual
 ---
 
@@ -15,7 +15,7 @@ What unresolved questions and open risks are captured across managed Benjamin do
 
 ## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
 
-Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-20)
+Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-25)
 
 ### Risks / Open Questions
 
@@ -24,3 +24,4 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-2
 - This should remain an advanced/agent workflow; humans should usually just run `bd export` or ask the agent for an export.
 - The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
 - The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
+- Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.

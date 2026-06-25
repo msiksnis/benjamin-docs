@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-20
+updated: 2026-06-25
 source: session-capture
 ---
 
@@ -51,6 +51,8 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `skills/benjamin-docs/SKILL.md` is the bundled agent skill. It is the source of truth for agent behavior across Codex, Cursor, Claude Code, and Claude Desktop upload.
 - `src/install-skill.ts` installs the skill into shared and app-specific local skill folders.
 - `src/package-skill.ts` creates `~/Downloads/benjamin-docs-skill.zip` for Claude Desktop / Claude.ai upload.
+- `scripts/release-github.mjs` owns the post-publish GitHub release guard: it verifies npm, creates or reuses the version tag, creates the GitHub Release, and checks the latest-release pointer.
+- `.github/workflows/release.yml` is the tag-push backup path that creates a GitHub Release when a version tag is pushed manually after npm publish.
 
 ## Tests
 

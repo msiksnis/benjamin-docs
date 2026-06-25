@@ -5,7 +5,7 @@ scope_id: agent-reliability
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-20
+updated: 2026-06-25
 source: manual
 freshness: status
 ---
@@ -20,9 +20,10 @@ This plan turns the user's product direction into small agent-led improvements. 
 2. Skip archived/stale docs during changed-work watch warnings so inactive feature memory does not create agent busywork. Done in the first slice.
 3. Update command drawer, tests, public docs, project memory, and the bundled skill so agents discover the verification workflow.
 4. Improve `bd ready` output with grouped repair hints. First slice done: `ready` now surfaces recorded environment/tooling blockers from source docs without failing readiness when the BD checks themselves are otherwise clean.
-5. Add a guided freshness repair path for agents covering stale views, uncovered status docs, missing paths, and lifecycle cleanup.
-6. Polish feature lifecycle closeout so agents archive shipped/abandoned scopes and refresh views/handoff/changelog context.
-7. Run a fresh-agent dogfood exercise that starts from only `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
+5. Add release-hygiene guardrails so npm publishes are followed by matching git tags, GitHub Releases, and a public verification check. Done for this repo with `release:github`, `release:verify-public`, and the tag-push release workflow.
+6. Add a guided freshness repair path for agents covering stale views, uncovered status docs, missing paths, and lifecycle cleanup.
+7. Polish feature lifecycle closeout so agents archive shipped/abandoned scopes and refresh views/handoff/changelog context.
+8. Run a fresh-agent dogfood exercise that starts from only `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
 
 ## Validation
 
@@ -32,5 +33,6 @@ This plan turns the user's product direction into small agent-led improvements. 
 - `node --test dist/test/commands.test.js`
 - `pnpm check`
 - `node dist/src/cli.js views`
+- `pnpm run release:verify-public`
 - `node dist/src/cli.js review --changed --since HEAD`
 - `node dist/src/cli.js ready`

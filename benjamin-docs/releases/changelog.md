@@ -11,6 +11,10 @@ source: manual
 
 # Changelog
 
+## Unreleased
+
+- Added release guardrails so future npm publishes also create and verify the matching version tag and GitHub Release.
+
 ## 0.9.2
 
 - Added `bd export --verify <feature> --evidence "<what was checked>"` so agents can record implementation verification before customer-facing feature export.

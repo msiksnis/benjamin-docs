@@ -85,9 +85,11 @@ Publishing is manual for now:
 pnpm run release:check
 pnpm pack --pack-destination "$tmpdir"
 npm publish "$tmpdir"/benjamin-docs-*.tgz --access public
+pnpm run release:github
+pnpm run release:verify-public
 ```
 
-`release:check` builds, tests, validates the BD repo, and dry-runs npm packing. Tags are pushed manually after publish. This is acceptable while the project is early and releases are frequent.
+`release:check` builds, tests, validates the BD repo, and dry-runs npm packing. After npm publish, `release:github` verifies that npm reports the package version, creates or reuses the matching `vX.Y.Z` tag, pushes it, and creates a GitHub Release marked latest. `.github/workflows/release.yml` is a backup path: if a maintainer pushes a version tag manually, GitHub Actions verifies the tag against `package.json` and npm before creating the GitHub Release.
 
 ## Current Architectural Bias
 
