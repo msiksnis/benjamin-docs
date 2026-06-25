@@ -3,3 +3,12 @@ dist/
 exports/
 .DS_Store
 .remember/
+
+# Local/private planning notes for this public repo.
+.private/
+private/
+private-notes/
+conversation-captures/
+commercial-strategy/
+saas-strategy/
+paid-saas-plans/

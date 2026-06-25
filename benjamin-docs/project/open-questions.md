@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-20
+updated: 2026-06-25
 source: session-capture
 ---
 
@@ -40,6 +40,7 @@ source: session-capture
 - Decision: BD should keep the human command surface very small and put the real operational burden on agents through advanced commands, generated guidance, and deterministic gates.
 - Decision: users should be able to trust that after `bd init`, agents will maintain and use project memory as part of normal work instead of asking the user to remember every refresh or verification step.
 - Decision for 0.9.2: `bd ready` should surface plainly recorded local environment/tooling blockers separately from BD setup or docs failures, while keeping those blockers non-failing when readiness checks are otherwise clean.
+- Decision: because this repo is public, private commercial strategy, pricing, and future paid SaaS planning should stay outside tracked docs unless explicitly marked public-safe by the user.
 - If a user requested agent guidance but an existing unmarked `AGENTS.md` was preserved, should `bd ready` fail or report a stronger warning?
 - Should generated `AGENTS.md` remain short, or include a slightly stronger operating contract for scope choice, evidence, and closeout?
 - Should BD add optional automation hooks or agent-stop recipes so freshness checks run without depending only on agent discipline?

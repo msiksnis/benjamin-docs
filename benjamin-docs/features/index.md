@@ -5,13 +5,15 @@ scope_id: project
 audience: [developer, designer, agent, business]
 status: review
 visibility: private
-updated: 2026-06-20
+updated: 2026-06-25
 source: session-capture
 ---
 
 # Features Index
 
 This index points to active and historical Benjamin Docs feature scopes. Use it to decide whether new work belongs in an existing scope or needs a focused feature scope.
+
+Because this repository is public, do not create feature scopes for private commercial strategy, pricing, or future paid SaaS planning unless the user explicitly says the content is public-safe. Use ignored local folders for private planning notes.
 
 ## Active
 

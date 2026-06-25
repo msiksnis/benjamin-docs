@@ -5,7 +5,7 @@ scope_id: human-brief
 audience: [developer, designer, business, advisor]
 status: review
 visibility: private
-updated: 2026-06-20
+updated: 2026-06-25
 source: session-capture
 freshness: status
 ---
@@ -23,5 +23,7 @@ The current publish target is 0.9.2: the Agent Reliability patch on top of guide
 Main product constraint: the user workflow must stay simple. The main command surface should remain `bd init`, `bd ready`, `bd export`, and `bd help`; advanced refresh/freshness guidance can point to `bd views`, `bd review --changed`, and direct export flags without making the product feel like a full workspace app.
 
 Important product direction: BD should feel like a safety system for agent-led work. Human users should not have to manage many commands or inspect every diff to trust it; agents should be responsible for maintaining memory, checking freshness, repairing docs, verifying exports against implementation, and using advanced workflows in the background.
+
+Public repo guardrail: private commercial strategy, pricing, and future paid SaaS planning should stay out of tracked Benjamin docs unless the user explicitly says the content is public-safe. Use ignored local folders for private notes.
 
 Main open product question: how strict should deterministic freshness review become before it feels like documentation busywork? The tool should catch stale project memory without requiring docs churn for tiny implementation edits.
