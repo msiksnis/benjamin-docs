@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: draft
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: manual
 ---
 
@@ -15,7 +15,7 @@ Derived from next-action and near-term work sections across managed Benjamin doc
 
 ## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
 
-Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-25)
+Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-01)
 
 ### Next Actions
 
@@ -23,10 +23,11 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-2
 - Add a guided freshness repair path for agents.
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
+- After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory for AI coding agents and humans.
 
 ## [Roadmap](../project/roadmap.md)
 
-Source: `benjamin-docs/project/roadmap.md` (updated 2026-06-25)
+Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-01)
 
 ### Immediate Next Work
 
@@ -36,7 +37,7 @@ Source: `benjamin-docs/project/roadmap.md` (updated 2026-06-25)
 - Polish the 0.4.x simple path so `bd init` is enough in normal codebase use.
 - Dogfood 0.4.x on more real projects and record where the skill produces weak, vague, or overconfident docs.
 - Implement 0.5.0 as a continuation-quality milestone: prove that a future human or agent can continue from the docs without the original chat.
-- Keep the public README short, direct, and non-enterprise.
+- Keep the public README, npm description, package keywords, CLI intro text, and bundled skill aligned around persistent project memory for AI coding agents and humans.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
 - Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and tagged.

@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: draft
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: manual
 ---
 
@@ -15,7 +15,7 @@ Derived from risk, hazard, assumption, and open-question sections across managed
 
 ## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
 
-Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-25)
+Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-01)
 
 ### Risks / Open Questions
 
@@ -25,3 +25,4 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-2
 - The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
 - The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
 - Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.
+- Public copy can drift back toward "docs helper" language if future edits over-focus on Markdown structure or chat-to-project mechanics. Keep the first screen anchored on project memory and continuity.

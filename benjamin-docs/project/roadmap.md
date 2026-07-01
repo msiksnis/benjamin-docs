@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: session-capture
 freshness: status
 ---
@@ -50,6 +50,7 @@ freshness: status
 - `bd review --changed` is implemented as an advanced, warning-only freshness check for source changes that probably need Benjamin Docs updates.
 - `bd review` / `bd ready` now flag status-bearing docs and active feature docs that have no watch-rule coverage.
 - Guided `bd export` is implemented as the human-facing export path, with advanced direct flags reserved for agents and scripts.
+- Public GitHub and npm positioning now leads with "persistent project memory for AI coding agents and humans" so BD is not mistaken for a generic documentation package or Markdown helper.
 
 ## Immediate Next Work
 
@@ -59,7 +60,7 @@ freshness: status
 - Polish the 0.4.x simple path so `bd init` is enough in normal codebase use.
 - Dogfood 0.4.x on more real projects and record where the skill produces weak, vague, or overconfident docs.
 - Implement 0.5.0 as a continuation-quality milestone: prove that a future human or agent can continue from the docs without the original chat.
-- Keep the public README short, direct, and non-enterprise.
+- Keep the public README, npm description, package keywords, CLI intro text, and bundled skill aligned around persistent project memory for AI coding agents and humans.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
 - Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and tagged.
@@ -90,6 +91,7 @@ These should all be considered part of the next direction, but they should remai
 
 - Export verification workflow: make customer-facing exports depend on recorded implementation verification, with agents responsible for checking docs against the app/code before exporting.
 - Fresh-agent dogfood test: prove continuation quality by asking a new agent to continue from only `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
+- Public-positioning dogfood test: ask a fresh human or agent to inspect only the GitHub README or npm package page and summarize what BD is. Passing means they identify persistent project memory and context continuity, not a generic docs helper.
 - Better `bd ready` explanations: group failures into repair categories such as update docs, run views, archive stale scope, add watch coverage, verify implementation, or fix setup.
 - Recorded environment/tooling blockers: done for the first slice. `bd ready` now surfaces clearly documented local prerequisites as their own non-failing category when the project memory captured them.
 - Guided freshness repair: give agents an advanced repair path for stale views, uncovered status docs, missing paths, and shipped/abandoned feature scopes.

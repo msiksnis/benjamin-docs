@@ -5,7 +5,7 @@ scope_id: project
 audience: [agent]
 status: draft
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: manual
 ---
 
@@ -15,7 +15,7 @@ Derived from continuation-proof, read-first, current-state, check, risk, and nex
 
 ## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
 
-Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-25)
+Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-01)
 
 ### Risks / Open Questions
 
@@ -25,6 +25,7 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-2
 - The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
 - The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
 - Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.
+- Public copy can drift back toward "docs helper" language if future edits over-focus on Markdown structure or chat-to-project mechanics. Keep the first screen anchored on project memory and continuity.
 
 ### Next Actions
 
@@ -32,6 +33,7 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-06-2
 - Add a guided freshness repair path for agents.
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
+- After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory for AI coding agents and humans.
 
 ### Continuation Proof
 
@@ -42,6 +44,10 @@ Read first:
 - `benjamin-docs/project/open-questions.md`
 - `benjamin-docs/handoff/agent-brief.md`
 - `benjamin-docs/features/agent-reliability/plan.md`
+- `README.md`
+- `package.json`
+- `src/info.ts`
+- `skills/benjamin-docs/SKILL.md`
 - `src/export.ts`
 - `src/environment.ts`
 - `src/ready.ts`
@@ -50,8 +56,9 @@ Read first:
 - `src/cli.ts`
 - `test/ready.test.ts`
 - `test/validate-export.test.ts`
+- `test/info.test.ts`
 
-Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, and recorded environment/tooling blocker surfacing in `ready`.
+Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, recorded environment/tooling blocker surfacing in `ready`, release hygiene, and public first-contact positioning.
 
 Release guard status: implemented and verified against the current public `0.9.2` release.
 
@@ -62,6 +69,7 @@ pnpm build
 node --test dist/test/ready.test.js
 node --test dist/test/validate-export.test.js
 node --test dist/test/commands.test.js
+node --test dist/test/info.test.js
 pnpm run release:verify-public
 node dist/src/cli.js review --changed --since HEAD
 node dist/src/cli.js ready
@@ -69,11 +77,11 @@ node dist/src/cli.js ready
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-06-25)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-01)
 
 ### Current State
 
-`benjamin-docs` is a published npm CLI and bundled agent skill for repo-local project memory. It turns planning/build conversations into structured Markdown docs in `benjamin-docs/` plus deterministic metadata in `.benjamin-docs/`.
+`benjamin-docs` is a published npm CLI and bundled agent skill for persistent repo-local project memory. It lets future AI coding sessions start with project context instead of a cold read. Markdown in `benjamin-docs/` is the storage format; `.benjamin-docs/` holds deterministic metadata.
 
 The source repo is:
 
@@ -99,7 +107,9 @@ Read first:
 
 Current state: 0.9.2 is published on npm and released on GitHub. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
 
-Active change: guided export is being added as the next product step. `bd export` is the human-facing UX. Direct flags such as `bd export --feature <slug> --profile customer`, `bd export --type app --profile customer`, and `bd export --type handoff --profile customer` are for agents and scripts. Exported Markdown files under `exports/` are regenerated snapshots, not maintained source docs. Customer feature exports should be concise Markdown, show readiness before selection, block when docs are not export-ready, and prompt the agent to verify implementation against the docs before exporting.
+2026-07-01 public-positioning update: the README was rewritten, `package.json` description/keywords were adjusted, CLI `introduce`/help copy was aligned, and the bundled skill purpose was tightened because an outside agent misread BD as a documentation package or Markdown helper. Preserve the first-impression framing: persistent project memory for AI coding agents and humans. Do not let public copy drift back to "turn chats into docs" as the headline value.
+
+Recent change: public-facing copy was sharpened so GitHub and npm immediately communicate BD's real value. The guided export product remains implemented: `bd export` is the human-facing UX, while direct flags such as `bd export --feature <slug> --profile customer`, `bd export --type app --profile customer`, and `bd export --type handoff --profile customer` are for agents and scripts. Exported Markdown files under `exports/` are regenerated snapshots, not maintained source docs. Customer feature exports should be concise Markdown, show readiness before selection, block when docs are not export-ready, and prompt the agent to verify implementation against the docs before exporting.
 
 Product direction: keep humans out of the operational weeds. The user-facing surface should stay very simple and easy to trust; agents should carry the 10x larger command/workflow burden in the background. Future work should make agents reliably update memory after implementation, run freshness and readiness checks, repair stale docs/views/scopes, verify exports against implementation, and use advanced commands without asking the user to manage those details.
 
@@ -118,4 +128,4 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
 
-Next actions: dogfood guided exports and Agent Reliability on real projects. After 0.9.2, prioritize fresh-agent dogfood, broader grouped `ready` repair output, guided freshness repair, and feature lifecycle polish.
+Next actions: do a fresh stranger/fresh-agent read of the GitHub README and npm package after the next publish to confirm the public surfaces now communicate persistent project memory in the first few seconds. Continue dogfooding guided exports and Agent Reliability on real projects. After 0.9.2, prioritize fresh-agent dogfood, broader grouped `ready` repair output, guided freshness repair, and feature lifecycle polish.

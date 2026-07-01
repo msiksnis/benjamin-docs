@@ -1,37 +1,91 @@
 # benjamin-docs
 
-Local project memory for humans and AI agents.
+**Persistent project memory for AI coding agents and humans.**
+
+Benjamin Docs gives your repo a local memory layer. Start a new Codex, Claude Code, Cursor, or other AI coding session and the agent can immediately read what the project is, where work stopped, what decisions were made, what conventions matter, what is risky, and what to do next.
+
+Markdown is the storage format. The product is continuity.
+
+No cloud. No dashboard. No transcript dump. Just project memory that lives beside the work.
 
 [npm package](https://www.npmjs.com/package/benjamin-docs)
 
-`benjamin-docs` turns useful chats and project work into project docs.
-
-It keeps decisions, plans, open questions, and handoff notes in Markdown files inside your project.
-
-No cloud. No dashboard. No transcript dump.
-
 ## Why It Exists
 
-Chats are great for thinking.
+AI coding agents are powerful, but every new session can start cold.
 
-They are bad at becoming project memory.
+Without durable memory, you repeat the same context:
 
-`benjamin-docs` saves the useful parts: decisions, plans, open questions, and handoff notes.
+- What this app is supposed to do.
+- Which files, routes, services, and workflows matter.
+- Which choices were already made or rejected.
+- What changed last time.
+- What still needs to happen.
+- What the next agent should avoid breaking.
 
-So the next person or agent can start with context instead of asking you to explain everything again.
+Benjamin Docs turns that context into structured repo-local memory. Agents can read it before they work, update it while they work, check whether it is still handoff-ready, and export a clean summary when someone else needs the context.
 
-## Install
+## What It Is
+
+Benjamin Docs is a local CLI plus an installable agent skill.
+
+- The CLI creates and checks the project-memory structure.
+- The skill teaches agents how to read, maintain, and improve that memory.
+- The docs stay in your repo as normal Markdown.
+- The metadata stays in `.benjamin-docs/`.
+- The human-facing command surface stays small.
+
+In practice, it gives every project a memory folder:
+
+```text
+benjamin-docs/
+  project/
+  handoff/
+  engineering/
+  features/
+  releases/
+  views/
+
+.benjamin-docs/
+```
+
+`benjamin-docs/` is for humans and agents. `.benjamin-docs/` is for validation, scopes, anchors, freshness rules, and export metadata.
+
+## Quick Start
+
+Install the CLI and the bundled agent skill:
 
 ```bash
 pnpm add -g benjamin-docs
-benjamin-docs install-skill
-benjamin-docs help
+bd install-skill
+bd help
 ```
 
-Also works as a project dependency:
+`bd` is the short alias for `benjamin-docs`.
+
+Inside a project:
 
 ```bash
-pnpm add benjamin-docs
+cd your-project
+bd init
+```
+
+Then ask your agent:
+
+```text
+Read the Benjamin Docs project memory, capture the current project baseline, and keep it updated as you work.
+```
+
+Before handoff:
+
+```bash
+bd ready
+```
+
+When you need to share a clean summary or handoff:
+
+```bash
+bd export
 ```
 
 Need npm or one-off runs?
@@ -41,68 +95,101 @@ npm install -g benjamin-docs
 npx benjamin-docs
 ```
 
-`install-skill` installs the bundled agent skill for local agents:
+## The Core Workflow
 
-```text
-~/.agents/skills/benjamin-docs/
-~/.codex/skills/benjamin-docs/
-~/.claude/skills/benjamin-docs/
-~/.cursor/skills/benjamin-docs/
-```
+1. `bd init` creates repo-local project memory and agent guidance.
+2. Your agent captures the useful context: purpose, architecture, decisions, risks, open questions, next actions, and handoff notes.
+3. During later work, agents update the relevant memory instead of leaving context trapped in chat.
+4. `bd ready` checks setup, validation, docs quality, continuation proof, freshness, and agent guidance.
+5. `bd export` creates concise Markdown snapshots for app docs, feature docs, customer handoffs, developer handoffs, or project summaries.
 
-Codex, Cursor, and Claude Code can use the shared `~/.agents/skills` install.
-
-Claude Desktop / Claude.ai uses uploaded skills:
-
-```bash
-benjamin-docs package-skill
-```
-
-Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
+Humans should only need the simple path. Agents and scripts can use deeper commands when they need them.
 
 ## Main Commands
 
-Start here:
-
 ```bash
-benjamin-docs init
-benjamin-docs ready
-benjamin-docs export
-benjamin-docs help
-```
-
-`init` creates project memory. `ready` checks setup, validation, docs quality, and continuation readiness. `export` opens guided local exports for docs and handoffs. `help` shows the simple path.
-
-Exports are generated snapshots under `exports/`. They are not the source of truth. Keep `benjamin-docs/` current, then rerun `benjamin-docs export` to regenerate a fresh Markdown handoff with current source metadata and timestamp.
-
-## What's New In 0.9.2
-
-`bd export` now turns maintained Benjamin Docs source files into concise local deliverables:
-
-- Guided export menu for app docs, feature docs, customer handoffs, developer handoffs, and project summaries.
-- Feature readiness labels before export: ready, blocked, or archived.
-- Customer feature exports that block private, thin, unverified, or risky docs before writing output.
-- Agent verification recording with `bd export --verify <feature> --evidence "<what was checked>"` before customer feature export.
-- `bd ready` now separates recorded environment/tooling blockers from project-memory failures.
-- Brief, standard, and detailed Markdown export levels.
-- Generated snapshot metadata: source docs, latest source-doc update, source commit, dirty state, and export time.
-- Agent/script export flags for automation while keeping the human command surface simple.
-
-For the full command drawer:
-
-```bash
-benjamin-docs commands
-```
-
-In an interactive terminal, choose with Up/Down or type a number, then press Enter to run the selected command.
-
-Frequent users can use the short alias:
-
-```bash
+bd init
 bd ready
+bd export
+bd help
 ```
 
-## Turn A Chat Into Project Memory
+What they do:
+
+- `bd init` sets up project memory in the current repo.
+- `bd ready` checks whether the memory is valid, current, and useful for the next person or agent.
+- `bd export` opens guided local exports for clean handoffs and summaries.
+- `bd help` shows the simple path.
+
+Advanced commands stay available through:
+
+```bash
+bd commands
+```
+
+## What Agents Get From It
+
+A future agent can open the project and know:
+
+- What the app or project is.
+- Where the important code and docs live.
+- What was done in previous sessions.
+- What decisions, constraints, and conventions matter.
+- What is still open or risky.
+- Which checks to run.
+- What should happen next.
+- Which work is archived, stale, or not ready to export.
+
+That is the point: fewer cold starts, fewer repeated explanations, fewer stale handoffs.
+
+## What Humans Get From It
+
+You get a small set of commands and a repo that carries its own context.
+
+Use it when:
+
+- You work with AI coding agents across multiple sessions.
+- You switch between projects and forget where each one stopped.
+- You want new agents or collaborators to start with real context.
+- You need customer, designer, developer, or personal handoffs without dumping raw chat.
+- You want docs that agents are expected to maintain, not docs that only humans remember to update.
+
+## Why Not Just README.md, AGENTS.md, Or CLAUDE.md?
+
+Benjamin Docs complements those files.
+
+- `README.md` explains the project to the outside world.
+- `AGENTS.md`, `CLAUDE.md`, and similar files tell agents how to behave.
+- `benjamin-docs/` stores the project memory: decisions, plans, risks, architecture notes, feature state, releases, next actions, and handoff context.
+
+The agent guidance points agents into Benjamin Docs, and `bd ready` checks whether that memory is useful enough for continuation.
+
+## Existing Codebase
+
+For an existing app or repo:
+
+```bash
+bd init
+```
+
+In an obvious codebase, `init` sets up codebase memory and repo-local agent guidance automatically. Existing `AGENTS.md` files are preserved; Benjamin-owned sections are marked so they can be updated without rewriting the rest of the file.
+
+Then ask your agent:
+
+```text
+Capture the current project baseline with Benjamin Docs. Read the repo first, update the Benjamin Docs source files, then run bd ready.
+```
+
+Use explicit mode flags only when automation needs them:
+
+```bash
+bd init --mode planning
+bd init --mode codebase
+bd init --mode feature --feature <slug>
+bd init --no-agent-contract
+```
+
+## Chat-Only Project
 
 If you only have a chat and no project folder yet, ask your agent:
 
@@ -116,7 +203,7 @@ The agent should suggest:
 ~/Documents/Benjamin Docs/<Project Name>
 ```
 
-It should ask before creating files. After you confirm, it creates a local project with:
+It should ask before creating files. After you confirm, it creates:
 
 ```text
 README.md
@@ -124,112 +211,91 @@ benjamin-docs/
 .benjamin-docs/
 ```
 
-The skill runs planning setup, writes the starter project memory, and checks whether the project is ready. For the exact agent prompt:
+For the exact agent prompt:
 
 ```bash
-benjamin-docs chat-project
+bd chat-project
 ```
 
-## Use It In An Existing Project
+## Exports
 
-For an existing app or codebase:
+`bd export` creates generated Markdown snapshots under `exports/`.
+
+Exports are for sharing. They are not the source of truth. Keep `benjamin-docs/` current, then rerun `bd export` to regenerate a fresh snapshot with current source metadata, commit state, and export time.
+
+Guided exports can create:
+
+- Full app documentation.
+- Feature documentation.
+- Customer handoffs.
+- Developer handoffs.
+- Project summaries.
+
+Agents and scripts can use direct flags when the target is clear:
 
 ```bash
-benjamin-docs init
+bd export --list
+bd export --verify checkout-redesign --evidence "Checked route, mutation, permissions, UI flow, and edge cases."
+bd export --feature checkout-redesign --profile customer
+bd export --type handoff --profile customer
 ```
 
-In an obvious codebase, `init` sets up codebase memory and repo-local agent guidance automatically. Existing `AGENTS.md` files are preserved; Benjamin-owned sections are marked so they can be updated without rewriting the rest of the file.
+Customer-facing feature exports block private, thin, unverified, or risky docs before writing output. Agents should verify implementation against the docs before exporting.
 
-Then ask your agent:
+## Refresh And Readiness
+
+When useful memory already exists, agents can refresh derived views before the readiness gate:
+
+```bash
+bd views
+bd ready
+```
+
+`bd views` creates derived views for decisions, open questions, next actions, risks, and agent continuation. The source of truth stays in the project, feature, handoff, engineering, and release docs.
+
+`bd ready` checks:
+
+- Project setup.
+- Managed Markdown and metadata.
+- Links, anchors, and path safety.
+- Docs quality and continuation proof.
+- Freshness coverage for status-bearing docs.
+- Stale generated views.
+- Agent guidance health.
+- Recorded local environment or tooling blockers.
+
+## Skill Installation
+
+`bd install-skill` installs the bundled skill for local agents:
 
 ```text
-Capture the current project baseline with benjamin-docs.
+~/.agents/skills/benjamin-docs/
+~/.codex/skills/benjamin-docs/
+~/.claude/skills/benjamin-docs/
+~/.cursor/skills/benjamin-docs/
 ```
 
-When the docs are captured:
+Codex, Cursor, and Claude Code can use the shared `~/.agents/skills` install.
+
+Claude Desktop / Claude.ai uses uploaded skills:
 
 ```bash
-benjamin-docs ready
+bd package-skill
 ```
 
-Use mode flags only when you want to be specific:
+Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
 
-```bash
-benjamin-docs init --mode planning
-benjamin-docs init --mode codebase
-benjamin-docs init --mode feature --feature <slug>
-benjamin-docs init --no-agent-contract
-benjamin-docs next
-```
+## Current Version
 
-## Check Readiness
+`0.9.2` focuses on guided exports and agent reliability:
 
-```bash
-benjamin-docs ready
-```
-
-`ready` runs the full gate: setup, validation, docs quality, and continuation readiness.
-
-For agent handoff, `ready` expects `agent-brief.md` to name read-first docs, current state, checks to run, risks or hazards, and next actions.
-
-If `ready` fails, use `benjamin-docs commands` to find lower-level diagnostics such as validation, review, or doctor checks.
-
-## Refresh Project Memory
-
-When useful docs already exist, generate Memory Views before the readiness gate:
-
-```bash
-benjamin-docs init
-benjamin-docs views
-benjamin-docs ready
-```
-
-`views` creates derived Markdown views for decisions, open questions, next actions, risks, and agent continuation. The source of truth stays in the project, feature, handoff, engineering, and release docs.
-
-## What It Creates
-
-```text
-benjamin-docs/
-  project/
-  handoff/
-  engineering/
-  features/
-  releases/
-
-.benjamin-docs/
-```
-
-`benjamin-docs/` is for people and agents.
-
-`.benjamin-docs/` is metadata for validation, scopes, anchors, and exports.
-
-Existing `docs/` folders are left alone unless you explicitly configure otherwise.
-
-## More Commands
-
-Use `benjamin-docs commands` when you need advanced setup, diagnostics, exports, scope commands, or skill packaging.
-
-Useful advanced examples:
-
-```bash
-benjamin-docs views
-benjamin-docs review --changed
-benjamin-docs export --list
-benjamin-docs export --verify checkout-redesign --evidence "Checked route, mutation, permissions, UI flow, and edge cases."
-benjamin-docs export --feature checkout-redesign --profile customer
-benjamin-docs export --type handoff --profile customer
-benjamin-docs anchor add homepage pages/index.js
-benjamin-docs anchor list
-benjamin-docs scope create feature checkout-redesign
-benjamin-docs scope status checkout-redesign archived
-benjamin-docs init --help
-```
-
-`views` generates local Memory Views under `benjamin-docs/views/`: decision log, open questions, next actions, risks, and agent continuation. The views are derived from managed Markdown docs so they are readable, diffable, and not a second source of truth. Archived scopes and docs drop out of views, and `ready` warns when views are stale.
-
-`review --changed` checks git-changed work for likely project-memory updates. Use `benjamin-docs review --changed --since main` in PR-style workflows. The mapping from changed files to docs comes from `watch` rules in `.benjamin-docs/config.json`; `init` seeds generic defaults you can adapt to your stack.
-
-`review` and `ready` also catch quiet rot: status-bearing docs that are not covered by any watch rule, many source files changed since the engineering docs last changed, docs referencing files that no longer exist, and stale Memory Views.
+- Guided export menu for app docs, feature docs, customer handoffs, developer handoffs, and project summaries.
+- Feature readiness labels before export: ready, blocked, or archived.
+- Customer feature exports that block private, thin, unverified, or risky docs before writing output.
+- Agent verification recording with `bd export --verify <feature> --evidence "<what was checked>"`.
+- `bd ready` separates recorded environment/tooling blockers from project-memory failures.
+- Brief, standard, and detailed Markdown export levels.
+- Snapshot metadata for source docs, source commit, dirty state, and export time.
 
 ## Local Development
 

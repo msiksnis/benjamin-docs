@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: session-capture
 ---
 
@@ -42,6 +42,7 @@ source: session-capture
 - Decision for 0.9.2: `bd ready` should surface plainly recorded local environment/tooling blockers separately from BD setup or docs failures, while keeping those blockers non-failing when readiness checks are otherwise clean.
 - Decision: because this repo is public, private commercial strategy, pricing, and future paid SaaS planning should stay outside tracked docs unless explicitly marked public-safe by the user.
 - Decision: release hygiene should be scripted and verified after npm publish so agents do not forget GitHub tags or Releases for public package versions.
+- Decision: public first-contact surfaces should describe BD as persistent project memory for AI coding agents and humans, not as a generic documentation package, Markdown helper, or chat-to-docs converter.
 - If a user requested agent guidance but an existing unmarked `AGENTS.md` was preserved, should `bd ready` fail or report a stronger warning?
 - Should generated `AGENTS.md` remain short, or include a slightly stronger operating contract for scope choice, evidence, and closeout?
 - Should BD add optional automation hooks or agent-stop recipes so freshness checks run without depending only on agent discipline?
@@ -71,4 +72,5 @@ source: session-capture
 - `/Users/marty/Important/daycare-platform-cloudflare-bd-export-scenarios` is a sibling Git worktree used for guided-export scenarios. It is useful as an isolated fixture, but confusing in the user's project folder because it resembles a second real app checkout.
 - Which second real project should be the 0.4.0 dogfood target after `atelier-beaute`?
 - Should dogfooding include a fresh-agent exercise that only sees `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`?
+- Should the first-contact dogfood exercise become part of release prep before the next npm publish, or stay as an occasional product-positioning check?
 - Should dogfood worktrees be created under a dedicated scratch/worktrees folder instead of beside real projects in `~/Important`?

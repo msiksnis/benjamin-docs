@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: session-capture
 ---
 
@@ -16,7 +16,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 ## CLI Entry
 
 - `src/cli.ts` routes all commands and parses command-specific flags.
-- `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text.
+- `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. Keep its first-contact language aligned with `README.md`, `package.json`, and the bundled skill.
 - `src/chat-project.ts` formats the confirmation prompt for creating a project from an existing chat.
 - `src/next.ts` formats the next prompt after init/status workflows.
 
@@ -59,7 +59,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `test/init.test.ts` covers starter project creation, mode flags, default watch coverage, and status freshness frontmatter.
 - `test/validate-export.test.ts` covers validation, export, export verification, and promote behavior.
 - `test/scopes-anchors.test.ts` covers feature scopes and anchors.
-- `test/info.test.ts` covers public help, introduce, and chat-project text.
+- `test/info.test.ts` covers public help, introduce, chat-project text, and the persistent-project-memory positioning in CLI output.
 - `test/install-skill.test.ts` and `test/package-skill.test.ts` cover skill installation and Claude zip packaging.
 - `test/doctor.test.ts` covers setup diagnostics and strict mode.
 - `test/review.test.ts` covers docs-quality review behavior, including freshness blind-spot warnings.

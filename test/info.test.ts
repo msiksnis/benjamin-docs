@@ -26,7 +26,8 @@ describe("info commands", () => {
       const output = runCli(["help"], dir);
 
       assert.match(output, /benjamin-docs/);
-      assert.match(output, /Repo-local project memory/);
+      assert.match(output, /Persistent project memory/);
+      assert.match(output, /Start a new session with context/);
       assert.match(output, /benjamin-docs init/);
       assert.match(output, /benjamin-docs ready/);
       assert.match(output, /benjamin-docs export/);
@@ -53,11 +54,13 @@ describe("info commands", () => {
     withTempDir((dir) => {
       const output = runCli(["introduce"], dir);
 
-      assert.match(output, /project memory/i);
+      assert.match(output, /persistent project memory/i);
+      assert.match(output, /Continuity is the point/);
       assert.match(output, /Inside a project, run:/);
       assert.match(output, /auto-detects codebase memory and installs agent guidance/);
       assert.match(output, /From any chat, ask your agent:/);
       assert.match(output, /No cloud\. No dashboard\. No transcript dump\./);
+      assert.match(output, /benjamin-docs install-skill/);
       assert.match(output, /Use the benjamin-docs skill to create a project from this chat/);
       assert.match(output, /benjamin-docs chat-project/);
       assert.match(output, /benjamin-docs init/);
@@ -66,9 +69,8 @@ describe("info commands", () => {
       assert.match(output, /benjamin-docs export/);
       assert.match(output, /benjamin-docs help/);
       assert.match(output, /benjamin-docs commands/);
-      assert.match(output, /Capture the current project baseline with benjamin-docs/);
+      assert.match(output, /Read the Benjamin Docs project memory, capture the current baseline, and keep it updated as you work/);
       assert.doesNotMatch(output, /benjamin-docs validate/);
-      assert.doesNotMatch(output, /benjamin-docs install-skill/);
       assert.doesNotMatch(output, /local notebook/i);
     });
   });

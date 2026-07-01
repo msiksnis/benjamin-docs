@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, agent, business]
 status: review
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: session-capture
 ---
 
@@ -17,7 +17,7 @@ Because this repository is public, do not create feature scopes for private comm
 
 ## Active
 
-- [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, release hygiene, readiness repair, freshness repair, lifecycle cleanup, and fresh-agent dogfooding through advanced workflows.
+- [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, release hygiene, readiness repair, freshness repair, lifecycle cleanup, public first-contact clarity, and fresh-agent dogfooding through advanced workflows.
 
 ## Shipped (archived)
 

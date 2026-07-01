@@ -5,7 +5,7 @@ scope_id: agent-reliability
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: manual
 freshness: status
 ---
@@ -20,6 +20,8 @@ The next slice is also implemented: `bd ready` scans Benjamin-managed source doc
 
 The release-hygiene guardrail is implemented for this repo: `pnpm run release:github` verifies the npm version, creates or reuses the matching `vX.Y.Z` tag, pushes it, and creates the GitHub Release; `pnpm run release:verify-public` checks npm, local tag, origin tag, the GitHub Release, and the latest-release pointer. `.github/workflows/release.yml` creates the GitHub Release automatically when a version tag is pushed manually after npm publish.
 
+The public-positioning slice is implemented: README, npm package description/keywords, CLI help/introduce text, tests, and the bundled skill now lead with persistent project memory for AI coding agents and humans. This was prompted by an outside agent misreading BD as a generic documentation package or Markdown helper.
+
 ## Risks / Open Questions
 
 - Verification quality still depends on the agent actually checking the implementation before running the command.
@@ -28,6 +30,7 @@ The release-hygiene guardrail is implemented for this repo: `pnpm run release:gi
 - The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
 - The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
 - Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.
+- Public copy can drift back toward "docs helper" language if future edits over-focus on Markdown structure or chat-to-project mechanics. Keep the first screen anchored on project memory and continuity.
 
 ## Next Actions
 
@@ -35,6 +38,7 @@ The release-hygiene guardrail is implemented for this repo: `pnpm run release:gi
 - Add a guided freshness repair path for agents.
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
+- After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory for AI coding agents and humans.
 
 ## Continuation Proof
 
@@ -45,6 +49,10 @@ Read first:
 - `benjamin-docs/project/open-questions.md`
 - `benjamin-docs/handoff/agent-brief.md`
 - `benjamin-docs/features/agent-reliability/plan.md`
+- `README.md`
+- `package.json`
+- `src/info.ts`
+- `skills/benjamin-docs/SKILL.md`
 - `src/export.ts`
 - `src/environment.ts`
 - `src/ready.ts`
@@ -53,8 +61,9 @@ Read first:
 - `src/cli.ts`
 - `test/ready.test.ts`
 - `test/validate-export.test.ts`
+- `test/info.test.ts`
 
-Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, and recorded environment/tooling blocker surfacing in `ready`.
+Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, recorded environment/tooling blocker surfacing in `ready`, release hygiene, and public first-contact positioning.
 
 Release guard status: implemented and verified against the current public `0.9.2` release.
 
@@ -65,6 +74,7 @@ pnpm build
 node --test dist/test/ready.test.js
 node --test dist/test/validate-export.test.js
 node --test dist/test/commands.test.js
+node --test dist/test/info.test.js
 pnpm run release:verify-public
 node dist/src/cli.js review --changed --since HEAD
 node dist/src/cli.js ready

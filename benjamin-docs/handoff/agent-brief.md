@@ -5,7 +5,7 @@ scope_id: agent-brief
 audience: [agent]
 status: review
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: session-capture
 freshness: status
 ---
@@ -14,7 +14,7 @@ freshness: status
 
 ## Current State
 
-`benjamin-docs` is a published npm CLI and bundled agent skill for repo-local project memory. It turns planning/build conversations into structured Markdown docs in `benjamin-docs/` plus deterministic metadata in `.benjamin-docs/`.
+`benjamin-docs` is a published npm CLI and bundled agent skill for persistent repo-local project memory. It lets future AI coding sessions start with project context instead of a cold read. Markdown in `benjamin-docs/` is the storage format; `.benjamin-docs/` holds deterministic metadata.
 
 The source repo is:
 
@@ -40,7 +40,9 @@ Read first:
 
 Current state: 0.9.2 is published on npm and released on GitHub. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
 
-Active change: guided export is being added as the next product step. `bd export` is the human-facing UX. Direct flags such as `bd export --feature <slug> --profile customer`, `bd export --type app --profile customer`, and `bd export --type handoff --profile customer` are for agents and scripts. Exported Markdown files under `exports/` are regenerated snapshots, not maintained source docs. Customer feature exports should be concise Markdown, show readiness before selection, block when docs are not export-ready, and prompt the agent to verify implementation against the docs before exporting.
+2026-07-01 public-positioning update: the README was rewritten, `package.json` description/keywords were adjusted, CLI `introduce`/help copy was aligned, and the bundled skill purpose was tightened because an outside agent misread BD as a documentation package or Markdown helper. Preserve the first-impression framing: persistent project memory for AI coding agents and humans. Do not let public copy drift back to "turn chats into docs" as the headline value.
+
+Recent change: public-facing copy was sharpened so GitHub and npm immediately communicate BD's real value. The guided export product remains implemented: `bd export` is the human-facing UX, while direct flags such as `bd export --feature <slug> --profile customer`, `bd export --type app --profile customer`, and `bd export --type handoff --profile customer` are for agents and scripts. Exported Markdown files under `exports/` are regenerated snapshots, not maintained source docs. Customer feature exports should be concise Markdown, show readiness before selection, block when docs are not export-ready, and prompt the agent to verify implementation against the docs before exporting.
 
 Product direction: keep humans out of the operational weeds. The user-facing surface should stay very simple and easy to trust; agents should carry the 10x larger command/workflow burden in the background. Future work should make agents reliably update memory after implementation, run freshness and readiness checks, repair stale docs/views/scopes, verify exports against implementation, and use advanced commands without asking the user to manage those details.
 
@@ -59,7 +61,7 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
 
-Next actions: dogfood guided exports and Agent Reliability on real projects. After 0.9.2, prioritize fresh-agent dogfood, broader grouped `ready` repair output, guided freshness repair, and feature lifecycle polish.
+Next actions: do a fresh stranger/fresh-agent read of the GitHub README and npm package after the next publish to confirm the public surfaces now communicate persistent project memory in the first few seconds. Continue dogfooding guided exports and Agent Reliability on real projects. After 0.9.2, prioritize fresh-agent dogfood, broader grouped `ready` repair output, guided freshness repair, and feature lifecycle polish.
 
 ## Implemented So Far
 
@@ -86,7 +88,7 @@ Next actions: dogfood guided exports and Agent Reliability on real projects. Aft
 - The free/open-source part should help adoption; the SaaS can monetize publishing, sharing, auth, comments, and non-technical editing.
 - The tool must work before code exists, after code exists, and for a single feature scope.
 - Agents should not only agree with user plans. The skill should preserve intent while naming weak assumptions, unclear decisions, overbuilt V1 scope, and better alternatives.
-- Public README baseline capture guidance now covers a new idea, an existing codebase, and one feature scope.
+- Public README now leads with persistent project memory for AI coding agents and humans, then explains new idea, existing codebase, and export workflows.
 - Public README setup guidance now leads with pnpm global install and keeps source checkout details under local development.
 - The second stranger test focused on a non-code person; README and CLI copy now explain `benjamin-docs` as a local project notebook an AI agent keeps in the project folder.
 - Generated `next` prompts now ask for plain language or non-technical readability where appropriate.

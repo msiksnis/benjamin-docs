@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-06-20
+updated: 2026-07-01
 source: session-capture
 ---
 
@@ -22,6 +22,8 @@ benjamin-docs -> dist/src/cli.js
 ```
 
 The TypeScript source lives in `src/` and is compiled to `dist/src/` before publishing. The package intentionally ships no runtime dependencies. It uses Node built-ins for filesystem work, path safety, process execution, and test fixtures.
+
+Public first-contact surfaces are part of the architecture because this package is discovered through GitHub, npm, and CLI help before any agent workflow runs. `README.md`, `package.json` description/keywords, `src/info.ts`, and `skills/benjamin-docs/SKILL.md` must all describe the same product: persistent project memory for AI coding agents and humans.
 
 ## Project Layout
 

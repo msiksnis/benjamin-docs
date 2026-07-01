@@ -5,20 +5,24 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-06-25
+updated: 2026-07-01
 source: session-capture
 freshness: status
 ---
 
 # Project Brief
 
-`benjamin-docs` is a repo-local project memory system for humans and AI agents. It turns planning and build conversations into structured Markdown docs that live close to the work.
+`benjamin-docs` is a persistent repo-local project memory system for AI coding agents and humans. It lets a new coding session start with project context: what the project is, where work stopped, what decisions and conventions matter, what is risky, and what should happen next.
+
+The public positioning must make that clear in the first few sentences. BD is not a generic documentation package or Markdown helper. Markdown is the storage format; the product is continuity across agent sessions, human handoffs, and implementation work.
 
 V1 is an open-source npm CLI plus Codex/Claude skill. The CLI owns structure, validation, scopes, anchors, guided local exports, and approachable commands. The skill owns synthesis from chat context and should challenge weak plans instead of acting as a passive note taker.
 
 The human-facing command surface is intentionally small: `bd init`, `bd ready`, `bd export`, and `bd help`. Advanced flags and diagnostics remain available through `bd commands` and agent guidance.
 
 The core product model is asymmetric: humans should see a calm, tiny surface and feel safe that project memory is being maintained, while agents carry the richer operating contract. After `bd init`, users should not need to remember refresh, freshness, verification, scope lifecycle, or export-preparation details; agents should know and use those workflows through repo-local guidance, deterministic checks, and advanced commands.
+
+Public entry points now need to work for both humans and agents. The GitHub README, npm description, package keywords, CLI `introduce` text, and bundled skill should all use the same framing: persistent project memory for AI coding agents and humans.
 
 Agent Reliability now includes clearer handling for local prerequisites. When agents record that project checks are blocked by missing tools or services, such as a command that is not installed or a database that is not listening, `bd ready` surfaces those notes under a dedicated environment/tooling category instead of blending them into generic project failure language.
 
