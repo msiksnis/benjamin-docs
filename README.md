@@ -273,8 +273,13 @@ Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
 
 ## Current Version
 
-`0.9.2` focuses on guided exports and agent reliability:
+`0.9.3` focuses on public npm/GitHub clarity for the agent-memory value proposition:
 
+- README and npm metadata now lead with persistent project memory for AI coding agents.
+- The first screen explains that agents read, follow, and update project knowledge while they work.
+- Export docs now frame `bd export` as focused knowledge packages rather than Markdown dumping.
+- CLI help/introduce text and the bundled skill use the same positioning.
+- The 0.9.2 guided export and Agent Reliability features remain included:
 - Guided export menu for app docs, feature docs, customer handoffs, developer handoffs, and project summaries.
 - Feature readiness labels before export: ready, blocked, or archived.
 - Customer feature exports that block private, thin, unverified, or risky docs before writing output.

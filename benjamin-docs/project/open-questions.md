@@ -43,6 +43,7 @@ source: session-capture
 - Decision: because this repo is public, private commercial strategy, pricing, and future paid SaaS planning should stay outside tracked docs unless explicitly marked public-safe by the user.
 - Decision: release hygiene should be scripted and verified after npm publish so agents do not forget GitHub tags or Releases for public package versions.
 - Decision: public first-contact surfaces should describe BD as persistent project memory for AI coding agents and living project knowledge that agents update while they work, not as a generic documentation package, Markdown helper, or chat-to-docs converter.
+- Decision for 0.9.3: publish the public-positioning update as a patch release with no runtime behavior change.
 - If a user requested agent guidance but an existing unmarked `AGENTS.md` was preserved, should `bd ready` fail or report a stronger warning?
 - Should generated `AGENTS.md` remain short, or include a slightly stronger operating contract for scope choice, evidence, and closeout?
 - Should BD add optional automation hooks or agent-stop recipes so freshness checks run without depending only on agent discipline?

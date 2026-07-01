@@ -24,6 +24,8 @@ The core product model is asymmetric: humans should see a calm, tiny surface and
 
 Public entry points now need to work for both humans and agents. The GitHub README, npm description, package keywords, CLI `introduce` text, and bundled skill should all use the same framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Preserve the caveat that BD is not a background daemon; upkeep happens because the installed skill and repo-local guidance instruct agents to maintain the memory as part of normal work.
 
+The 0.9.3 release candidate packages that public positioning for npmjs. Runtime command behavior remains the 0.9.x guided-export and Agent Reliability surface; the patch exists so a fresh npm/GitHub visitor sees the correct value proposition immediately.
+
 Agent Reliability now includes clearer handling for local prerequisites. When agents record that project checks are blocked by missing tools or services, such as a command that is not installed or a database that is not listening, `bd ready` surfaces those notes under a dedicated environment/tooling category instead of blending them into generic project failure language.
 
 Release hygiene is now part of that agent-owned operating contract. After npm publish, maintainers/agents should run `pnpm run release:github` and `pnpm run release:verify-public` so the public npm version, git tag, and GitHub Release stay aligned.

@@ -29,6 +29,7 @@ Source: `benjamin-docs/features/agent-reliability/decisions.md` (updated 2026-07
 - BD should not run arbitrary project build/test commands by itself in this slice; agents still own executing project checks and recording blockers in handoff docs.
 - Package release hygiene should be scripted and verified instead of relying on agent memory. After npm publish, `release:github` owns tag/GitHub Release creation and `release:verify-public` confirms npm, tags, release object, and latest-release state.
 - Public first-contact surfaces must lead with persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. README, npm metadata, CLI intro/help, and the bundled skill should not make people or agents infer the core value from lower-level Markdown/doc mechanics.
+- Treat 0.9.3 as a patch release because behavior is unchanged. Its job is to publish the public README/npm metadata clarity already prepared in the repo.
 
 ### Rejected Options
 

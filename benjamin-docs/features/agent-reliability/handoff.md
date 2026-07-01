@@ -65,7 +65,7 @@ Read first:
 
 Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, recorded environment/tooling blocker surfacing in `ready`, release hygiene, and public first-contact positioning. The latest README/npm pass emphasizes that agents read, follow, and update BD memory while they work, while avoiding the false claim that BD is an autonomous background daemon.
 
-Release guard status: implemented and verified against the current public `0.9.2` release.
+Release guard status: implemented and verified against the current public `0.9.2` release. For the prepared `0.9.3` publish, run `pnpm run release:github` after npm publish, then `pnpm run release:verify-public`.
 
 Checks:
 

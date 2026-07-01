@@ -60,7 +60,7 @@ Read first:
 
 Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, recorded environment/tooling blocker surfacing in `ready`, release hygiene, and public first-contact positioning. The latest README/npm pass emphasizes that agents read, follow, and update BD memory while they work, while avoiding the false claim that BD is an autonomous background daemon.
 
-Release guard status: implemented and verified against the current public `0.9.2` release.
+Release guard status: implemented and verified against the current public `0.9.2` release. For the prepared `0.9.3` publish, run `pnpm run release:github` after npm publish, then `pnpm run release:verify-public`.
 
 Checks:
 
@@ -89,8 +89,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.9.2` published on npm.
-- Working package version: `0.9.2`.
+- Package status: `0.9.2` published on npm; `0.9.3` prepared for the next npm publish.
+- Working package version: `0.9.3`.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -105,7 +105,7 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.9.2 is published on npm and released on GitHub. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
+Current state: 0.9.2 is published on npm and released on GitHub. The working tree is preparing `0.9.3` for npm publish so the npmjs page receives the updated README, package description, and keywords. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
 
 2026-07-01 public-positioning update: the README was rewritten, `package.json` description/keywords were adjusted, CLI `introduce`/help copy was aligned, and the bundled skill purpose was tightened because an outside agent misread BD as a documentation package or Markdown helper. Preserve the first-impression framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Do not let public copy drift back to "turn chats into docs" as the headline value.
 
@@ -128,4 +128,4 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
 
-Next actions: do a fresh stranger/fresh-agent read of the GitHub README and npm package after the next publish to confirm the public surfaces now communicate persistent project memory in the first few seconds. Continue dogfooding guided exports and Agent Reliability on real projects. After 0.9.2, prioritize fresh-agent dogfood, broader grouped `ready` repair output, guided freshness repair, and feature lifecycle polish.
+Next actions: publish `0.9.3`, then run `pnpm run release:github` and `pnpm run release:verify-public`. After the publish, do a fresh stranger/fresh-agent read of the GitHub README and npm package to confirm the public surfaces now communicate persistent project memory in the first few seconds. Continue dogfooding guided exports and Agent Reliability on real projects.

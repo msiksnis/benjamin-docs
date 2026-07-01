@@ -37,13 +37,13 @@ freshness: status
 
 - `benjamin-docs` is published on npm.
 - Current published release: `0.9.2`.
-- Working package version: `0.9.2`.
+- Working package version: `0.9.3` release candidate for npm publish.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
-- GitHub Releases are backfilled through `v0.9.2`; `v0.9.2` is the latest release and matches the current npm package version.
+- GitHub Releases are backfilled through `v0.9.2`; `v0.9.2` is the latest published release until `0.9.3` is published.
 - Release guardrails now include `pnpm run release:github`, `pnpm run release:verify-public`, and a tag-push GitHub Action that creates GitHub Releases from version tags after verifying npm.
 - The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
 - Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
@@ -63,7 +63,8 @@ freshness: status
 - Keep the public README, npm description, package keywords, CLI intro text, and bundled skill aligned around persistent project memory, living project knowledge, agent-maintained docs, and focused export packages.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and tagged.
+- Publish `0.9.3`, then run the release guardrails so npm, the git tag, and GitHub Release match.
+- Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and `0.9.3` is prepared.
 
 ## Guided Export Goal
 

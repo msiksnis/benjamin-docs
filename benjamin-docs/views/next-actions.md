@@ -40,4 +40,5 @@ Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-01)
 - Keep the public README, npm description, package keywords, CLI intro text, and bundled skill aligned around persistent project memory, living project knowledge, agent-maintained docs, and focused export packages.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and tagged.
+- Publish `0.9.3`, then run the release guardrails so npm, the git tag, and GitHub Release match.
+- Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and `0.9.3` is prepared.

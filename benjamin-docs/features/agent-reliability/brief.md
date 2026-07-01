@@ -20,6 +20,8 @@ Human users should feel that after `bd init`, their agents know how to keep proj
 
 First-contact understanding is also part of Agent Reliability. If a fresh agent sees the GitHub README or npm package and mistakes BD for a generic documentation package or Markdown helper, the agent workflow starts from the wrong model. Public copy must make the memory/continuity value obvious before deeper docs are needed, including the fact that agents are instructed to keep the docs current while they work.
 
+The 0.9.3 release candidate packages this first-contact positioning for npm. It does not add new runtime behavior; it makes the existing agent-memory model obvious on the public package surfaces.
+
 ## Scope
 
 In scope:
