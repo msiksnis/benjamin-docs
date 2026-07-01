@@ -14,7 +14,7 @@ source: manual
 ## Unreleased
 
 - Rewrote the public README around the core value proposition: persistent project memory for AI coding agents and humans.
-- Updated npm package metadata, CLI introduction/help text, and bundled skill wording so GitHub, npm, and agent-facing surfaces all use the same positioning.
+- Updated npm package metadata, CLI introduction/help text, and bundled skill wording so GitHub, npm, and agent-facing surfaces all emphasize living project knowledge, agent-maintained memory, and focused export packages.
 - Added release guardrails so future npm publishes also create and verify the matching version tag and GitHub Release.
 
 ## 0.9.2

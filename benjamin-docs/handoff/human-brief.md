@@ -14,9 +14,9 @@ freshness: status
 
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`, currently published at `0.9.2`, and focuses on local files rather than SaaS.
 
-The product promise is simple: every new AI coding session should start with usable context instead of a cold read. BD preserves the project purpose, decisions, conventions, risks, open questions, next actions, and handoff notes in Markdown. The docs live in the project under `benjamin-docs/`; metadata lives under `.benjamin-docs/`.
+The product promise is simple: every new AI coding session should start with usable context instead of a cold read. BD preserves the project purpose, decisions, progress, conventions, risks, open questions, next actions, and handoff notes in Markdown. The docs live in the project under `benjamin-docs/`; metadata lives under `.benjamin-docs/`.
 
-2026-07-01 positioning update: the public README, npm package description, package keywords, CLI introduction, and bundled skill were tightened after an outside agent misread BD as a documentation package or Markdown helper. The public first impression must now lead with persistent project memory for AI coding agents and humans, with Markdown presented as the storage format rather than the core value.
+2026-07-01 positioning update: the public README, npm package description, package keywords, CLI introduction, and bundled skill were tightened after an outside agent misread BD as a documentation package or Markdown helper. The public first impression must now lead with persistent project memory for AI coding agents and living project knowledge that agents read, follow, and update while they work. Markdown remains the storage format, not the core value.
 
 Recent work made the first-run story stronger: `ready` is the primary handoff gate, `export` is the guided local deliverable path, `commands` is an interactive advanced drawer, `bd` is the short alias, agent guidance can be installed into `AGENTS.md` without overwriting existing user-owned instructions, and `install-skill` / `package-skill` distribute the bundled skill.
 

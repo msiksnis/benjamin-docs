@@ -21,7 +21,7 @@ This plan turns the user's product direction into small agent-led improvements. 
 3. Update command drawer, tests, public docs, project memory, and the bundled skill so agents discover the verification workflow.
 4. Improve `bd ready` output with grouped repair hints. First slice done: `ready` now surfaces recorded environment/tooling blockers from source docs without failing readiness when the BD checks themselves are otherwise clean.
 5. Add release-hygiene guardrails so npm publishes are followed by matching git tags, GitHub Releases, and a public verification check. Done for this repo with `release:github`, `release:verify-public`, and the tag-push release workflow.
-6. Align public first-contact surfaces so README, npm metadata, CLI intro/help, and the bundled skill all say "persistent project memory for AI coding agents and humans." Done for the public-positioning slice.
+6. Align public first-contact surfaces so README, npm metadata, CLI intro/help, and the bundled skill all say "persistent project memory for AI coding agents" and explain living project knowledge that agents update while they work. Done for the public-positioning slice.
 7. Add a guided freshness repair path for agents covering stale views, uncovered status docs, missing paths, and lifecycle cleanup.
 8. Polish feature lifecycle closeout so agents archive shipped/abandoned scopes and refresh views/handoff/changelog context.
 9. Run a fresh-agent dogfood exercise that starts from only `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.

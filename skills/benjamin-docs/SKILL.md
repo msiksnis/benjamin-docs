@@ -11,7 +11,7 @@ If the user says "Use the benjamin-docs skill to create a project from this chat
 
 ## Purpose
 
-`benjamin-docs` gives projects persistent, repo-local memory for AI coding agents and humans. The Markdown docs are the storage format; the real job is continuity across sessions, decisions, implementation work, handoffs, exports, and future agents. It is useful when the user only has a chat, before code exists, inside existing codebases, and for individual feature scopes.
+`benjamin-docs` gives projects persistent, repo-local memory for AI coding agents and humans. The Markdown docs are the storage format; the real job is continuity across sessions, decisions, implementation work, handoffs, exports, and future agents. Agents should treat Benjamin Docs as project knowledge they read before work and update after meaningful changes. It is useful when the user only has a chat, before code exists, inside existing codebases, and for individual feature scopes.
 
 ## Chat-To-Project Workflow
 

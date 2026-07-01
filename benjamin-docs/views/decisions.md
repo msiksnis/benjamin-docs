@@ -28,7 +28,7 @@ Source: `benjamin-docs/features/agent-reliability/decisions.md` (updated 2026-07
 - `bd ready` should distinguish recorded local prerequisites from BD setup/doc failures. Missing tools or services such as `cargo` or PostgreSQL should appear under a dedicated environment/tooling category when agents documented them in project memory.
 - BD should not run arbitrary project build/test commands by itself in this slice; agents still own executing project checks and recording blockers in handoff docs.
 - Package release hygiene should be scripted and verified instead of relying on agent memory. After npm publish, `release:github` owns tag/GitHub Release creation and `release:verify-public` confirms npm, tags, release object, and latest-release state.
-- Public first-contact surfaces must lead with persistent project memory for AI coding agents and humans. README, npm metadata, CLI intro/help, and the bundled skill should not make people or agents infer the core value from lower-level Markdown/doc mechanics.
+- Public first-contact surfaces must lead with persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. README, npm metadata, CLI intro/help, and the bundled skill should not make people or agents infer the core value from lower-level Markdown/doc mechanics.
 
 ### Rejected Options
 
@@ -37,7 +37,7 @@ Source: `benjamin-docs/features/agent-reliability/decisions.md` (updated 2026-07
 - Do not build a background daemon in this slice. BD can strengthen the agent contract and deterministic checks without pretending it runs autonomously.
 - Do not treat every documented blocked project check as a readiness failure. A project can be handoff-ready when the blocker is clearly recorded as local environment state.
 - Do not leave GitHub Releases as a manual afterthought separate from the npm publish flow.
-- Do not headline BD as a documentation package, Markdown helper, or chat-to-docs converter. Those are implementation details or workflows, not the value proposition.
+- Do not headline BD as a documentation package, Markdown helper, or chat-to-docs converter. Those are implementation details or workflows, not the value proposition. Also do not imply BD is an autonomous daemon; the update loop comes from agent guidance and the installed skill.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
@@ -50,7 +50,7 @@ Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-01)
 - The free/open-source part should help adoption; the SaaS can monetize publishing, sharing, auth, comments, and non-technical editing.
 - The tool must work before code exists, after code exists, and for a single feature scope.
 - Agents should not only agree with user plans. The skill should preserve intent while naming weak assumptions, unclear decisions, overbuilt V1 scope, and better alternatives.
-- Public README now leads with persistent project memory for AI coding agents and humans, then explains new idea, existing codebase, and export workflows.
+- Public README now leads with persistent project memory for AI coding agents, living project knowledge, self-updating agent workflow, and focused export packages before deeper setup details.
 - Public README setup guidance now leads with pnpm global install and keeps source checkout details under local development.
 - The second stranger test focused on a non-code person; README and CLI copy now explain `benjamin-docs` as a local project notebook an AI agent keeps in the project folder.
 - Generated `next` prompts now ask for plain language or non-technical readability where appropriate.

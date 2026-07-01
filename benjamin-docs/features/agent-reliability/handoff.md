@@ -20,7 +20,7 @@ The next slice is also implemented: `bd ready` scans Benjamin-managed source doc
 
 The release-hygiene guardrail is implemented for this repo: `pnpm run release:github` verifies the npm version, creates or reuses the matching `vX.Y.Z` tag, pushes it, and creates the GitHub Release; `pnpm run release:verify-public` checks npm, local tag, origin tag, the GitHub Release, and the latest-release pointer. `.github/workflows/release.yml` creates the GitHub Release automatically when a version tag is pushed manually after npm publish.
 
-The public-positioning slice is implemented: README, npm package description/keywords, CLI help/introduce text, tests, and the bundled skill now lead with persistent project memory for AI coding agents and humans. This was prompted by an outside agent misreading BD as a generic documentation package or Markdown helper.
+The public-positioning slice is implemented: README, npm package description/keywords, CLI help/introduce text, tests, and the bundled skill now lead with persistent project memory for AI coding agents, living project knowledge, agent-maintained docs, and focused export packages. This was prompted by an outside agent misreading BD as a generic documentation package or Markdown helper.
 
 ## Risks / Open Questions
 
@@ -30,7 +30,7 @@ The public-positioning slice is implemented: README, npm package description/key
 - The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
 - The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
 - Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.
-- Public copy can drift back toward "docs helper" language if future edits over-focus on Markdown structure or chat-to-project mechanics. Keep the first screen anchored on project memory and continuity.
+- Public copy can drift back toward "docs helper" language if future edits over-focus on Markdown structure or chat-to-project mechanics. Keep the first screen anchored on project memory, living knowledge, continuity, and the agent-updated workflow.
 
 ## Next Actions
 
@@ -38,7 +38,7 @@ The public-positioning slice is implemented: README, npm package description/key
 - Add a guided freshness repair path for agents.
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
-- After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory for AI coding agents and humans.
+- After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory or living project knowledge for AI coding agents, not a generic docs generator.
 
 ## Continuation Proof
 
@@ -63,7 +63,7 @@ Read first:
 - `test/validate-export.test.ts`
 - `test/info.test.ts`
 
-Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, recorded environment/tooling blocker surfacing in `ready`, release hygiene, and public first-contact positioning.
+Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, recorded environment/tooling blocker surfacing in `ready`, release hygiene, and public first-contact positioning. The latest README/npm pass emphasizes that agents read, follow, and update BD memory while they work, while avoiding the false claim that BD is an autonomous background daemon.
 
 Release guard status: implemented and verified against the current public `0.9.2` release.
 

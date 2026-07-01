@@ -27,6 +27,7 @@ describe("info commands", () => {
 
       assert.match(output, /benjamin-docs/);
       assert.match(output, /Persistent project memory/);
+      assert.match(output, /living project knowledge/);
       assert.match(output, /Start a new session with context/);
       assert.match(output, /benjamin-docs init/);
       assert.match(output, /benjamin-docs ready/);
@@ -55,7 +56,8 @@ describe("info commands", () => {
       const output = runCli(["introduce"], dir);
 
       assert.match(output, /persistent project memory/i);
-      assert.match(output, /Continuity is the point/);
+      assert.match(output, /living project knowledge/);
+      assert.match(output, /Continuity is the product/);
       assert.match(output, /Inside a project, run:/);
       assert.match(output, /auto-detects codebase memory and installs agent guidance/);
       assert.match(output, /From any chat, ask your agent:/);

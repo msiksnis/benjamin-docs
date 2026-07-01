@@ -16,7 +16,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 ## CLI Entry
 
 - `src/cli.ts` routes all commands and parses command-specific flags.
-- `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. Keep its first-contact language aligned with `README.md`, `package.json`, and the bundled skill.
+- `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. Keep its first-contact language aligned with `README.md`, `package.json`, and the bundled skill, including the living-project-knowledge wording.
 - `src/chat-project.ts` formats the confirmation prompt for creating a project from an existing chat.
 - `src/next.ts` formats the next prompt after init/status workflows.
 
