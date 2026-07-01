@@ -13,7 +13,7 @@ source: manual
 
 ## Unreleased
 
-No unreleased changes.
+- Updated `SECURITY.md` supported-version wording now that versioned GitHub/npm releases exist.
 
 ## 0.9.3
 

@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-`benjamin-docs` is pre-1.0. Security fixes will target the latest commit on `main` until versioned releases begin.
+`benjamin-docs` is pre-1.0. Security fixes target the latest published release and `main`. Older pre-1.0 releases are not guaranteed to receive backports unless the issue is severe.
 
 ## Reporting A Vulnerability
 
