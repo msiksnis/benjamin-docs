@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "benjamin-docs": {
+      "command": "benjamin-docs",
+      "args": [
+        "mcp"
+      ]
+    }
+  }
+}

@@ -21,6 +21,7 @@ freshness: status
 - Search is dependency-free: heading-delimited sections scored by query-term overlap (heading hits weighted 3x). No embeddings, no index files.
 - Registration ownership: the `benjamin-docs` key in JSON configs; `# benjamin-docs:start/end` marker comments in Codex TOML (no TOML parser needed — same pattern as the AGENTS.md marked section).
 - MCP registration is suggested, never auto-installed: `bd upgrade` and the skill point to `bd mcp install`; consent stays explicit like hooks.
+- Live dogfood passed on 2026-07-09 from a real Claude Code session in this repo: all six tools worked over stdio, memory_search surfaced a genuinely stale agent-brief claim which memory_update then fixed with frontmatter preserved and views regenerated, and an intentionally invalid write (broken relative link) was rolled back byte-for-byte. Cleared for the 0.11.0 npm publish.
 
 ## Rejected Options
 

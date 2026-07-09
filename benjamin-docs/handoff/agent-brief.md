@@ -22,8 +22,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.9.3` published on npm; `0.10.0` implemented and prepared for the next npm publish.
-- Working package version: `0.10.0` (drift detection plus agent session hooks).
+- Package status: `0.10.0` published on npm; `0.11.0` implemented and prepared for the next npm publish.
+- Working package version: `0.11.0` (MCP memory server).
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -38,7 +38,7 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.9.3 is published. The working tree carries `0.10.0`: `bd drift` (committed-history drift detection over watch rules, advisory in `bd ready`, `--json`/`--strict`), `bd hooks install|status|uninstall` (session hooks for Claude Code, Codex, Cursor with strict user-content preservation), `bd session-start`/`bd session-stop` (compact context injection and once-per-turn-chain update nudge), and init hook consent (`--hooks`/`--no-hooks`, interactive prompt). Design spec: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`; feature memory: `benjamin-docs/features/drift-and-session-hooks/`. 0.10.0 also includes `bd upgrade` (main command; catches old repos up by stamping `bdVersion` into config and refreshing Benjamin-owned surfaces) and a cached opt-out npm update check surfaced through session-start context and `ready`. 0.10.0 is published. The working tree now carries 0.11.0: the MCP memory server (`bd mcp` serving memory_context/search/read/update/record_decision/status over stdio via the official SDK, with manifest-scoped access and transactional validated writes) plus `bd mcp install|status|uninstall` registration for Claude Code, Cursor, and Codex. Feature memory: `benjamin-docs/features/mcp-memory-server/`. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
+Current state: 0.10.0 is published (committed-history drift detection via `bd drift`, session hooks for Claude Code/Codex/Cursor, `bd session-start`/`bd session-stop`, `bd upgrade`, and the cached opt-out npm update check — design spec: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`; feature memory: `benjamin-docs/features/drift-and-session-hooks/`, archived). The working tree carries `0.11.0`: the MCP memory server (`bd mcp` serving memory_context/search/read/update/record_decision/status over stdio via the official SDK, with manifest-scoped access and transactional validated writes) plus `bd mcp install|status|uninstall` registration for Claude Code, Cursor, and Codex — design spec: `docs/superpowers/specs/2026-07-09-mcp-memory-server-design.md`; feature memory: `benjamin-docs/features/mcp-memory-server/`. The MCP tools were dogfooded live from a Claude Code session in this repo before publish, including a verified rollback of an invalid write. Earlier 0.9.x work (guided exports, export verification recording, readiness blockers as a non-failing category) remains included.
 
 2026-07-01 public-positioning update: the README was rewritten, `package.json` description/keywords were adjusted, CLI `introduce`/help copy was aligned, and the bundled skill purpose was tightened because an outside agent misread BD as a documentation package or Markdown helper. Preserve the first-impression framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Do not let public copy drift back to "turn chats into docs" as the headline value.
 
@@ -59,16 +59,16 @@ pnpm run release:verify-public
 node dist/src/cli.js ready
 ```
 
-Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
+Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo. Keep MCP tool access manifest-scoped; never widen it to arbitrary repo files.
 
-Next actions: dogfood the MCP tools from a real agent session (`bd mcp install` in a project, then use memory_search/memory_update), publish `0.11.0` with the standard release flow (`release:check`, publish tarball, `release:github`, `release:verify-public`), archive the mcp-memory-server scope after publish, and keep watching 0.10.0 hooks/drift feedback from real projects.
+Next actions: publish `0.11.0` with the standard release flow (`release:check`, publish tarball, `release:github`, `release:verify-public`), archive the mcp-memory-server scope after publish, and keep watching 0.10.0 hooks/drift feedback from real projects.
 
 ## Implemented So Far
 
-- TypeScript CLI with no runtime dependencies.
-- Main commands: `init`, `ready`, `export`, `help`.
+- TypeScript CLI, dependency-light: two runtime dependencies as of 0.11.0 (`@modelcontextprotocol/sdk` and `zod` for the MCP memory server); zero before that.
+- Main commands: `init`, `ready`, `export`, `upgrade`, `help`.
 - Advanced drawer: `commands`, with numbered interactive selection in real terminals.
-- Advanced commands include `status`, `next`, `validate`, `review`, `review --changed`, `drift`, `hooks install|status|uninstall`, `session-start`, `session-stop`, `doctor`, `views`, `export --audience <audience>`, `export --list`, `export --feature <slug> --profile <profile>`, `export --type <app|handoff|summary> --profile <profile>`, `scope create feature <slug>`, `scope status <id> <status>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
+- Advanced commands include `status`, `next`, `validate`, `review`, `review --changed`, `drift`, `hooks install|status|uninstall`, `mcp` (serve), `mcp install|status|uninstall`, `session-start`, `session-stop`, `doctor`, `views`, `export --audience <audience>`, `export --list`, `export --feature <slug> --profile <profile>`, `export --type <app|handoff|summary> --profile <profile>`, `scope create feature <slug>`, `scope status <id> <status>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
 - Short binary alias: `bd`.
 - Planning-mode docs created by `init`.
 - Codebase-mode docs created by `promote --to codebase`.
@@ -157,7 +157,7 @@ That shim runs:
 node /Users/marty/Important/benjamin-docs/dist/src/cli.js "$@"
 ```
 
-This was a temporary local setup while the package was unpublished. The current machine now has `benjamin-docs@0.4.2` installed globally from npm through npm and pnpm.
+This was a temporary local setup while the package was unpublished. As of 2026-07-09 the global `benjamin-docs` is `pnpm link --global`ed to this working copy for MCP dogfooding; after publishing `0.11.0`, restore the registry install with `pnpm add -g benjamin-docs`.
 
 ## Important Product Finding From `pup-base`
 
@@ -193,9 +193,10 @@ When continuing this project:
    - `benjamin-docs/handoff/agent-brief.md`
    - `docs/superpowers/specs/2026-06-03-benjamin-docs-design.md`
    - `docs/superpowers/plans/2026-06-03-benjamin-docs-mvp.md`
-4. Keep changes small and practical. This project should remain useful before it becomes clever.
-5. If capturing a conversation, update existing docs instead of dumping a transcript.
-6. Run `bd ready` and `pnpm check` before reporting completion.
+4. Prefer the `benjamin-docs` MCP tools (memory_context, memory_search, memory_read, memory_update, memory_record_decision, memory_status) over raw file edits when they are available in the session.
+5. Keep changes small and practical. This project should remain useful before it becomes clever.
+6. If capturing a conversation, update existing docs instead of dumping a transcript.
+7. Run `bd ready` and `pnpm check` before reporting completion.
 
 ## Likely Next Work
 

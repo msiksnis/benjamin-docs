@@ -1,0 +1,5 @@
+# benjamin-docs:start
+[mcp_servers.benjamin-docs]
+command = "benjamin-docs"
+args = ["mcp"]
+# benjamin-docs:end
