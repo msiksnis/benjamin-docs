@@ -11,7 +11,15 @@ source: manual
 
 # Changelog
 
-## 0.10.0 (unpublished)
+## 0.11.0 (unpublished)
+
+- Added `bd mcp`: an MCP server over stdio exposing project memory as native agent tools — `memory_context`, `memory_search`, `memory_read`, `memory_update`, `memory_record_decision`, `memory_status`. Reads return scored doc sections; writes preserve frontmatter, stamp the updated date, validate transactionally with rollback, and regenerate Memory Views.
+- Added `bd mcp install|status|uninstall`: per-project registration for Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), and Codex (`.codex/config.toml` marker block). User config is preserved exactly; uninstall removes only the Benjamin-owned entry.
+- Only manifest-managed memory docs are reachable through the server; generated Memory Views are read-only.
+- First runtime dependencies: `@modelcontextprotocol/sdk` and `zod`.
+- `bd upgrade` now reports MCP registration status.
+
+## 0.10.0
 
 - Added `bd drift`: flags docs whose watched code changed in commits after the doc last changed, using the `watch` rules in `.benjamin-docs/config.json`. Advisory by default, `--strict` for CI gates, `--json` for automation. `bd ready` shows a non-blocking "Drift (advisory)" section.
 - Added `bd hooks install|status|uninstall`: agent session hooks for Claude Code (`.claude/settings.json`), Codex (`.codex/hooks.json`), and Cursor (`.cursor/hooks.json`). Existing user hook entries and settings are preserved exactly; uninstall removes only Benjamin-owned entries.

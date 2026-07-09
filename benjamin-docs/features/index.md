@@ -17,11 +17,12 @@ Because this repository is public, do not create feature scopes for private comm
 
 ## Active
 
-- [Drift And Session Hooks](./drift-and-session-hooks/brief.md): 0.10.0 arc making memory self-maintaining. `bd drift` measures docs against committed git history via watch rules; `bd hooks install` wires Claude Code, Codex, and Cursor session hooks that inject memory context at session start and nudge updates at stop. Active until 0.10.0 is published, then archive.
+- [MCP Memory Server](./mcp-memory-server/brief.md): 0.11.0 arc. `bd mcp` exposes project memory as MCP tools (context, search, read, validated writes, decisions, status) over stdio so any MCP-capable agent uses memory natively; `bd mcp install` registers the server for Claude Code, Cursor, and Codex.
 - [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, release hygiene, readiness repair, freshness repair, lifecycle cleanup, public first-contact clarity, living project knowledge positioning, the 0.9.3 npm positioning release, and fresh-agent dogfooding through advanced workflows.
 
 ## Shipped (archived)
 
+- [Drift And Session Hooks](./drift-and-session-hooks/brief.md): shipped in 0.10.0 and archived. Committed-history drift detection over watch rules, consent-based session hooks for Claude Code/Codex/Cursor, session-start context injection, stop-time update nudges, `bd upgrade`, and the cached opt-out npm update check.
 - [Guided Export Workflow](./guided-export-workflow/brief.md): shipped in 0.9.0 and archived after 0.9.2 release prep. Human-facing `bd export` menu, app/feature/handoff/summary Markdown snapshots, readiness labels, detail levels, customer/developer profiles, feature matching, readiness blocks, snapshot metadata, and implementation-verification prompts.
 - [Freshness And Lifecycle](./freshness-and-lifecycle/brief.md): shipped in 0.8.0. Stack-agnostic changed-work review, watch-rule coverage warnings for status docs and active feature docs, git churn and path liveness staleness checks, Memory View freshness in the readiness gate, and scope lifecycle status with archived views exclusion.
 - [Agent-Ready Project Memory](./agent-ready-project-memory/brief.md): shipped in 0.4.x. Capture quality, agent operating contracts, context maps, and continuation quality.

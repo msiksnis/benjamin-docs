@@ -27,7 +27,7 @@ Public first-contact surfaces are part of the architecture because this package 
 
 The 0.9.3 publish is a public-surface patch, not a runtime architecture change. It packages the README/npm positioning work so npmjs and GitHub both present the same agent-memory model.
 
-0.10.0 keeps the zero-runtime-dependency posture. The planned MCP server release after it will introduce the first runtime dependency (the official `@modelcontextprotocol/sdk`), an owner-approved exception because hand-rolling the evolving MCP protocol is a worse maintenance trade.
+0.10.0 kept the zero-runtime-dependency posture. 0.11.0 introduces the first runtime dependencies — the official `@modelcontextprotocol/sdk` (stable v1 line) plus its `zod` peer — an owner-approved exception because hand-rolling the evolving MCP protocol is a worse maintenance trade. `bd mcp` serves project memory over stdio; access is manifest-scoped, generated views are read-only through the server, and writes validate transactionally with rollback.
 
 ## Project Layout
 
@@ -49,6 +49,7 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Docs quality and changed-work freshness review live in `src/review.ts`.
 - Shared git history helpers live in `src/git.ts`; committed-history drift detection lives in `src/drift.ts`.
 - Agent session hook installation lives in `src/hooks.ts`; session-start context and stop nudges live in `src/session.ts`.
+- MCP memory tools live in `src/memory-tools.ts` (logic) and `src/mcp-server.ts` (stdio protocol); client registration lives in `src/mcp-install.ts`.
 - Watch-rule globs and stack-agnostic changed-file mapping live in `src/watch.ts`.
 - Memory Views rendering and lifecycle filtering live in `src/views.ts`.
 - Setup diagnostics live in `src/doctor.ts`.

@@ -36,8 +36,8 @@ freshness: status
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.9.3`.
-- Working package version: `0.10.0` (drift detection plus agent session hooks), implemented and tested, not yet published.
+- Current published release: `0.10.0`.
+- Working package version: `0.11.0` (MCP memory server), implemented and tested, not yet published.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -65,7 +65,15 @@ freshness: status
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
 - Publish `0.10.0`, then run the release guardrails so npm, the git tag, and GitHub Release match.
 - Dogfood drift detection and session hooks on real projects; watch for stop-nudge nagging and hook PATH issues.
-- Implement the next release as an MCP server arc (`bd mcp`): stdio server exposing memory read/search/write tools via the official `@modelcontextprotocol/sdk`, with writes validated by the existing validation logic. Owner-approved staged plan from the 2026-07-09 session.
+- Publish `0.11.0` (MCP memory server), then dogfood MCP tools from real agent sessions.
+
+## 0.11.0 Goal
+
+Turn project memory into a native agent interface:
+
+- `bd mcp` serves memory over stdio via the official MCP SDK: context, search, read, validated writes, decisions, status. Manifest-scoped; views read-only; writes roll back on validation regressions.
+- `bd mcp install` registers the server for Claude Code, Cursor, and Codex without touching user config.
+- Hooks remain the push path (context in); MCP is the pull-and-write path.
 
 ## 0.10.0 Goal
 

@@ -26,6 +26,8 @@ import { getAnchorHelpText, getHelpText, getInitHelpText, getIntroductionText, g
 import { checkHooks, formatHooksResult, installHooks, knownHookTargets, uninstallHooks, type HookTargetId } from "./hooks.js";
 import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
 import { formatSessionStart, formatSessionStop, parseStopHookActive, type SessionHookFormat } from "./session.js";
+import { checkMcp, formatMcpResult, installMcp, knownMcpTargets, uninstallMcp, type McpTargetId } from "./mcp-install.js";
+import { serveMcp } from "./mcp-server.js";
 import { formatNextMessage, getNextPrompt } from "./next.js";
 import { formatPackageSkillResult, packageSkill, type PackageSkillOptions } from "./package-skill.js";
 import { checkReady } from "./ready.js";
@@ -123,6 +125,26 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   if (command === "session-start") {
     const output = formatSessionStart(cwd, parseSessionFormat(argv.slice(1), "session-start"), process.argv[1]);
     if (output) console.log(output);
+    return 0;
+  }
+
+  if (command === "mcp") {
+    const args = argv.slice(1);
+    if (args.length === 0) {
+      await serveMcp(cwd);
+      return 0;
+    }
+
+    const options = parseMcpArgs(args);
+    if (options.action === "install") {
+      console.log(formatMcpResult("install", installMcp(cwd, options.targets)));
+      return 0;
+    }
+    if (options.action === "uninstall") {
+      console.log(formatMcpResult("uninstall", uninstallMcp(cwd, options.targets)));
+      return 0;
+    }
+    console.log(formatMcpResult("status", checkMcp(cwd, options.targets)));
     return 0;
   }
 
@@ -467,6 +489,38 @@ async function resolveUpgradeHooksOption(args: string[], cwd: string): Promise<b
   if (anyInstalled) return undefined;
 
   return confirmChoice(hooksPromptLabel(), true);
+}
+
+interface McpArgs {
+  action: "install" | "uninstall" | "status";
+  targets?: McpTargetId[];
+}
+
+function parseMcpArgs(args: string[]): McpArgs {
+  const [action, ...rest] = args;
+  if (action !== "install" && action !== "uninstall" && action !== "status") {
+    throw new Error("Usage: benjamin-docs mcp [install|status|uninstall] [--target <claude-code|cursor|codex>]");
+  }
+
+  const options: McpArgs = { action };
+
+  for (let index = 0; index < rest.length; index += 1) {
+    const arg = rest[index];
+    if (arg === "--target") {
+      const value = rest[index + 1];
+      const ids = knownMcpTargets().map((target) => target.id);
+      if (!value || !ids.includes(value as McpTargetId)) {
+        throw new Error(`Usage: benjamin-docs mcp ${action} --target <${ids.join("|")}>`);
+      }
+      options.targets = [...(options.targets ?? []), value as McpTargetId];
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown mcp option: ${arg}`);
+  }
+
+  return options;
 }
 
 interface HooksArgs {

@@ -50,6 +50,10 @@
     "benjamin-docs/features/drift-and-session-hooks/brief.md",
     "benjamin-docs/features/drift-and-session-hooks/plan.md",
     "benjamin-docs/features/drift-and-session-hooks/decisions.md",
-    "benjamin-docs/features/drift-and-session-hooks/handoff.md"
+    "benjamin-docs/features/drift-and-session-hooks/handoff.md",
+    "benjamin-docs/features/mcp-memory-server/brief.md",
+    "benjamin-docs/features/mcp-memory-server/plan.md",
+    "benjamin-docs/features/mcp-memory-server/decisions.md",
+    "benjamin-docs/features/mcp-memory-server/handoff.md"
   ]
 }

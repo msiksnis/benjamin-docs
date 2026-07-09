@@ -27,6 +27,8 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-0
 - Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.
 - Public copy can drift back toward "docs helper" language if future edits over-focus on Markdown structure or chat-to-project mechanics. Keep the first screen anchored on project memory, living knowledge, continuity, and the agent-updated workflow.
 
+2026-07-09 (later): the memory-interface slice also moved out: the MCP Memory Server scope (`benjamin-docs/features/mcp-memory-server/`) gives agents validated write tools, which advances this arc's reliability goal — agents can no longer corrupt frontmatter or structure through hand edits when they write via MCP.
+
 2026-07-09: the automation slice of this arc shipped separately as the Drift And Session Hooks scope (`benjamin-docs/features/drift-and-session-hooks/`). Drift detection and session hooks now enforce the read-and-update loop mechanically, which removes the biggest reliability dependency on agent discipline.
 
 ### Next Actions
@@ -77,29 +79,30 @@ node dist/src/cli.js review --changed --since HEAD
 node dist/src/cli.js ready
 ```
 
-## [Drift And Session Hooks Handoff](../features/drift-and-session-hooks/handoff.md)
+## [MCP Memory Server Handoff](../features/mcp-memory-server/handoff.md)
 
-Source: `benjamin-docs/features/drift-and-session-hooks/handoff.md` (updated 2026-07-09)
+Source: `benjamin-docs/features/mcp-memory-server/handoff.md` (updated 2026-07-09)
 
 ### Risks / Open Questions
 
-- The stop nudge repeats on later turns while the working tree has source changes and no doc updates; it goes quiet once any memory doc is touched. Accepted; revisit only if users report nagging.
-- Hook commands assume a global `benjamin-docs` install on PATH.
-- Codex needs `features.hooks = true` in `~/.codex/config.toml` and hook trust via `/hooks`; the install output explains this.
-- Cursor project hooks run automatically for anyone opening the repo; hooks are only written on explicit consent.
+- First runtime dependencies: watch install size and audit surface (`@modelcontextprotocol/sdk`, `zod`).
+- Registration assumes a global `benjamin-docs` on PATH when clients spawn the server (same constraint as hooks).
+- Codex project `.codex/config.toml` loads only when the project layer is trusted in Codex.
+- Search is lexical; if retrieval quality disappoints on large memories, consider smarter scoring before reaching for embeddings.
 
 ### Next Actions
 
-- Publish 0.10.0 following `benjamin-docs/releases/npm-publish-checklist.md` (npm publish, then `pnpm run release:github`, then `pnpm run release:verify-public`).
-- Start the MCP server release (`bd mcp`): stdio server exposing memory read/search/write tools via `@modelcontextprotocol/sdk`, with writes validated by the existing `validate.ts` logic.
+- Dogfood the MCP tools from a real Claude Code session in this repo (`bd mcp install`, then use memory_search/memory_update).
+- Publish 0.11.0 with the standard release flow, then archive this scope.
+- Consider folding session-start context into an MCP resource once tool-based consumption dominates.
 
 ### Continuation Proof
 
-- Read first: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`, `src/drift.ts`, `src/hooks.ts`, `src/session.ts`.
-- Current status: feature complete on main working tree, unpublished.
-- Checks: `pnpm check`; manual smoke via `bd init --mode codebase --hooks` in a temp git repo, then `bd drift` after a committed source change.
-- Risks: see above; do not weaken the user-content preservation guarantees in `src/hooks.ts`.
-- Next: publish 0.10.0, then design `bd mcp`.
+- Read first: `docs/superpowers/specs/2026-07-09-mcp-memory-server-design.md`, `src/memory-tools.ts`, `src/mcp-server.ts`, `src/mcp-install.ts`.
+- Current status: feature-complete in the working tree, unpublished.
+- Checks: `pnpm check`; manual smoke via an SDK client over stdio (see `test/mcp.test.ts` for the pattern).
+- Risks: keep tool access manifest-scoped; never widen to arbitrary repo files.
+- Next: dogfood, publish 0.11.0, archive scope.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
@@ -131,7 +134,7 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.9.3 is published. The working tree carries `0.10.0`: `bd drift` (committed-history drift detection over watch rules, advisory in `bd ready`, `--json`/`--strict`), `bd hooks install|status|uninstall` (session hooks for Claude Code, Codex, Cursor with strict user-content preservation), `bd session-start`/`bd session-stop` (compact context injection and once-per-turn-chain update nudge), and init hook consent (`--hooks`/`--no-hooks`, interactive prompt). Design spec: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`; feature memory: `benjamin-docs/features/drift-and-session-hooks/`. 0.10.0 also includes `bd upgrade` (main command; catches old repos up by stamping `bdVersion` into config and refreshing Benjamin-owned surfaces) and a cached opt-out npm update check surfaced through session-start context and `ready`. The approved next arc after publishing is an MCP server (`bd mcp`) using the official `@modelcontextprotocol/sdk`. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
+Current state: 0.9.3 is published. The working tree carries `0.10.0`: `bd drift` (committed-history drift detection over watch rules, advisory in `bd ready`, `--json`/`--strict`), `bd hooks install|status|uninstall` (session hooks for Claude Code, Codex, Cursor with strict user-content preservation), `bd session-start`/`bd session-stop` (compact context injection and once-per-turn-chain update nudge), and init hook consent (`--hooks`/`--no-hooks`, interactive prompt). Design spec: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`; feature memory: `benjamin-docs/features/drift-and-session-hooks/`. 0.10.0 also includes `bd upgrade` (main command; catches old repos up by stamping `bdVersion` into config and refreshing Benjamin-owned surfaces) and a cached opt-out npm update check surfaced through session-start context and `ready`. 0.10.0 is published. The working tree now carries 0.11.0: the MCP memory server (`bd mcp` serving memory_context/search/read/update/record_decision/status over stdio via the official SDK, with manifest-scoped access and transactional validated writes) plus `bd mcp install|status|uninstall` registration for Claude Code, Cursor, and Codex. Feature memory: `benjamin-docs/features/mcp-memory-server/`. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
 
 2026-07-01 public-positioning update: the README was rewritten, `package.json` description/keywords were adjusted, CLI `introduce`/help copy was aligned, and the bundled skill purpose was tightened because an outside agent misread BD as a documentation package or Markdown helper. Preserve the first-impression framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Do not let public copy drift back to "turn chats into docs" as the headline value.
 
@@ -154,4 +157,4 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
 
-Next actions: publish `0.10.0`, then run `pnpm run release:github` and `pnpm run release:verify-public`. Dogfood drift and session hooks on real projects (watch for stop-nudge nagging and `benjamin-docs`-not-on-PATH hook failures). Then design the MCP server release: stdio server exposing memory read/search/write tools, writes validated by the existing `validate.ts` logic.
+Next actions: dogfood the MCP tools from a real agent session (`bd mcp install` in a project, then use memory_search/memory_update), publish `0.11.0` with the standard release flow (`release:check`, publish tarball, `release:github`, `release:verify-public`), archive the mcp-memory-server scope after publish, and keep watching 0.10.0 hooks/drift feedback from real projects.

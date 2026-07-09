@@ -26,6 +26,8 @@ Public entry points now need to work for both humans and agents. The GitHub READ
 
 The 0.9.3 release packaged that public positioning for npmjs. The 0.10.0 release candidate makes the memory self-maintaining: `bd drift` measures docs against committed git history through watch rules, and consent-based session hooks load memory into Claude Code, Codex, and Cursor sessions automatically while nudging agents to update docs when source changes without them. The "not a background daemon" caveat softens accordingly: with hooks installed, the user's agent environment does invoke BD at session boundaries.
 
+The 0.11.0 release candidate adds the MCP memory server: `bd mcp` exposes the memory as native tools (context, search, read, validated writes, decisions, status) over stdio, registered per project with `bd mcp install` for Claude Code, Cursor, and Codex. Hooks push context into sessions; MCP lets agents pull exactly the sections they need and write back safely. This introduces bd's first runtime dependencies (the official MCP SDK plus zod), an accepted exception to the dependency-light posture.
+
 Agent Reliability now includes clearer handling for local prerequisites. When agents record that project checks are blocked by missing tools or services, such as a command that is not installed or a database that is not listening, `bd ready` surfaces those notes under a dedicated environment/tooling category instead of blending them into generic project failure language.
 
 Release hygiene is now part of that agent-owned operating contract. After npm publish, maintainers/agents should run `pnpm run release:github` and `pnpm run release:verify-public` so the public npm version, git tag, and GitHub Release stay aligned.

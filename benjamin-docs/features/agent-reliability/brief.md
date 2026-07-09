@@ -12,7 +12,7 @@ freshness: status
 
 # Agent Reliability Brief
 
-2026-07-09 update: the session-automation portion of this arc (memory loading at session start, update nudges at stop, committed-history drift detection) shipped as the separate Drift And Session Hooks scope in 0.10.0. This scope continues to own verification, readiness repair, and lifecycle workflows.
+2026-07-09 update: the session-automation portion of this arc (memory loading at session start, update nudges at stop, committed-history drift detection) shipped as the separate Drift And Session Hooks scope in 0.10.0. With 0.11.0, validated memory writes moved to the MCP Memory Server scope. This scope continues to own verification, readiness repair, and lifecycle workflows.
 
 Agent Reliability is the next BD product arc after guided export. The goal is to keep the human-facing command surface tiny while making agents more dependable at maintaining, verifying, repairing, and exporting project memory in the background.
 

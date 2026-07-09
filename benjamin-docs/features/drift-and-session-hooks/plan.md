@@ -3,7 +3,7 @@ title: Drift And Session Hooks Plan
 scope: feature
 scope_id: drift-and-session-hooks
 audience: [developer, agent]
-status: approved
+status: archived
 visibility: private
 updated: 2026-07-09
 source: session-capture

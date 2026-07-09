@@ -21,6 +21,8 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs drift", args: ["drift"], description: "Flag docs whose watched code changed since the doc last changed." },
   { command: "benjamin-docs hooks install", args: ["hooks", "install"], description: "Install agent session hooks for Claude Code, Codex, and Cursor." },
   { command: "benjamin-docs hooks status", args: ["hooks", "status"], description: "Show which agent session hooks are installed." },
+  { command: "benjamin-docs mcp install", args: ["mcp", "install"], description: "Register the Benjamin Docs MCP memory server for Claude Code, Cursor, and Codex." },
+  { command: "benjamin-docs mcp status", args: ["mcp", "status"], description: "Show which MCP client registrations are installed." },
   { command: "benjamin-docs session-start", args: ["session-start"], description: "Print compact session-start context. Used by installed agent hooks." },
   { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
   { command: "benjamin-docs doctor --strict", args: ["doctor", "--strict"], description: "Run setup checks as a strict gate." },

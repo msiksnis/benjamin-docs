@@ -3,6 +3,7 @@ import { hasAgentContractMarkers, installAgentContracts } from "./agent-contract
 import { CONFIG_DIR, CONFIG_FILE } from "./constants.js";
 import { rootPath, writeGeneratedJson } from "./fsx.js";
 import { checkHooks, installHooks } from "./hooks.js";
+import { checkMcp } from "./mcp-install.js";
 import { getPackageVersion } from "./info.js";
 import { installSkill } from "./install-skill.js";
 import { readConfig } from "./project-config.js";
@@ -45,6 +46,7 @@ export async function runUpgrade(root: string, options: UpgradeOptions = {}): Pr
   lines.push(refreshSkills());
   lines.push(...refreshViews(root));
   lines.push(...resolveHooks(root, options.hooks));
+  lines.push(reportMcpRegistration(root));
   lines.push(...(await reportUpdateAvailability(currentVersion)));
 
   lines.push("");
@@ -124,6 +126,15 @@ function resolveHooks(root: string, hooksOption: boolean | undefined): string[] 
   }
 
   return ["Hooks: not installed. Agents load project memory automatically once you run: benjamin-docs hooks install"];
+}
+
+function reportMcpRegistration(root: string): string {
+  const registered = checkMcp(root).targets.filter((target) => target.status === "registered");
+  if (registered.length > 0) {
+    return `MCP: memory server registered for ${registered.map((target) => target.label).join(", ")}.`;
+  }
+
+  return "MCP: memory server not registered. Agents get memory tools once you run: benjamin-docs mcp install";
 }
 
 async function reportUpdateAvailability(currentVersion: string): Promise<string[]> {

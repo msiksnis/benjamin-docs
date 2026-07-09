@@ -29,7 +29,8 @@ describe("commands", () => {
       assert.match(output, /benjamin-docs hooks install/);
       assert.match(output, /benjamin-docs session-start/);
       assert.match(output, /benjamin-docs upgrade/);
-      assert.match(output, /\s+25\. benjamin-docs chat-project/);
+      assert.match(output, /benjamin-docs mcp install/);
+      assert.match(output, /\s+27\. benjamin-docs chat-project/);
       assert.doesNotMatch(output, /benjamin-docs export --audience developer/);
       assert.match(output, /type a number/);
     });
@@ -38,7 +39,7 @@ describe("commands", () => {
   it("maps every drawer entry to runnable cli args", () => {
     const commands = allCommands();
 
-    assert.equal(commands.length, 25);
+    assert.equal(commands.length, 27);
     assert.deepEqual(commands[0]?.args, ["init"]);
     assert.deepEqual(commands[1]?.args, ["ready"]);
     assert.deepEqual(commands[2]?.args, ["export"]);
@@ -48,12 +49,14 @@ describe("commands", () => {
     assert.deepEqual(commands[10]?.args, ["drift"]);
     assert.deepEqual(commands[11]?.args, ["hooks", "install"]);
     assert.deepEqual(commands[12]?.args, ["hooks", "status"]);
-    assert.deepEqual(commands[13]?.args, ["session-start"]);
-    assert.deepEqual(commands[16]?.args, ["views"]);
-    assert.deepEqual(commands[17]?.args, ["export", "--verify", "<slug>", "--evidence", "<evidence>"]);
-    assert.deepEqual(commands[18]?.args, ["scope", "create", "feature", "<slug>"]);
-    assert.deepEqual(commands[19]?.args, ["scope", "status", "<slug>", "<status>"]);
-    assert.deepEqual(commands[20]?.args, ["anchor", "add", "<id>", "<file>"]);
-    assert.deepEqual(commands[21]?.args, ["anchor", "list"]);
+    assert.deepEqual(commands[13]?.args, ["mcp", "install"]);
+    assert.deepEqual(commands[14]?.args, ["mcp", "status"]);
+    assert.deepEqual(commands[15]?.args, ["session-start"]);
+    assert.deepEqual(commands[18]?.args, ["views"]);
+    assert.deepEqual(commands[19]?.args, ["export", "--verify", "<slug>", "--evidence", "<evidence>"]);
+    assert.deepEqual(commands[20]?.args, ["scope", "create", "feature", "<slug>"]);
+    assert.deepEqual(commands[21]?.args, ["scope", "status", "<slug>", "<status>"]);
+    assert.deepEqual(commands[22]?.args, ["anchor", "add", "<id>", "<file>"]);
+    assert.deepEqual(commands[23]?.args, ["anchor", "list"]);
   });
 });

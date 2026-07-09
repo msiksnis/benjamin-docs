@@ -17,7 +17,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 - `src/cli.ts` routes all commands and parses command-specific flags.
 - `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. Keep its first-contact language aligned with `README.md`, `package.json`, and the bundled skill, including the living-project-knowledge wording.
-- `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.9.3` is the npm publish candidate for the README/npm positioning update.
+- `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.11.0` (MCP memory server) is the current npm publish candidate.
 - `src/chat-project.ts` formats the confirmation prompt for creating a project from an existing chat.
 - `src/next.ts` formats the next prompt after init/status workflows.
 
@@ -37,6 +37,9 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/drift.ts` implements `bd drift`: per-doc committed-history comparison against watch rules, with advisory formatting, `--json`, and `--strict` handled in the CLI. Skips archived/stale docs, uncommitted-doc updates, and never-committed docs.
 - `src/session.ts` implements `bd session-start` (compact context: read-first docs plus drift summary, per-tool formats) and `bd session-stop` (once-per-turn-chain update nudge with `stop_hook_active` guard; agent-config paths excluded from source-change detection).
 - `src/hooks.ts` installs/reports/uninstalls agent session hooks in the target project's Claude Code settings file plus the Codex and Cursor `hooks.json` files (under the project's `.claude`, `.codex`, and `.cursor` folders). Ownership marker: hook command contains `benjamin-docs session-`. Preserves all user content; unparseable files are skipped, never rewritten.
+- `src/memory-tools.ts` holds protocol-free MCP tool logic: manifest-scoped doc access, section search with term scoring, transactional updates (validate then roll back on regression), decision appends, and status with drift.
+- `src/mcp-server.ts` wires those tools into an `McpServer` over `StdioServerTransport` with zod input schemas; `bd mcp` serves until stdin closes. Tool failures return readable text with `isError` instead of protocol faults.
+- `src/mcp-install.ts` registers/reports/removes the `benjamin-docs` MCP server entry in the project's Claude Code, Cursor, and Codex client configs (JSON key ownership; marker-comment block in Codex TOML).
 - `src/watch.ts` holds the `WatchRule` defaults, including broad baseline coverage for project, handoff, feature-index, engineering, and release docs, plus the zero-dependency glob matcher and `resolveWatchRules` for config-or-default resolution.
 - `src/views.ts` renders Memory Views: it filters out archived/stale docs and scopes, orders sources by updated date, groups sections per source doc, and only rewrites view files whose body changed. `renderMemoryViews` is also used by review for the freshness check.
 - `src/doctor.ts` checks CLI version, installed skills, Claude Desktop upload zip, project initialization, and validation. `--strict` turns setup gaps and validation warnings into failures.

@@ -289,6 +289,17 @@ Only install hooks when the user consents (interactive `init` asks; automation u
 
 When a session-start hook already injected Benjamin Docs context, do not re-read the whole memory tree; read the specific docs the context names, plus whatever the task needs.
 
+## MCP Memory Tools
+
+When the `benjamin-docs` MCP server is registered (`benjamin-docs mcp install`), prefer its tools over raw file access:
+
+- Start with `memory_context` (pass the task) instead of reading the whole memory tree.
+- Use `memory_search` before `memory_read`; read whole docs only when the section snippets are not enough.
+- Write through `memory_update` and `memory_record_decision` instead of editing managed Markdown directly: frontmatter is preserved, the updated date is stamped, validation runs on write with rollback, and Memory Views regenerate automatically.
+- `memory_status` covers status plus drift; use it before suggesting `benjamin-docs drift` output to the user.
+
+Direct file editing remains correct when the MCP server is not available, or for docs outside the manifest. Suggest `benjamin-docs mcp install` (do not run it silently) when a project has memory but no MCP registration.
+
 ## Upgrades And Update Notices
 
 When session-start context or `ready` says the repo's Benjamin Docs setup is older than the installed CLI, run `benjamin-docs upgrade`. It is repo-local and safe: it stamps the CLI version into metadata, refreshes only the Benjamin-owned `AGENTS.md` section, refreshes skill installs, regenerates existing Memory Views, and reports hook status. It never rewrites user-authored content.

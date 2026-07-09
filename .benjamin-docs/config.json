@@ -178,7 +178,32 @@
         "benjamin-docs/features/drift-and-session-hooks/decisions.md",
         "benjamin-docs/features/drift-and-session-hooks/handoff.md"
       ]
+    },
+    {
+      "label": "feature/mcp-memory-server",
+      "paths": [
+        "src/**",
+        "app/**",
+        "apps/**",
+        "lib/**",
+        "pages/**",
+        "components/**",
+        "server/**",
+        "api/**",
+        "**/*.sql",
+        "**/migrations/**",
+        "README.md",
+        "docs/**",
+        ".claude/**",
+        ".cursor/**"
+      ],
+      "docs": [
+        "benjamin-docs/features/mcp-memory-server/brief.md",
+        "benjamin-docs/features/mcp-memory-server/plan.md",
+        "benjamin-docs/features/mcp-memory-server/decisions.md",
+        "benjamin-docs/features/mcp-memory-server/handoff.md"
+      ]
     }
   ],
-  "bdVersion": "0.10.0"
+  "bdVersion": "0.11.0"
 }

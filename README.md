@@ -170,6 +170,27 @@ Drifted
 
 Drift is advisory: it shows up in `bd ready` without blocking readiness, feeds the session-start context so agents repair docs as they work, and supports `--json` for automation and `--strict` for CI gates. Time-based staleness guesses; drift measures.
 
+## MCP: Memory As Native Agent Tools
+
+Session hooks push context in; the MCP server lets agents pull exactly what they need and write back safely. Register it once per project:
+
+```bash
+bd mcp install
+```
+
+That registers a `benjamin-docs` MCP server for Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), and Codex (`.codex/config.toml`). Clients spawn `bd mcp` locally over stdio — no port, no daemon, no remote service — and get six tools:
+
+| Tool | What the agent gets |
+| --- | --- |
+| `memory_context` | Compact orientation, optionally focused on the task at hand. |
+| `memory_search` | Scored doc sections instead of whole-file reads. |
+| `memory_read` | One managed doc in full. |
+| `memory_update` | Body updates with frontmatter preserved, the updated date stamped, validation on write, and automatic rollback if the write breaks the memory. |
+| `memory_record_decision` | Append a decision (with its why) to a feature's decisions doc. |
+| `memory_status` | Mode, doc/scope counts, and current drift. |
+
+Reads become retrieval instead of directory ingestion, and writes are validated at the tool boundary instead of after the fact. Only manifest-managed memory docs are reachable; the rest of your repo is not exposed. Remove the registrations anytime with `bd mcp uninstall`.
+
 ## Upgrading: Old Repos Catch Up With One Command
 
 When a new CLI version lands, existing repos do not need re-setup. Update the global package, then run one command per repo:
@@ -326,7 +347,14 @@ Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
 
 ## Current Version
 
-`0.10.0` makes project memory self-maintaining instead of voluntary:
+`0.11.0` turns project memory into a native agent interface:
+
+- `bd mcp` serves project memory as MCP tools over stdio: `memory_context`, `memory_search`, `memory_read`, `memory_update`, `memory_record_decision`, `memory_status`.
+- Writes through MCP are validated transactionally — updates that would break the memory are rolled back with a readable error, and Memory Views regenerate automatically.
+- `bd mcp install|status|uninstall` manages per-project registration for Claude Code, Cursor, and Codex, preserving existing client config exactly.
+- First runtime dependencies: the official `@modelcontextprotocol/sdk` and `zod`.
+
+`0.10.0` made project memory self-maintaining instead of voluntary:
 
 - `bd drift` flags docs whose watched code changed in commits after the doc last changed, with `--json` and `--strict` for automation. `bd ready` shows drift as an advisory section.
 - `bd hooks install` wires agent session hooks for Claude Code, Codex, and Cursor: compact memory context injected at session start, a one-time nudge at stop when source changed without a memory update.
@@ -335,7 +363,8 @@ Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
 - Hook files are merged conservatively: existing user hooks and settings are preserved exactly, and `bd hooks uninstall` removes only Benjamin-owned entries.
 - `bd upgrade` catches existing repos up after a CLI update: version stamp, agent guidance, skills, views, and a hooks offer in one command.
 - A cached, opt-out npm update check surfaces newer versions through the agent's session-start context and `bd upgrade`, so nobody has to remember to check for updates.
-- Earlier guided export, verification recording, and readiness features remain included.
+
+Earlier guided export, verification recording, and readiness features remain included.
 
 ## Local Development
 
