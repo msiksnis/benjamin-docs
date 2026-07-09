@@ -30,14 +30,3 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-0
 2026-07-09 (later): the memory-interface slice also moved out: the MCP Memory Server scope (`benjamin-docs/features/mcp-memory-server/`) gives agents validated write tools, which advances this arc's reliability goal — agents can no longer corrupt frontmatter or structure through hand edits when they write via MCP.
 
 2026-07-09: the automation slice of this arc shipped separately as the Drift And Session Hooks scope (`benjamin-docs/features/drift-and-session-hooks/`). Drift detection and session hooks now enforce the read-and-update loop mechanically, which removes the biggest reliability dependency on agent discipline.
-
-## [MCP Memory Server Handoff](../features/mcp-memory-server/handoff.md)
-
-Source: `benjamin-docs/features/mcp-memory-server/handoff.md` (updated 2026-07-09)
-
-### Risks / Open Questions
-
-- First runtime dependencies: watch install size and audit surface (`@modelcontextprotocol/sdk`, `zod`).
-- Registration assumes a global `benjamin-docs` on PATH when clients spawn the server (same constraint as hooks).
-- Codex project `.codex/config.toml` loads only when the project layer is trusted in Codex.
-- Search is lexical; if retrieval quality disappoints on large memories, consider smarter scoring before reaching for embeddings.

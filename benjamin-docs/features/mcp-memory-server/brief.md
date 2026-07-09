@@ -3,7 +3,7 @@ title: MCP Memory Server Brief
 scope: feature
 scope_id: mcp-memory-server
 audience: [developer, agent]
-status: approved
+status: archived
 visibility: private
 updated: 2026-07-09
 source: session-capture

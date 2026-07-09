@@ -25,16 +25,6 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-0
 - Run the fresh-agent continuation dogfood exercise.
 - After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory or living project knowledge for AI coding agents, not a generic docs generator.
 
-## [MCP Memory Server Handoff](../features/mcp-memory-server/handoff.md)
-
-Source: `benjamin-docs/features/mcp-memory-server/handoff.md` (updated 2026-07-09)
-
-### Next Actions
-
-- Dogfood the MCP tools from a real Claude Code session in this repo (`bd mcp install`, then use memory_search/memory_update).
-- Publish 0.11.0 with the standard release flow, then archive this scope.
-- Consider folding session-start context into an MCP resource once tool-based consumption dominates.
-
 ## [Roadmap](../project/roadmap.md)
 
 Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-09)
@@ -50,6 +40,5 @@ Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-09)
 - Keep the public README, npm description, package keywords, CLI intro text, and bundled skill aligned around persistent project memory, living project knowledge, agent-maintained docs, and focused export packages.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.10.0`, then run the release guardrails so npm, the git tag, and GitHub Release match.
 - Dogfood drift detection and session hooks on real projects; watch for stop-nudge nagging and hook PATH issues.
-- Publish `0.11.0` (MCP memory server), then dogfood MCP tools from real agent sessions.
+- Done: `0.11.0` published 2026-07-09 after a live MCP dogfood from a Claude Code session (all six tools, validated update, verified rollback). Keep collecting MCP retrieval-quality feedback on larger memories.

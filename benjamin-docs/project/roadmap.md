@@ -36,14 +36,14 @@ freshness: status
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.10.0`.
-- Working package version: `0.11.0` (MCP memory server), implemented and tested, not yet published.
+- Current published release: `0.11.0` (MCP memory server), published 2026-07-09 with npm, git tag, and GitHub Release verified in sync.
+- Working package version: `0.11.0`; no unreleased work in the tree.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
-- GitHub Releases are backfilled through `v0.9.2`; `v0.9.2` is the latest published release until `0.9.3` is published.
+- GitHub Releases exist for every published version through `v0.11.0`, which is the latest release.
 - Release guardrails now include `pnpm run release:github`, `pnpm run release:verify-public`, and a tag-push GitHub Action that creates GitHub Releases from version tags after verifying npm.
 - The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
 - Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
@@ -63,9 +63,8 @@ freshness: status
 - Keep the public README, npm description, package keywords, CLI intro text, and bundled skill aligned around persistent project memory, living project knowledge, agent-maintained docs, and focused export packages.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.10.0`, then run the release guardrails so npm, the git tag, and GitHub Release match.
 - Dogfood drift detection and session hooks on real projects; watch for stop-nudge nagging and hook PATH issues.
-- Publish `0.11.0` (MCP memory server), then dogfood MCP tools from real agent sessions.
+- Done: `0.11.0` published 2026-07-09 after a live MCP dogfood from a Claude Code session (all six tools, validated update, verified rollback). Keep collecting MCP retrieval-quality feedback on larger memories.
 
 ## 0.11.0 Goal
 

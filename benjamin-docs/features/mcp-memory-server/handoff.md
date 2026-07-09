@@ -3,7 +3,7 @@ title: MCP Memory Server Handoff
 scope: feature
 scope_id: mcp-memory-server
 audience: [developer, agent]
-status: approved
+status: archived
 visibility: private
 updated: 2026-07-09
 source: session-capture
@@ -14,7 +14,7 @@ freshness: status
 
 ## Status
 
-Implemented and tested for 0.11.0. Not yet published to npm. Version bumped to 0.11.0.
+Shipped: 0.11.0 published to npm on 2026-07-09 with git tag and GitHub Release verified in sync. Live dogfood from a Claude Code session passed before publish. Scope archived.
 
 ## Risks / Open Questions
 
@@ -25,8 +25,7 @@ Implemented and tested for 0.11.0. Not yet published to npm. Version bumped to 0
 
 ## Next Actions
 
-- Dogfood the MCP tools from a real Claude Code session in this repo (`bd mcp install`, then use memory_search/memory_update).
-- Publish 0.11.0 with the standard release flow, then archive this scope.
+- Done: live dogfood passed (all six tools, validated update, verified rollback); 0.11.0 published; scope archived.
 - Consider folding session-start context into an MCP resource once tool-based consumption dominates.
 
 ## Continuation Proof

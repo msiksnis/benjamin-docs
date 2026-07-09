@@ -11,7 +11,7 @@ source: manual
 
 # Changelog
 
-## 0.11.0 (unpublished)
+## 0.11.0
 
 - Added `bd mcp`: an MCP server over stdio exposing project memory as native agent tools — `memory_context`, `memory_search`, `memory_read`, `memory_update`, `memory_record_decision`, `memory_status`. Reads return scored doc sections; writes preserve frontmatter, stamp the updated date, validate transactionally with rollback, and regenerate Memory Views.
 - Added `bd mcp install|status|uninstall`: per-project registration for Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), and Codex (`.codex/config.toml` marker block). User config is preserved exactly; uninstall removes only the Benjamin-owned entry.
