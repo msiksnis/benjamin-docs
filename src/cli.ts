@@ -8,6 +8,7 @@ import { installAgentContracts } from "./agent-contracts.js";
 import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
 import { allCommands, getCommandsText, type CommandEntry } from "./commands.js";
 import { runDoctor } from "./doctor.js";
+import { detectDrift, formatDrift } from "./drift.js";
 import {
   exportAppDocumentation,
   exportAudience,
@@ -22,13 +23,17 @@ import {
 } from "./export.js";
 import { initProject, looksLikeCodebase, promoteToCodebase, type InitProjectOptions } from "./init.js";
 import { getAnchorHelpText, getHelpText, getInitHelpText, getIntroductionText, getPackageVersion, getScopeHelpText } from "./info.js";
+import { checkHooks, formatHooksResult, installHooks, knownHookTargets, uninstallHooks, type HookTargetId } from "./hooks.js";
 import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
+import { formatSessionStart, formatSessionStop, parseStopHookActive, type SessionHookFormat } from "./session.js";
 import { formatNextMessage, getNextPrompt } from "./next.js";
 import { formatPackageSkillResult, packageSkill, type PackageSkillOptions } from "./package-skill.js";
 import { checkReady } from "./ready.js";
 import { reviewProject, type ReviewOptions } from "./review.js";
 import { createScope, setScopeStatus } from "./scopes.js";
 import { getStatus } from "./status.js";
+import { refreshUpdateCache } from "./update-check.js";
+import { runUpgrade } from "./upgrade.js";
 import type { FocusType } from "./types.js";
 import { validateProject } from "./validate.js";
 import { generateMemoryViews } from "./views.js";
@@ -43,6 +48,10 @@ export function shouldOfferAgentGuidance(setup: FocusType): boolean {
 
 export function agentGuidancePromptLabel(): string {
   return "Add AI agent guidance for this project? Recommended.";
+}
+
+export function hooksPromptLabel(): string {
+  return "Install agent session hooks (Claude Code, Codex, Cursor)? Agents then load and maintain project memory automatically. Recommended.";
 }
 
 export async function main(argv: string[] = process.argv.slice(2), cwd: string = process.cwd()): Promise<number> {
@@ -97,6 +106,53 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
     return result.ok ? 0 : 1;
   }
 
+  if (command === "hooks") {
+    const options = parseHooksArgs(argv.slice(1));
+    if (options.action === "install") {
+      console.log(formatHooksResult("install", installHooks(cwd, options.targets)));
+      return 0;
+    }
+    if (options.action === "uninstall") {
+      console.log(formatHooksResult("uninstall", uninstallHooks(cwd, options.targets)));
+      return 0;
+    }
+    console.log(formatHooksResult("status", checkHooks(cwd, options.targets)));
+    return 0;
+  }
+
+  if (command === "session-start") {
+    const output = formatSessionStart(cwd, parseSessionFormat(argv.slice(1), "session-start"), process.argv[1]);
+    if (output) console.log(output);
+    return 0;
+  }
+
+  if (command === "update-cache") {
+    await refreshUpdateCache(new Date().toISOString());
+    return 0;
+  }
+
+  if (command === "upgrade") {
+    const hooksOption = await resolveUpgradeHooksOption(argv.slice(1), cwd);
+    const result = await runUpgrade(cwd, { hooks: hooksOption });
+    console.log(result.output);
+    return result.ok ? 0 : 1;
+  }
+
+  if (command === "session-stop") {
+    const stopHookActive = parseStopHookActive(await readStdinText());
+    const output = formatSessionStop(cwd, parseSessionFormat(argv.slice(1), "session-stop"), stopHookActive);
+    if (output) console.log(output);
+    return 0;
+  }
+
+  if (command === "drift") {
+    const options = parseDriftArgs(argv.slice(1));
+    const result = detectDrift(cwd);
+    console.log(options.json ? JSON.stringify(result, null, 2) : formatDrift(result));
+    if (!result.initialized) return 1;
+    return options.strict && result.drifted.length > 0 ? 1 : 0;
+  }
+
   if (command === "ready") {
     const result = checkReady({ cwd, commandPath: process.argv[1] });
     console.log(result.output);
@@ -121,6 +177,10 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
     if (options.agentContract) {
       const agentResult = installAgentContracts(cwd, { children: options.childContracts });
       for (const message of agentResult.messages) console.log(message);
+    }
+    if (options.hooks) {
+      console.log("");
+      console.log(formatHooksResult("install", installHooks(cwd)));
     }
     console.log("");
     console.log(formatNextMessage(getNextPrompt(cwd)));
@@ -339,6 +399,16 @@ function parseInitArgs(args: string[]): InitProjectOptions {
       continue;
     }
 
+    if (arg === "--hooks") {
+      options.hooks = true;
+      continue;
+    }
+
+    if (arg === "--no-hooks") {
+      options.hooks = false;
+      continue;
+    }
+
     throw new Error(`Unknown init option: ${arg}`);
   }
 
@@ -369,6 +439,104 @@ function parseReviewArgs(args: string[]): ReviewOptions {
     }
 
     throw new Error("Usage: benjamin-docs review [--changed] [--since <git-ref>]");
+  }
+
+  return options;
+}
+
+async function resolveUpgradeHooksOption(args: string[], cwd: string): Promise<boolean | undefined> {
+  let hooks: boolean | undefined;
+
+  for (const arg of args) {
+    if (arg === "--hooks") {
+      hooks = true;
+      continue;
+    }
+
+    if (arg === "--no-hooks") {
+      hooks = false;
+      continue;
+    }
+
+    throw new Error("Usage: benjamin-docs upgrade [--hooks|--no-hooks]");
+  }
+
+  if (hooks !== undefined || !process.stdin.isTTY || !process.stdout.isTTY) return hooks;
+
+  const anyInstalled = checkHooks(cwd).targets.some((target) => target.status === "installed");
+  if (anyInstalled) return undefined;
+
+  return confirmChoice(hooksPromptLabel(), true);
+}
+
+interface HooksArgs {
+  action: "install" | "uninstall" | "status";
+  targets?: HookTargetId[];
+}
+
+function parseHooksArgs(args: string[]): HooksArgs {
+  const [action, ...rest] = args;
+  if (action !== "install" && action !== "uninstall" && action !== "status") {
+    throw new Error("Usage: benjamin-docs hooks <install|status|uninstall> [--target <claude-code|codex|cursor>]");
+  }
+
+  const options: HooksArgs = { action };
+
+  for (let index = 0; index < rest.length; index += 1) {
+    const arg = rest[index];
+    if (arg === "--target") {
+      const value = rest[index + 1];
+      const ids = knownHookTargets().map((target) => target.id);
+      if (!value || !ids.includes(value as HookTargetId)) {
+        throw new Error(`Usage: benjamin-docs hooks ${action} --target <${ids.join("|")}>`);
+      }
+      options.targets = [...(options.targets ?? []), value as HookTargetId];
+      index += 1;
+      continue;
+    }
+
+    throw new Error(`Unknown hooks option: ${arg}`);
+  }
+
+  return options;
+}
+
+function parseSessionFormat(args: string[], command: string): SessionHookFormat | undefined {
+  if (args.length === 0) return undefined;
+
+  const [flag, value, ...rest] = args;
+  if (flag !== "--format" || rest.length > 0 || (value !== "claude" && value !== "codex" && value !== "cursor")) {
+    throw new Error(`Usage: benjamin-docs ${command} [--format <claude|codex|cursor>]`);
+  }
+
+  return value;
+}
+
+async function readStdinText(): Promise<string> {
+  if (process.stdin.isTTY) return "";
+
+  let data = "";
+  for await (const chunk of process.stdin) {
+    data += chunk;
+  }
+  return data;
+}
+
+function parseDriftArgs(args: string[]): { json?: boolean; strict?: boolean } {
+  const options: { json?: boolean; strict?: boolean } = {};
+
+  for (const arg of args) {
+    if (arg === "--json") {
+      options.json = true;
+      continue;
+    }
+
+    if (arg === "--strict") {
+      options.strict = true;
+      continue;
+    }
+
+    throw new Error("Usage: benjamin-docs drift [--json] [--strict]");
   }
 
   return options;
@@ -625,6 +793,7 @@ async function promptForInitOptions(): Promise<InitProjectOptions> {
 
   if (shouldOfferAgentGuidance(setup)) {
     options.agentContract = await confirmChoice(agentGuidancePromptLabel(), true);
+    options.hooks = await confirmChoice(hooksPromptLabel(), true);
   }
 
   return options;

@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: session-capture
 freshness: status
 ---
@@ -36,8 +36,8 @@ freshness: status
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.9.2`.
-- Working package version: `0.9.3` release candidate for npm publish.
+- Current published release: `0.9.3`.
+- Working package version: `0.10.0` (drift detection plus agent session hooks), implemented and tested, not yet published.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -63,8 +63,18 @@ freshness: status
 - Keep the public README, npm description, package keywords, CLI intro text, and bundled skill aligned around persistent project memory, living project knowledge, agent-maintained docs, and focused export packages.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.9.3`, then run the release guardrails so npm, the git tag, and GitHub Release match.
-- Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and `0.9.3` is prepared.
+- Publish `0.10.0`, then run the release guardrails so npm, the git tag, and GitHub Release match.
+- Dogfood drift detection and session hooks on real projects; watch for stop-nudge nagging and hook PATH issues.
+- Implement the next release as an MCP server arc (`bd mcp`): stdio server exposing memory read/search/write tools via the official `@modelcontextprotocol/sdk`, with writes validated by the existing validation logic. Owner-approved staged plan from the 2026-07-09 session.
+
+## 0.10.0 Goal
+
+Make project memory self-maintaining instead of voluntary:
+
+- `bd drift` measures docs against committed git history through watch rules; advisory in `bd ready`, `--strict` for CI, `--json` for agents.
+- `bd hooks install` wires Claude Code, Codex, and Cursor session hooks: compact context injection at session start, a once-per-turn-chain update nudge at stop.
+- Interactive `bd init` asks for hook consent; the human command surface stays `init`, `ready`, `export`, plus `upgrade` when bd asks for it.
+- `bd upgrade` catches previously initialized repos up (version stamp, agent guidance, skills, views, hooks offer); a cached opt-out npm update check makes agents the ones who notice new versions.
 
 ## Guided Export Goal
 

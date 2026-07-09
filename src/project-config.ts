@@ -28,6 +28,7 @@ export function normalizeConfig(config: BenjaminDocsConfig): BenjaminDocsConfig 
     feature: config.feature,
     watch: config.watch,
     export: config.export,
+    bdVersion: config.bdVersion,
   };
 }
 

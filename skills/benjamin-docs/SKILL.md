@@ -249,7 +249,8 @@ Use this completion loop:
 2. Update the smallest relevant Benjamin source docs.
 3. Regenerate Memory Views with `views` when source docs changed.
 4. Run `review --changed` when git history is available.
-5. Run `ready` before claiming handoff readiness.
+5. Run `drift` to catch docs whose watched code changed in earlier commits without a doc update.
+6. Run `ready` before claiming handoff readiness.
 
 `review` and `ready` also report deterministic staleness signals. Fix them by updating docs, not by weakening them:
 
@@ -274,6 +275,25 @@ Expected doc targets:
 If no Benjamin Docs update is needed, say why in the final response. The reason should be concrete, for example "only reformatted code; no behavior, workflow, architecture, or handoff context changed."
 
 For `benjamin-docs` package releases, do not stop after npm publish. After publishing the tarball, run `pnpm run release:github` to create or reuse the matching version tag and GitHub Release, then run `pnpm run release:verify-public` to confirm npm, the local tag, the origin tag, the GitHub Release, and GitHub's latest-release pointer all agree.
+
+## Drift And Session Hooks
+
+`benjamin-docs drift` compares each watched doc against committed git history: a doc is drifted when files matching its `watch` rules changed in commits after the doc last changed. Drift is advisory. When a session starts with drift reported, or `ready` shows a "Drift (advisory)" section, re-verify the listed docs against the current code, then update them or state why they still hold. Use `drift --json` for machine-readable results and `drift --strict` only in CI-style gates.
+
+`benjamin-docs hooks install` wires session hooks for Claude Code (`.claude/settings.json`), Codex (`.codex/hooks.json`), and Cursor (`.cursor/hooks.json`):
+
+- At session start, the hook injects compact project-memory context (read-first docs plus a drift summary) via `benjamin-docs session-start`.
+- At stop, `benjamin-docs session-stop` nudges once when source files changed but no Benjamin doc was updated. Respond by updating the relevant docs, or state briefly why no memory update is needed, then finish.
+
+Only install hooks when the user consents (interactive `init` asks; automation uses `init --hooks` or `hooks install`). Never edit the user's other hook entries; `hooks uninstall` removes only Benjamin-owned entries. Codex additionally needs `features.hooks = true` in `~/.codex/config.toml` and hook trust via `/hooks`; tell the user when that applies.
+
+When a session-start hook already injected Benjamin Docs context, do not re-read the whole memory tree; read the specific docs the context names, plus whatever the task needs.
+
+## Upgrades And Update Notices
+
+When session-start context or `ready` says the repo's Benjamin Docs setup is older than the installed CLI, run `benjamin-docs upgrade`. It is repo-local and safe: it stamps the CLI version into metadata, refreshes only the Benjamin-owned `AGENTS.md` section, refreshes skill installs, regenerates existing Memory Views, and reports hook status. It never rewrites user-authored content.
+
+When the context says a newer `benjamin-docs` version is available on npm, suggest the update to the user rather than running it silently; updating a global package changes their machine. The command to suggest: `pnpm update -g benjamin-docs` (or `npm update -g benjamin-docs`), followed by `benjamin-docs upgrade` in the repo. Update checks are cached and can be disabled with `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`; respect that choice if the user set it.
 
 ## Agent Guidance / AGENTS.md
 

@@ -77,6 +77,13 @@
       "title": "Agent Reliability",
       "path": "benjamin-docs/features/agent-reliability",
       "status": "draft"
+    },
+    {
+      "id": "drift-and-session-hooks",
+      "kind": "feature",
+      "title": "Drift And Session Hooks",
+      "path": "benjamin-docs/features/drift-and-session-hooks",
+      "status": "draft"
     }
   ]
 }

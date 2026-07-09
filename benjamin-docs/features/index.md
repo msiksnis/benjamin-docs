@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, agent, business]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: session-capture
 ---
 
@@ -17,6 +17,7 @@ Because this repository is public, do not create feature scopes for private comm
 
 ## Active
 
+- [Drift And Session Hooks](./drift-and-session-hooks/brief.md): 0.10.0 arc making memory self-maintaining. `bd drift` measures docs against committed git history via watch rules; `bd hooks install` wires Claude Code, Codex, and Cursor session hooks that inject memory context at session start and nudge updates at stop. Active until 0.10.0 is published, then archive.
 - [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, release hygiene, readiness repair, freshness repair, lifecycle cleanup, public first-contact clarity, living project knowledge positioning, the 0.9.3 npm positioning release, and fresh-agent dogfooding through advanced workflows.
 
 ## Shipped (archived)

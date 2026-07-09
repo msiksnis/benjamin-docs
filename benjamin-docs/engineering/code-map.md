@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: session-capture
 ---
 
@@ -33,11 +33,15 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 - `src/validate.ts` validates config (including `watch` rules), manifest, scopes, anchors, managed Markdown, links, and symlink/root safety.
 - `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, empty open-question docs, weak continuation proof, freshness blind spots for status-bearing docs, git churn since engineering docs last changed, missing inline-code path references, stale Memory Views, and changed source work that likely needs project-memory updates. Archived and stale docs are skipped for quality checks and changed-work watch warnings.
+- `src/git.ts` holds shared git helpers (`getChangedFiles`, `getCommittedChanges`, `gitLastCommit`, `gitCommitCountTouching`, `isReviewableSourceChange`) used by review, drift, and session commands.
+- `src/drift.ts` implements `bd drift`: per-doc committed-history comparison against watch rules, with advisory formatting, `--json`, and `--strict` handled in the CLI. Skips archived/stale docs, uncommitted-doc updates, and never-committed docs.
+- `src/session.ts` implements `bd session-start` (compact context: read-first docs plus drift summary, per-tool formats) and `bd session-stop` (once-per-turn-chain update nudge with `stop_hook_active` guard; agent-config paths excluded from source-change detection).
+- `src/hooks.ts` installs/reports/uninstalls agent session hooks in the target project's Claude Code settings file plus the Codex and Cursor `hooks.json` files (under the project's `.claude`, `.codex`, and `.cursor` folders). Ownership marker: hook command contains `benjamin-docs session-`. Preserves all user content; unparseable files are skipped, never rewritten.
 - `src/watch.ts` holds the `WatchRule` defaults, including broad baseline coverage for project, handoff, feature-index, engineering, and release docs, plus the zero-dependency glob matcher and `resolveWatchRules` for config-or-default resolution.
 - `src/views.ts` renders Memory Views: it filters out archived/stale docs and scopes, orders sources by updated date, groups sections per source doc, and only rewrites view files whose body changed. `renderMemoryViews` is also used by review for the freshness check.
 - `src/doctor.ts` checks CLI version, installed skills, Claude Desktop upload zip, project initialization, and validation. `--strict` turns setup gaps and validation warnings into failures.
 - `src/environment.ts` scans Benjamin-managed source docs for recorded local environment/tooling blockers such as missing commands or unavailable services.
-- `src/ready.ts` is the handoff gate. It combines validation, docs review, `doctor --strict`, and agent guidance checks, and fails when any of those checks is not clean. It also surfaces recorded environment/tooling blockers as a non-failing handoff category when project docs captured them.
+- `src/ready.ts` is the handoff gate. It combines validation, docs review, `doctor --strict`, and agent guidance checks, and fails when any of those checks is not clean. It also surfaces recorded environment/tooling blockers and advisory drift as non-failing handoff categories.
 
 ## Filesystem And Metadata
 

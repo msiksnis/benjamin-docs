@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: session-capture
 freshness: status
 ---
@@ -24,7 +24,7 @@ The core product model is asymmetric: humans should see a calm, tiny surface and
 
 Public entry points now need to work for both humans and agents. The GitHub README, npm description, package keywords, CLI `introduce` text, and bundled skill should all use the same framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Preserve the caveat that BD is not a background daemon; upkeep happens because the installed skill and repo-local guidance instruct agents to maintain the memory as part of normal work.
 
-The 0.9.3 release candidate packages that public positioning for npmjs. Runtime command behavior remains the 0.9.x guided-export and Agent Reliability surface; the patch exists so a fresh npm/GitHub visitor sees the correct value proposition immediately.
+The 0.9.3 release packaged that public positioning for npmjs. The 0.10.0 release candidate makes the memory self-maintaining: `bd drift` measures docs against committed git history through watch rules, and consent-based session hooks load memory into Claude Code, Codex, and Cursor sessions automatically while nudging agents to update docs when source changes without them. The "not a background daemon" caveat softens accordingly: with hooks installed, the user's agent environment does invoke BD at session boundaries.
 
 Agent Reliability now includes clearer handling for local prerequisites. When agents record that project checks are blocked by missing tools or services, such as a command that is not installed or a database that is not listening, `bd ready` surfaces those notes under a dedicated environment/tooling category instead of blending them into generic project failure language.
 

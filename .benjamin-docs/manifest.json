@@ -46,6 +46,10 @@
     "benjamin-docs/features/agent-reliability/brief.md",
     "benjamin-docs/features/agent-reliability/plan.md",
     "benjamin-docs/features/agent-reliability/decisions.md",
-    "benjamin-docs/features/agent-reliability/handoff.md"
+    "benjamin-docs/features/agent-reliability/handoff.md",
+    "benjamin-docs/features/drift-and-session-hooks/brief.md",
+    "benjamin-docs/features/drift-and-session-hooks/plan.md",
+    "benjamin-docs/features/drift-and-session-hooks/decisions.md",
+    "benjamin-docs/features/drift-and-session-hooks/handoff.md"
   ]
 }

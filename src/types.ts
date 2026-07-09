@@ -51,6 +51,7 @@ export interface BenjaminDocsConfig {
   feature?: string;
   watch?: WatchRule[];
   export?: ExportConfig;
+  bdVersion?: string;
 }
 
 export interface ScopeRecord {

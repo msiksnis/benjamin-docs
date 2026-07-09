@@ -5,7 +5,7 @@ scope_id: agent-brief
 audience: [agent]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: session-capture
 freshness: status
 ---
@@ -22,8 +22,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.9.2` published on npm; `0.9.3` prepared for the next npm publish.
-- Working package version: `0.9.3`.
+- Package status: `0.9.3` published on npm; `0.10.0` implemented and prepared for the next npm publish.
+- Working package version: `0.10.0` (drift detection plus agent session hooks).
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -38,7 +38,7 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.9.2 is published on npm and released on GitHub. The working tree is preparing `0.9.3` for npm publish so the npmjs page receives the updated README, package description, and keywords. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
+Current state: 0.9.3 is published. The working tree carries `0.10.0`: `bd drift` (committed-history drift detection over watch rules, advisory in `bd ready`, `--json`/`--strict`), `bd hooks install|status|uninstall` (session hooks for Claude Code, Codex, Cursor with strict user-content preservation), `bd session-start`/`bd session-stop` (compact context injection and once-per-turn-chain update nudge), and init hook consent (`--hooks`/`--no-hooks`, interactive prompt). Design spec: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`; feature memory: `benjamin-docs/features/drift-and-session-hooks/`. 0.10.0 also includes `bd upgrade` (main command; catches old repos up by stamping `bdVersion` into config and refreshing Benjamin-owned surfaces) and a cached opt-out npm update check surfaced through session-start context and `ready`. The approved next arc after publishing is an MCP server (`bd mcp`) using the official `@modelcontextprotocol/sdk`. The 0.9.2 work includes agent export verification recording, guided export menu, feature readiness labels, app/feature/handoff/summary Markdown snapshots, customer/developer profiles, detail levels, snapshot metadata, customer leak checks, regenerated export behavior, changed-work review skipping inactive docs, and `bd ready` surfacing recorded environment/tooling blockers as a non-failing category.
 
 2026-07-01 public-positioning update: the README was rewritten, `package.json` description/keywords were adjusted, CLI `introduce`/help copy was aligned, and the bundled skill purpose was tightened because an outside agent misread BD as a documentation package or Markdown helper. Preserve the first-impression framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Do not let public copy drift back to "turn chats into docs" as the headline value.
 
@@ -61,14 +61,14 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo.
 
-Next actions: publish `0.9.3`, then run `pnpm run release:github` and `pnpm run release:verify-public`. After the publish, do a fresh stranger/fresh-agent read of the GitHub README and npm package to confirm the public surfaces now communicate persistent project memory in the first few seconds. Continue dogfooding guided exports and Agent Reliability on real projects.
+Next actions: publish `0.10.0`, then run `pnpm run release:github` and `pnpm run release:verify-public`. Dogfood drift and session hooks on real projects (watch for stop-nudge nagging and `benjamin-docs`-not-on-PATH hook failures). Then design the MCP server release: stdio server exposing memory read/search/write tools, writes validated by the existing `validate.ts` logic.
 
 ## Implemented So Far
 
 - TypeScript CLI with no runtime dependencies.
 - Main commands: `init`, `ready`, `export`, `help`.
 - Advanced drawer: `commands`, with numbered interactive selection in real terminals.
-- Advanced commands include `status`, `next`, `validate`, `review`, `review --changed`, `doctor`, `views`, `export --audience <audience>`, `export --list`, `export --feature <slug> --profile <profile>`, `export --type <app|handoff|summary> --profile <profile>`, `scope create feature <slug>`, `scope status <id> <status>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
+- Advanced commands include `status`, `next`, `validate`, `review`, `review --changed`, `drift`, `hooks install|status|uninstall`, `session-start`, `session-stop`, `doctor`, `views`, `export --audience <audience>`, `export --list`, `export --feature <slug> --profile <profile>`, `export --type <app|handoff|summary> --profile <profile>`, `scope create feature <slug>`, `scope status <id> <status>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
 - Short binary alias: `bd`.
 - Planning-mode docs created by `init`.
 - Codebase-mode docs created by `promote --to codebase`.

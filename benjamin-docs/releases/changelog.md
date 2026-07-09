@@ -5,14 +5,21 @@ scope_id: release
 audience: [developer, business, public]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: manual
 ---
 
 # Changelog
 
-## Unreleased
+## 0.10.0 (unpublished)
 
+- Added `bd drift`: flags docs whose watched code changed in commits after the doc last changed, using the `watch` rules in `.benjamin-docs/config.json`. Advisory by default, `--strict` for CI gates, `--json` for automation. `bd ready` shows a non-blocking "Drift (advisory)" section.
+- Added `bd hooks install|status|uninstall`: agent session hooks for Claude Code (`.claude/settings.json`), Codex (`.codex/hooks.json`), and Cursor (`.cursor/hooks.json`). Existing user hook entries and settings are preserved exactly; uninstall removes only Benjamin-owned entries.
+- Added `bd session-start` and `bd session-stop`: compact memory context injected at session start (read-first docs plus drift summary) and a once-per-turn-chain nudge at stop when source changed without a memory update. Per-tool output formats via `--format claude|codex|cursor`.
+- Interactive `bd init` now offers session hooks as a consent prompt; automation uses `--hooks` / `--no-hooks`.
+- Added `bd upgrade` as a main command: stamps the CLI version into `.benjamin-docs/config.json` (`bdVersion`), refreshes the Benjamin-owned `AGENTS.md` section, refreshes local skill installs, regenerates existing Memory Views, and offers session hooks with consent. `bd ready` and session-start context show an advisory hint when a repo's setup is older than the installed CLI.
+- Added a cached, opt-out npm update check: session-start context tells agents when a newer `benjamin-docs` is available so they suggest `pnpm update -g benjamin-docs` plus `bd upgrade`; cache lives under `~/.benjamin-docs/`, refreshes at most daily in a detached background process, and is disabled with `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`.
+- Extracted shared git helpers into `src/git.ts`; `review.ts` now reuses them.
 - Updated `SECURITY.md` supported-version wording now that versioned GitHub/npm releases exist.
 
 ## 0.9.3

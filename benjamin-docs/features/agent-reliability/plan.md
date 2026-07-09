@@ -5,12 +5,14 @@ scope_id: agent-reliability
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: manual
 freshness: status
 ---
 
 # Agent Reliability Plan
+
+2026-07-09 update: session hooks and drift detection moved to the Drift And Session Hooks scope and shipped in 0.10.0; remove them from this plan's open items.
 
 This plan turns the user's product direction into small agent-led improvements. The human path remains `bd init`, `bd ready`, `bd export`, and `bd help`; deeper work belongs in advanced commands, generated guidance, and the bundled skill.
 

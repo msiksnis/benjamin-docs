@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readFileSync } from "node:fs";
-import { execFileSync } from "node:child_process";
 import { CONFIG_DIR } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
+import { getChangedFiles, gitLastCommit, isReviewableSourceChange } from "./git.js";
 import { readGeneratedJson, rootPath } from "./fsx.js";
 import { readConfig } from "./project-config.js";
 import type { ManifestFile, WatchRule } from "./types.js";
@@ -29,11 +29,6 @@ export interface ReviewOptions {
 
 interface ChangedReviewResult {
   filesChecked: number;
-}
-
-interface ChangedFilesResult {
-  files: string[];
-  ok: boolean;
 }
 
 const STARTER_PHRASES = [
@@ -287,54 +282,8 @@ function isInactiveDoc(root: string, doc: string): boolean {
   }
 }
 
-function getChangedFiles(root: string, since: string): ChangedFilesResult {
-  try {
-    const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRT", since, "--"], {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    });
-    const untracked = execFileSync("git", ["ls-files", "--others", "--exclude-standard"], {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    });
-
-    return {
-      files: uniqueStrings([...changed.split(/\r?\n/), ...untracked.split(/\r?\n/)].map((line) => line.trim()).filter(Boolean)),
-      ok: true,
-    };
-  } catch {
-    return { files: [], ok: false };
-  }
-}
-
-function gitLastCommit(root: string, file: string): string | undefined {
-  try {
-    const output = execFileSync("git", ["log", "-1", "--format=%H", "--", file], {
-      cwd: root,
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-
-    return output || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function uniqueStrings(values: string[]): string[] {
-  return [...new Set(values)];
-}
-
 function isBenjaminSourceDoc(file: string, docsRoot: string): boolean {
   return file.startsWith(`${docsRoot}/`) && file.endsWith(".md") && !file.startsWith(`${docsRoot}/views/`);
-}
-
-function isReviewableSourceChange(file: string, docsRoot: string): boolean {
-  if (file.startsWith(`${docsRoot}/`) || file.startsWith(`${CONFIG_DIR}/`)) return false;
-  if (file.startsWith(".git/")) return false;
-  return /\.(ts|tsx|js|jsx|sql|json|yml|yaml|md|css|html|py|rb|go|rs|java|php)$/i.test(file);
 }
 
 function reviewDocChurn(root: string, docsRoot: string, warnings: ReviewIssue[]): void {

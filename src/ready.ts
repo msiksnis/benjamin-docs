@@ -1,7 +1,11 @@
 import { checkAgentContracts } from "./agent-contracts.js";
 import { runDoctor } from "./doctor.js";
+import { detectDrift, summarizeDrift } from "./drift.js";
 import { findEnvironmentBlockers } from "./environment.js";
+import { getPackageVersion } from "./info.js";
+import { readConfig } from "./project-config.js";
 import { reviewProject, type ReviewIssue } from "./review.js";
+import { compareVersions } from "./update-check.js";
 import { validateProject } from "./validate.js";
 
 export interface ReadyResult {
@@ -74,6 +78,23 @@ export function checkReady(options: ReadyOptions = {}): ReadyResult {
     for (const warning of agentContracts.warnings) lines.push(`  - warning: ${warning}`);
   }
 
+  const upgradeHint = getUpgradeHint(cwd);
+  if (upgradeHint) {
+    lines.push("");
+    lines.push("Upgrade (advisory)");
+    lines.push(`  ${upgradeHint}`);
+  }
+
+  const drift = detectDrift(cwd);
+  if (drift.gitAvailable && drift.drifted.length > 0) {
+    lines.push("");
+    lines.push("Drift (advisory)");
+    for (const entry of drift.drifted) {
+      lines.push(`  - ${entry.doc}: ${summarizeDrift(entry)}.`);
+    }
+    lines.push("  Drift does not block readiness. Re-verify these docs against current code, then run: benjamin-docs drift");
+  }
+
   if (environmentBlockers.length > 0) {
     lines.push("");
     lines.push("Recorded Environment / Tooling Blockers");
@@ -86,6 +107,20 @@ export function checkReady(options: ReadyOptions = {}): ReadyResult {
   lines.push(ok ? "  Project memory is ready for handoff." : "  Fix the failed checks, then run: benjamin-docs ready");
 
   return { ok, output: lines.join("\n") };
+}
+
+function getUpgradeHint(cwd: string): string | undefined {
+  let recorded: string | undefined;
+  try {
+    recorded = readConfig(cwd).bdVersion;
+  } catch {
+    return undefined;
+  }
+
+  const currentVersion = getPackageVersion();
+  if (recorded && compareVersions(currentVersion, recorded) <= 0) return undefined;
+
+  return `This repo's Benjamin Docs setup was last upgraded ${recorded ? `at ${recorded}` : "before 0.10.0"}; the CLI is ${currentVersion}. Refresh Benjamin-owned surfaces with: benjamin-docs upgrade`;
 }
 
 function formatCheck(label: string, ok: boolean, summary: string): string {

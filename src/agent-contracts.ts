@@ -93,6 +93,17 @@ export function installAgentContracts(root: string, options: AgentContractOption
   return { written, messages, preservedExisting: false };
 }
 
+export function hasAgentContractMarkers(root: string): boolean {
+  const rootAgentsPath = rootPath(root, ROOT_AGENTS_PATH);
+  if (!lstatIfExists(rootAgentsPath)?.isFile()) return false;
+
+  try {
+    return getMarkerState(readFileSync(rootAgentsPath, "utf8")).balanced;
+  } catch {
+    return false;
+  }
+}
+
 export function checkAgentContracts(root: string): AgentContractCheckResult {
   const rootAgentsPath = rootPath(root, ROOT_AGENTS_PATH);
   if (!lstatIfExists(rootAgentsPath)) {
@@ -217,6 +228,7 @@ function rootContractSection(docsRoot: string, childPaths: string[]): string {
 - Prefer concrete evidence: code paths, commands, decisions, risks, and next actions.
 - Do not dump raw transcripts unless the user explicitly asks for an archive.
 - Preserve the user's intent, but call out weak assumptions, contradictions, and useful alternatives.
+- Run \`benjamin-docs drift\` to see docs whose watched code changed after the doc last changed; re-verify and update them.
 - Before claiming handoff readiness, run \`benjamin-docs review --changed\` when git history is available, then \`benjamin-docs ready\`.
 ${childIndex}${END_MARKER}`;
 }

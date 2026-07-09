@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: session-capture
 ---
 
@@ -27,6 +27,8 @@ Public first-contact surfaces are part of the architecture because this package 
 
 The 0.9.3 publish is a public-surface patch, not a runtime architecture change. It packages the README/npm positioning work so npmjs and GitHub both present the same agent-memory model.
 
+0.10.0 keeps the zero-runtime-dependency posture. The planned MCP server release after it will introduce the first runtime dependency (the official `@modelcontextprotocol/sdk`), an owner-approved exception because hand-rolling the evolving MCP protocol is a worse maintenance trade.
+
 ## Project Layout
 
 Initialized projects have two roots:
@@ -45,6 +47,8 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Metadata and path-safety helpers live in `src/fsx.ts`, `src/project-config.ts`, and `src/types.ts`.
 - Validation lives in `src/validate.ts`.
 - Docs quality and changed-work freshness review live in `src/review.ts`.
+- Shared git history helpers live in `src/git.ts`; committed-history drift detection lives in `src/drift.ts`.
+- Agent session hook installation lives in `src/hooks.ts`; session-start context and stop nudges live in `src/session.ts`.
 - Watch-rule globs and stack-agnostic changed-file mapping live in `src/watch.ts`.
 - Memory Views rendering and lifecycle filtering live in `src/views.ts`.
 - Setup diagnostics live in `src/doctor.ts`.
@@ -68,6 +72,10 @@ Plain `bd review` (and therefore `bd ready`) also runs deterministic staleness c
 - Memory View freshness: warns when generated views under `views/` no longer match what the current source docs would render.
 
 `review --changed` additionally scans `architecture.md` and `code-map.md` for generic stale claims such as "not implemented yet" or "does not exist yet" while source files changed, quoting the full sentence.
+
+Since 0.10.0, `bd drift` covers the committed-history half of freshness: for every doc referenced by a watch rule, it diffs the commits since the doc last changed and flags docs whose watched code moved on without them. Drift is deliberately advisory (a non-blocking section in `ready`, `--strict` for CI) because the broad default watch rules would make a blocking check flap on every code commit. `review --changed` owns working-tree hygiene; `drift` owns cross-session rot.
+
+Also since 0.10.0, the update loop no longer depends on the human prompting it. `bd hooks install` writes Benjamin-owned entries into Claude Code, Codex, and Cursor project hook files; sessions then start with `bd session-start` context (memory location, read-first docs, drift summary) and end with a `bd session-stop` nudge when source changed without a memory update. Hook files are user-owned: the CLI merges conservatively, marks its entries by the `benjamin-docs session-` command string, preserves unparseable files untouched, and uninstall removes only marked entries. Hooks are installed only with consent (interactive `init` prompt, `init --hooks`, or explicit `hooks install`).
 
 All of this stays warning-only inside `review`, but `ready` fails on review warnings, so the gate enforces freshness. This is intentionally heuristic, not an AI reviewer. The product rule is unchanged: agents should either update Benjamin Docs or explicitly state why a change has no durable project-memory impact.
 

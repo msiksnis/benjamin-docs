@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: session-capture
 ---
 
@@ -46,7 +46,10 @@ source: session-capture
 - Decision for 0.9.3: publish the public-positioning update as a patch release with no runtime behavior change.
 - If a user requested agent guidance but an existing unmarked `AGENTS.md` was preserved, should `bd ready` fail or report a stronger warning?
 - Should generated `AGENTS.md` remain short, or include a slightly stronger operating contract for scope choice, evidence, and closeout?
-- Should BD add optional automation hooks or agent-stop recipes so freshness checks run without depending only on agent discipline?
+- Decision for 0.10.0: yes to automation hooks. `bd hooks install` wires consent-based session hooks for Claude Code, Codex, and Cursor; `bd session-start` injects memory context and `bd session-stop` nudges updates once per turn chain. Freshness no longer depends only on agent discipline.
+- Decision for 0.10.0: committed-history drift (`bd drift`) stays advisory in `ready` with `--strict` reserved for CI, because broad default watch rules would flap a blocking gate on every code commit.
+- Does the stop nudge feel like nagging in real sessions when an agent legitimately makes code-only changes across several turns?
+- Should the MCP server release fold `session-start` context into an MCP resource instead of hook stdout, once agents consume BD through tools?
 - How should BD explain the boundary between "agents should keep this updated" and "there is no background daemon unless the user's agent environment invokes one"?
 
 ## Templates And Review

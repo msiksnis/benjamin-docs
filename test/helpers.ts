@@ -22,7 +22,7 @@ export function runCli(args: string[], cwd: string, env: Record<string, string> 
   return execFileSync("node", [join(process.cwd(), "dist/src/cli.js"), ...args], {
     cwd,
     encoding: "utf8",
-    env: { ...process.env, NO_COLOR: "1", ...env },
+    env: { ...process.env, NO_COLOR: "1", BENJAMIN_DOCS_NO_UPDATE_CHECK: "1", ...env },
   });
 }
 
@@ -30,7 +30,7 @@ export function runCliResult(args: string[], cwd: string, env: Record<string, st
   const result = spawnSync("node", [join(process.cwd(), "dist/src/cli.js"), ...args], {
     cwd,
     encoding: "utf8",
-    env: { ...process.env, NO_COLOR: "1", ...env },
+    env: { ...process.env, NO_COLOR: "1", BENJAMIN_DOCS_NO_UPDATE_CHECK: "1", ...env },
   });
 
   return {

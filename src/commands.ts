@@ -8,6 +8,7 @@ export const mainCommands: CommandEntry[] = [
   { command: "benjamin-docs init", args: ["init"], description: "Set up local project memory and optional agent guidance." },
   { command: "benjamin-docs ready", args: ["ready"], description: "Check whether project memory is handoff-ready." },
   { command: "benjamin-docs export", args: ["export"], description: "Open guided export for feature docs, app docs, and handoffs." },
+  { command: "benjamin-docs upgrade", args: ["upgrade"], description: "Refresh this repo's Benjamin-owned surfaces after a CLI update." },
   { command: "benjamin-docs help", args: ["help"], description: "Show the short getting-started guide." },
 ];
 
@@ -17,6 +18,10 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs validate", args: ["validate"], description: "Check structure, frontmatter, links, scopes, and anchors." },
   { command: "benjamin-docs review", args: ["review"], description: "Check for thin or starter-template docs." },
   { command: "benjamin-docs review --changed", args: ["review", "--changed"], description: "Check changed work for likely project-memory updates." },
+  { command: "benjamin-docs drift", args: ["drift"], description: "Flag docs whose watched code changed since the doc last changed." },
+  { command: "benjamin-docs hooks install", args: ["hooks", "install"], description: "Install agent session hooks for Claude Code, Codex, and Cursor." },
+  { command: "benjamin-docs hooks status", args: ["hooks", "status"], description: "Show which agent session hooks are installed." },
+  { command: "benjamin-docs session-start", args: ["session-start"], description: "Print compact session-start context. Used by installed agent hooks." },
   { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
   { command: "benjamin-docs doctor --strict", args: ["doctor", "--strict"], description: "Run setup checks as a strict gate." },
   { command: "benjamin-docs views", args: ["views"], description: "Generate local Memory Views from managed docs." },

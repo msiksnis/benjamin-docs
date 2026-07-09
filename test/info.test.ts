@@ -59,7 +59,9 @@ describe("info commands", () => {
       assert.match(output, /living project knowledge/);
       assert.match(output, /Continuity is the product/);
       assert.match(output, /Inside a project, run:/);
-      assert.match(output, /auto-detects codebase memory and installs agent guidance/);
+      assert.match(output, /auto-detects codebase memory, installs agent guidance, and offers agent session hooks/);
+      assert.match(output, /load project memory automatically at session start/);
+      assert.match(output, /benjamin-docs drift shows which docs fell behind/);
       assert.match(output, /From any chat, ask your agent:/);
       assert.match(output, /No cloud\. No dashboard\. No transcript dump\./);
       assert.match(output, /benjamin-docs install-skill/);

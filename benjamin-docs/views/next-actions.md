@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: draft
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: manual
 ---
 
@@ -15,7 +15,7 @@ Derived from next-action and near-term work sections across managed Benjamin doc
 
 ## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
 
-Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-01)
+Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-09)
 
 ### Next Actions
 
@@ -25,9 +25,18 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-0
 - Run the fresh-agent continuation dogfood exercise.
 - After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory or living project knowledge for AI coding agents, not a generic docs generator.
 
+## [Drift And Session Hooks Handoff](../features/drift-and-session-hooks/handoff.md)
+
+Source: `benjamin-docs/features/drift-and-session-hooks/handoff.md` (updated 2026-07-09)
+
+### Next Actions
+
+- Publish 0.10.0 following `benjamin-docs/releases/npm-publish-checklist.md` (npm publish, then `pnpm run release:github`, then `pnpm run release:verify-public`).
+- Start the MCP server release (`bd mcp`): stdio server exposing memory read/search/write tools via `@modelcontextprotocol/sdk`, with writes validated by the existing `validate.ts` logic.
+
 ## [Roadmap](../project/roadmap.md)
 
-Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-01)
+Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-09)
 
 ### Immediate Next Work
 
@@ -40,5 +49,6 @@ Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-01)
 - Keep the public README, npm description, package keywords, CLI intro text, and bundled skill aligned around persistent project memory, living project knowledge, agent-maintained docs, and focused export packages.
 - Treat the interactive `commands` drawer as the place for advanced workflows, not as a reason to promote more commands.
 - Make the visible project-memory refresh flow `bd init`, `bd views`, then `bd ready`, while keeping `views` out of the primary command list until dogfooding proves it should graduate.
-- Publish `0.9.3`, then run the release guardrails so npm, the git tag, and GitHub Release match.
-- Dogfood guided exports and Agent Reliability on real projects now that `0.9.2` is published and `0.9.3` is prepared.
+- Publish `0.10.0`, then run the release guardrails so npm, the git tag, and GitHub Release match.
+- Dogfood drift detection and session hooks on real projects; watch for stop-nudge nagging and hook PATH issues.
+- Implement the next release as an MCP server arc (`bd mcp`): stdio server exposing memory read/search/write tools via the official `@modelcontextprotocol/sdk`, with writes validated by the existing validation logic. Owner-approved staged plan from the 2026-07-09 session.

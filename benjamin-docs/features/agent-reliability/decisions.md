@@ -5,12 +5,14 @@ scope_id: agent-reliability
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-01
+updated: 2026-07-09
 source: manual
 freshness: status
 ---
 
 # Agent Reliability Decisions
+
+- Decided 2026-07-09: enforcement of the read-and-update loop belongs in tool-level session hooks plus deterministic drift measurement, not in longer skill prompts. Shipped in 0.10.0 under the Drift And Session Hooks scope.
 
 ## Decisions
 
