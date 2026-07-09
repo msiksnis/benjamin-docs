@@ -17,7 +17,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 - `src/cli.ts` routes all commands and parses command-specific flags.
 - `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. Keep its first-contact language aligned with `README.md`, `package.json`, and the bundled skill, including the living-project-knowledge wording.
-- `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.11.1` is the unreleased session-hook turn-safety hotfix; 0.11.0 remains published.
+- `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.11.1` is published and is the current release.
 - `src/chat-project.ts` formats the confirmation prompt for creating a project from an existing chat.
 - `src/next.ts` formats the next prompt after init/status workflows.
 

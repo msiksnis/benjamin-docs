@@ -36,14 +36,14 @@ freshness: status
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.11.0` (MCP memory server), published 2026-07-09 with npm, git tag, and GitHub Release verified in sync.
-- Working package version: `0.11.1`; unreleased session-hook turn-safety hotfix implemented and locally dogfooded against Atelier's pre-existing dirty-file case.
+- Current published release: `0.11.1` (session-hook turn safety), published 2026-07-09 with npm, git tag, and GitHub Release verified in sync.
+- Working package version: `0.11.1`; no unreleased runtime work in the tree.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
-- GitHub Releases exist for every published version through `v0.11.0`, which is the latest release.
+- GitHub Releases exist for every published version through `v0.11.1`, which is the latest release.
 - Release guardrails now include `pnpm run release:github`, `pnpm run release:verify-public`, and a tag-push GitHub Action that creates GitHub Releases from version tags after verifying npm.
 - The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
 - Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
@@ -54,7 +54,7 @@ freshness: status
 
 ## Immediate Next Work
 
-- Complete release verification for 0.11.1, then publish only when explicitly requested. After publish, update the global CLI and repeat the real two-turn Codex dogfood.
+- Keep dogfooding the registry 0.11.1 hooks across Claude Code, Codex, and Cursor; the real Atelier pre-existing-dirty-file smoke passed after global installation.
 - Keep the CLI command surface stable. `bd export` is the only new human-facing command promoted for the customer-handoff workflow; keep detailed export flags in advanced/agent guidance.
 - Treat the next product arc as agent reliability, not more user workflow. Humans should know only a few obvious commands while agents handle refresh, changed-work review, readiness repair, export verification, scope lifecycle, and customer-safe export preparation.
 - Keep private commercial strategy, pricing, and future paid SaaS planning out of tracked public-repo docs unless the user explicitly says the content is public-safe; use ignored local folders for private planning notes.

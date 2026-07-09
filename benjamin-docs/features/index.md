@@ -17,7 +17,7 @@ Because this repository is public, do not create feature scopes for private comm
 
 ## Active
 
-- [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, release hygiene, readiness repair, freshness repair, lifecycle cleanup, public first-contact clarity, hook turn safety, and fresh-agent dogfooding through advanced workflows. The unreleased 0.11.1 hotfix prevents repeated dirty-tree nudges and hook-only final answers.
+- [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, release hygiene, readiness repair, freshness repair, lifecycle cleanup, public first-contact clarity, hook turn safety, and fresh-agent dogfooding through advanced workflows. Published 0.11.1 prevents repeated dirty-tree nudges and hook-only final answers.
 
 ## Shipped (archived)
 

@@ -22,8 +22,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.11.0` (MCP memory server) published on npm, released 2026-07-09.
-- Working package version: `0.11.1`; unreleased session-hook turn-safety hotfix implemented and locally dogfooded.
+- Package status: `0.11.1` (session-hook turn safety) published on npm, released 2026-07-09.
+- Working package version: `0.11.1`; no unreleased runtime work in the tree.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -38,9 +38,11 @@ Read first:
 - `benjamin-docs/handoff/human-brief.md`
 - `docs/superpowers/plans/2026-06-10-continuation-proof.md`
 
-Current state: 0.11.0 is published (2026-07-09; npm, git tag, and GitHub Release verified in sync). 0.10.0 shipped committed-history drift detection via `bd drift`, session hooks for Claude Code/Codex/Cursor, `bd session-start`/`bd session-stop`, `bd upgrade`, and the cached opt-out npm update check (spec: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`; feature memory: `benjamin-docs/features/drift-and-session-hooks/`, archived). 0.11.0 added the MCP memory server (`bd mcp` serving memory_context/search/read/update/record_decision/status over stdio via the official SDK, with manifest-scoped access and transactional validated writes) plus `bd mcp install|status|uninstall` registration for Claude Code, Cursor, and Codex — design spec: `docs/superpowers/specs/2026-07-09-mcp-memory-server-design.md`; feature memory: `benjamin-docs/features/mcp-memory-server/`, archived after publish. The MCP tools were dogfooded live from a Claude Code session in this repo before publish, including a verified rollback of an invalid write. Earlier 0.9.x work (guided exports, export verification recording, readiness blockers as a non-failing category) remains included.
+Current state: 0.11.1 is published (2026-07-09; npm, git tag, and GitHub Release verified in sync). 0.10.0 shipped committed-history drift detection via `bd drift`, session hooks for Claude Code/Codex/Cursor, `bd session-start`/`bd session-stop`, `bd upgrade`, and the cached opt-out npm update check (spec: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`; feature memory: `benjamin-docs/features/drift-and-session-hooks/`, archived). 0.11.0 added the MCP memory server (`bd mcp` serving memory_context/search/read/update/record_decision/status over stdio via the official SDK, with manifest-scoped access and transactional validated writes) plus `bd mcp install|status|uninstall` registration for Claude Code, Cursor, and Codex — design spec: `docs/superpowers/specs/2026-07-09-mcp-memory-server-design.md`; feature memory: `benjamin-docs/features/mcp-memory-server/`, archived after publish. The MCP tools were dogfooded live from a Claude Code session in this repo before publish, including a verified rollback of an invalid write. Earlier 0.9.x work (guided exports, export verification recording, readiness blockers as a non-failing category) remains included.
 
-Unreleased 0.11.1 fixes session-hook turn safety after a real Codex failure in Atelier. `src/session-state.ts` stores content-fingerprinted start baselines in the local BD home cache, keyed by project/tool/session; stop only reacts to new content, acknowledges identical pending state, and fails open without a baseline. The nudge now requires a complete answer to the original request and forbids hook-only bookkeeping. The focused 23-test hook suite passes, and the built CLI stayed silent against Atelier's existing dirty `package.json` after session start.
+0.11.1 fixes session-hook turn safety after a real Codex failure in Atelier. `src/session-state.ts` stores content-fingerprinted start baselines in the local BD home cache, keyed by project/tool/session; stop only reacts to new content, acknowledges identical pending state, and fails open without a baseline. The nudge now requires a complete answer to the original request and forbids hook-only bookkeeping. The focused 23-test hook suite passes, and the built CLI stayed silent against Atelier's existing dirty `package.json` after session start.
+
+Release update: 0.11.1 is now published, tagged as `v0.11.1`, and verified as the latest GitHub Release. The registry package is installed globally and a second Atelier smoke using that registry build passed with no false stop output.
 
 2026-07-01 public-positioning update: the README was rewritten, `package.json` description/keywords were adjusted, CLI `introduce`/help copy was aligned, and the bundled skill purpose was tightened because an outside agent misread BD as a documentation package or Markdown helper. Preserve the first-impression framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Do not let public copy drift back to "turn chats into docs" as the headline value.
 
@@ -63,7 +65,7 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo. Keep MCP tool access manifest-scoped; never widen it to arbitrary repo files.
 
-Next actions: complete full verification for 0.11.1; publish only when explicitly requested; then update the global CLI and repeat the two-turn Codex dogfood. The global `benjamin-docs` remains registry 0.11.0 for now.
+Next actions: keep dogfooding the 0.11.1 registry hooks in real Claude Code, Codex, and Cursor sessions; continue watching MCP retrieval quality on larger memories.
 
 ## Implemented So Far
 
@@ -159,7 +161,7 @@ That shim runs:
 node /Users/marty/Important/benjamin-docs/dist/src/cli.js "$@"
 ```
 
-This was a temporary local setup while the package was unpublished. The temporary 2026-07-09 pnpm link used for MCP dogfooding was removed after the 0.11.0 publish; the global `benjamin-docs` is the registry 0.11.0.
+This was a temporary local setup while the package was unpublished. The temporary pnpm link used for MCP dogfooding was removed; the global `benjamin-docs` is now registry 0.11.1.
 
 ## Important Product Finding From `pup-base`
 

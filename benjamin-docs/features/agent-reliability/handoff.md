@@ -22,7 +22,7 @@ The release-hygiene guardrail is implemented for this repo: `pnpm run release:gi
 
 The public-positioning slice is implemented: README, npm package description/keywords, CLI help/introduce text, tests, and the bundled skill now lead with persistent project memory for AI coding agents, living project knowledge, agent-maintained docs, and focused export packages. This was prompted by an outside agent misreading BD as a generic documentation package or Markdown helper.
 
-The 0.11.1 hook-safety hotfix is implemented in the working tree after a Codex screenshot exposed two failures: a pre-existing dirty `package.json` retriggered the stop hook on read-only turns, and the hook continuation replaced the actual answer with memory bookkeeping. Session-start baselines, content fingerprints, per-session cache isolation, fail-open behavior, answer-preserving feedback, regression tests, and a live Atelier baseline smoke are complete. It is not published.
+The 0.11.1 hook-safety hotfix is published after a Codex screenshot exposed two failures: a pre-existing dirty `package.json` retriggered the stop hook on read-only turns, and the hook continuation replaced the actual answer with memory bookkeeping. Session-start baselines, content fingerprints, per-session cache isolation, fail-open behavior, answer-preserving feedback, regression tests, and Atelier smokes with both the source build and installed registry build passed.
 
 ## Risks / Open Questions
 
@@ -46,7 +46,7 @@ The 0.11.1 hook-safety hotfix is implemented in the working tree after a Codex s
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
 - After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory or living project knowledge for AI coding agents, not a generic docs generator.
-- Before publishing 0.11.1, run the full package/release checks. After publish, update the global CLI and repeat the original two-turn Codex scenario.
+- Continue real-session dogfooding of the 0.11.1 hooks across Claude Code, Codex, and Cursor.
 
 ## Continuation Proof
 
