@@ -22,6 +22,8 @@ The release-hygiene guardrail is implemented for this repo: `pnpm run release:gi
 
 The public-positioning slice is implemented: README, npm package description/keywords, CLI help/introduce text, tests, and the bundled skill now lead with persistent project memory for AI coding agents, living project knowledge, agent-maintained docs, and focused export packages. This was prompted by an outside agent misreading BD as a generic documentation package or Markdown helper.
 
+The 0.11.1 hook-safety hotfix is implemented in the working tree after a Codex screenshot exposed two failures: a pre-existing dirty `package.json` retriggered the stop hook on read-only turns, and the hook continuation replaced the actual answer with memory bookkeeping. Session-start baselines, content fingerprints, per-session cache isolation, fail-open behavior, answer-preserving feedback, regression tests, and a live Atelier baseline smoke are complete. It is not published.
+
 ## Risks / Open Questions
 
 - Verification quality still depends on the agent actually checking the implementation before running the command.
@@ -31,6 +33,7 @@ The public-positioning slice is implemented: README, npm package description/key
 - The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
 - Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.
 - Public copy can drift back toward "docs helper" language if future edits over-focus on Markdown structure or chat-to-project mechanics. Keep the first screen anchored on project memory, living knowledge, continuity, and the agent-updated workflow.
+- Hook integrations that omit a session/conversation ID fall back to project-and-format state, so only ID-bearing integrations have full concurrent-session isolation.
 
 2026-07-09 (later): the memory-interface slice also moved out: the MCP Memory Server scope (`benjamin-docs/features/mcp-memory-server/`) gives agents validated write tools, which advances this arc's reliability goal — agents can no longer corrupt frontmatter or structure through hand edits when they write via MCP.
 
@@ -43,6 +46,7 @@ The public-positioning slice is implemented: README, npm package description/key
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
 - After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory or living project knowledge for AI coding agents, not a generic docs generator.
+- Before publishing 0.11.1, run the full package/release checks. After publish, update the global CLI and repeat the original two-turn Codex scenario.
 
 ## Continuation Proof
 

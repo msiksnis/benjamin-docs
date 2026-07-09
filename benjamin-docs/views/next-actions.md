@@ -24,6 +24,7 @@ Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-0
 - Add lifecycle closeout polish for shipped or abandoned scopes.
 - Run the fresh-agent continuation dogfood exercise.
 - After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory or living project knowledge for AI coding agents, not a generic docs generator.
+- Before publishing 0.11.1, run the full package/release checks. After publish, update the global CLI and repeat the original two-turn Codex scenario.
 
 ## [Roadmap](../project/roadmap.md)
 
@@ -31,6 +32,7 @@ Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-09)
 
 ### Immediate Next Work
 
+- Complete release verification for 0.11.1, then publish only when explicitly requested. After publish, update the global CLI and repeat the real two-turn Codex dogfood.
 - Keep the CLI command surface stable. `bd export` is the only new human-facing command promoted for the customer-handoff workflow; keep detailed export flags in advanced/agent guidance.
 - Treat the next product arc as agent reliability, not more user workflow. Humans should know only a few obvious commands while agents handle refresh, changed-work review, readiness repair, export verification, scope lifecycle, and customer-safe export preparation.
 - Keep private commercial strategy, pricing, and future paid SaaS planning out of tracked public-repo docs unless the user explicitly says the content is public-safe; use ignored local folders for private planning notes.

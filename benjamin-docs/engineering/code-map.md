@@ -17,7 +17,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 - `src/cli.ts` routes all commands and parses command-specific flags.
 - `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. Keep its first-contact language aligned with `README.md`, `package.json`, and the bundled skill, including the living-project-knowledge wording.
-- `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.11.0` (MCP memory server) is the current npm publish candidate.
+- `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.11.1` is the unreleased session-hook turn-safety hotfix; 0.11.0 remains published.
 - `src/chat-project.ts` formats the confirmation prompt for creating a project from an existing chat.
 - `src/next.ts` formats the next prompt after init/status workflows.
 
@@ -35,7 +35,8 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, empty open-question docs, weak continuation proof, freshness blind spots for status-bearing docs, git churn since engineering docs last changed, missing inline-code path references, stale Memory Views, and changed source work that likely needs project-memory updates. Archived and stale docs are skipped for quality checks and changed-work watch warnings.
 - `src/git.ts` holds shared git helpers (`getChangedFiles`, `getCommittedChanges`, `gitLastCommit`, `gitCommitCountTouching`, `isReviewableSourceChange`) used by review, drift, and session commands.
 - `src/drift.ts` implements `bd drift`: per-doc committed-history comparison against watch rules, with advisory formatting, `--json`, and `--strict` handled in the CLI. Skips archived/stale docs, uncommitted-doc updates, and never-committed docs.
-- `src/session.ts` implements `bd session-start` (compact context: read-first docs plus drift summary, per-tool formats) and `bd session-stop` (once-per-turn-chain update nudge with `stop_hook_active` guard; agent-config paths excluded from source-change detection).
+- `src/session.ts` implements `bd session-start` context, typed hook-payload parsing, per-tool output, and the answer-preserving stop-nudge contract.
+- `src/session-state.ts` owns local per-session working-tree fingerprints, new-content comparison, pending-nudge acknowledgement, fail-open recovery, and seven-day state pruning.
 - `src/hooks.ts` installs/reports/uninstalls agent session hooks in the target project's Claude Code settings file plus the Codex and Cursor `hooks.json` files (under the project's `.claude`, `.codex`, and `.cursor` folders). Ownership marker: hook command contains `benjamin-docs session-`. Preserves all user content; unparseable files are skipped, never rewritten.
 - `src/memory-tools.ts` holds protocol-free MCP tool logic: manifest-scoped doc access, section search with term scoring, transactional updates (validate then roll back on regression), decision appends, and status with drift.
 - `src/mcp-server.ts` wires those tools into an `McpServer` over `StdioServerTransport` with zod input schemas; `bd mcp` serves until stdin closes. Tool failures return readable text with `isError` instead of protocol faults.

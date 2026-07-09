@@ -25,6 +25,9 @@ freshness: status
 - Upgrades are pull-plus-nudge, not self-update: bd never updates its own global install. Agents relay "newer version available" from cached update checks; the human runs the package manager; `bd upgrade` then refreshes repo-local Benjamin-owned surfaces only.
 - The update check is privacy-conservative: one version GET, 24h cache, never in a command's critical path (`session-start` reads cache and spawns a detached refresh), `BENJAMIN_DOCS_NO_UPDATE_CHECK=1` disables it entirely.
 - `bd upgrade` refreshes the `AGENTS.md` section only when balanced Benjamin markers already exist; repos that never opted into agent guidance stay untouched.
+- The 0.11.1 hotfix uses content fingerprints captured at session start instead of treating every path dirty against `HEAD` as current-turn work. A path-only baseline would miss further edits to an already-dirty file.
+- Session state is local cache data under `BENJAMIN_DOCS_HOME`/`~/.benjamin-docs/session-hooks`, keyed by repository, tool format, and session ID, with a seven-day TTL. Missing, corrupt, or unwritable state fails open because project-memory enforcement must never suppress the user's answer without reliable evidence.
+- A legitimate stop nudge must keep the user's request primary. Its continuation instruction requires a complete user-facing answer and explicitly rejects Benjamin Docs-only bookkeeping; the previous wording to "state why briefly and finish" caused Codex to replace useful answers.
 
 ## Rejected Options
 

@@ -48,7 +48,7 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Validation lives in `src/validate.ts`.
 - Docs quality and changed-work freshness review live in `src/review.ts`.
 - Shared git history helpers live in `src/git.ts`; committed-history drift detection lives in `src/drift.ts`.
-- Agent session hook installation lives in `src/hooks.ts`; session-start context and stop nudges live in `src/session.ts`.
+- Agent session hook installation lives in `src/hooks.ts`; session-start context and stop-nudge wording live in `src/session.ts`; local per-session dirty-tree baselines live in `src/session-state.ts`.
 - MCP memory tools live in `src/memory-tools.ts` (logic) and `src/mcp-server.ts` (stdio protocol); client registration lives in `src/mcp-install.ts`.
 - Watch-rule globs and stack-agnostic changed-file mapping live in `src/watch.ts`.
 - Memory Views rendering and lifecycle filtering live in `src/views.ts`.
@@ -77,6 +77,8 @@ Plain `bd review` (and therefore `bd ready`) also runs deterministic staleness c
 Since 0.10.0, `bd drift` covers the committed-history half of freshness: for every doc referenced by a watch rule, it diffs the commits since the doc last changed and flags docs whose watched code moved on without them. Drift is deliberately advisory (a non-blocking section in `ready`, `--strict` for CI) because the broad default watch rules would make a blocking check flap on every code commit. `review --changed` owns working-tree hygiene; `drift` owns cross-session rot.
 
 Also since 0.10.0, the update loop no longer depends on the human prompting it. `bd hooks install` writes Benjamin-owned entries into Claude Code, Codex, and Cursor project hook files; sessions then start with `bd session-start` context (memory location, read-first docs, drift summary) and end with a `bd session-stop` nudge when source changed without a memory update. Hook files are user-owned: the CLI merges conservatively, marks its entries by the `benjamin-docs session-` command string, preserves unparseable files untouched, and uninstall removes only marked entries. Hooks are installed only with consent (interactive `init` prompt, `init --hooks`, or explicit `hooks install`).
+
+The 0.11.1 hotfix makes stop decisions turn-safe. Session start fingerprints existing dirty source and memory content into a local cache keyed by repository, tool format, and session identity. Stop compares against that baseline, so old dirty files are ignored, further edits to those files remain detectable, and missing state fails open. A pending nudge is acknowledged once and becomes the next baseline. The continuation prompt keeps the user's request primary and forbids returning only hook bookkeeping.
 
 All of this stays warning-only inside `review`, but `ready` fails on review warnings, so the gate enforces freshness. This is intentionally heuristic, not an AI reviewer. The product rule is unchanged: agents should either update Benjamin Docs or explicitly state why a change has no durable project-memory impact.
 

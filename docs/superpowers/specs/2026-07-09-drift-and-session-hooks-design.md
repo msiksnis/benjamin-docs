@@ -46,8 +46,6 @@ with the human's surface staying `init`, `export`, and optionally `ready`.
 ## Non-Goals
 
 - No MCP server yet. That is the next release (see roadmap).
-- No per-session state tracking. The stop nudge derives everything from the
-  git working tree.
 - No hooks for tools without a session-start mechanism.
 
 ## Design
@@ -88,11 +86,21 @@ Hook mechanisms confirmed against July 2026 docs:
 the update contract. Uninitialized repos produce empty output so the hooks are
 safe anywhere.
 
-`bd session-stop [--format ...]` nudges only when reviewable source files
-changed in the working tree and no memory doc changed. Guards against nudge
-loops: `stop_hook_active` on stdin (Claude Code and Codex) and `loop_limit: 1`
+As of the 0.11.1 hotfix, session start fingerprints the current dirty source
+and memory files. `bd session-stop [--format ...]` compares content against
+that per-session baseline and nudges only for new source work without a memory
+update. Identical dirty state is acknowledged after the continuation and does
+not retrigger on later turns; another edit to an already-dirty file does.
+State is keyed by repository, tool format, and session ID under
+`~/.benjamin-docs/session-hooks/`, expires after seven days, and fails open
+when missing or unreadable. Guards against nudge loops remain
+`stop_hook_active` on stdin (Claude Code and Codex) and `loop_limit: 1`
 (Cursor). Agent-config paths (`.claude/`, `.codex/`, `.cursor/`, `AGENTS.md`)
 do not count as source changes.
+
+The block reason keeps the user's task primary: after any necessary memory
+maintenance, the continuation must provide a complete answer to the original
+request and must not return only Benjamin Docs or hook-status commentary.
 
 `bd hooks install|status|uninstall [--target <id>]` merges entries into the
 three project hook files. Ownership marker: the command string contains
@@ -106,9 +114,9 @@ init without flags does not install hooks.
 
 ### Known limitations
 
-- The stop nudge repeats on later turns while the working tree still has
-  source changes and no doc updates; it stops as soon as any memory doc is
-  touched. Acceptable: the agent absorbs the nudge, not the human.
+- Session identity falls back to one project-and-format key when an agent hook
+  sends JSON without a session/conversation ID; concurrent sessions are fully
+  isolated when the ID is present.
 - Codex requires one-time user action: `features.hooks = true` in
   `~/.codex/config.toml` plus trusting the hooks via `/hooks`. The install
   output says so.

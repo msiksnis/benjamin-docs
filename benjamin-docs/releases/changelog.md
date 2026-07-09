@@ -11,6 +11,12 @@ source: manual
 
 # Changelog
 
+## 0.11.1
+
+- Session hooks now fingerprint the dirty working tree at session start and nudge only for source content introduced afterward. Pre-existing dirty files no longer retrigger on read-only turns, while further edits to an already-dirty file are still detected.
+- Hook state is isolated by project, agent format, and session ID under the local Benjamin Docs home cache. Missing or unreadable baselines fail open, and state older than seven days is pruned.
+- Stop-hook feedback now requires the continuation to return a complete answer to the user's original request and forbids hook-only bookkeeping responses.
+
 ## 0.11.0
 
 - Added `bd mcp`: an MCP server over stdio exposing project memory as native agent tools — `memory_context`, `memory_search`, `memory_read`, `memory_update`, `memory_record_decision`, `memory_status`. Reads return scored doc sections; writes preserve frontmatter, stamp the updated date, validate transactionally with rollback, and regenerate Memory Views.

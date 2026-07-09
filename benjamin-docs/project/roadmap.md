@@ -37,7 +37,7 @@ freshness: status
 
 - `benjamin-docs` is published on npm.
 - Current published release: `0.11.0` (MCP memory server), published 2026-07-09 with npm, git tag, and GitHub Release verified in sync.
-- Working package version: `0.11.0`; no unreleased work in the tree.
+- Working package version: `0.11.1`; unreleased session-hook turn-safety hotfix implemented and locally dogfooded against Atelier's pre-existing dirty-file case.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -54,6 +54,7 @@ freshness: status
 
 ## Immediate Next Work
 
+- Complete release verification for 0.11.1, then publish only when explicitly requested. After publish, update the global CLI and repeat the real two-turn Codex dogfood.
 - Keep the CLI command surface stable. `bd export` is the only new human-facing command promoted for the customer-handoff workflow; keep detailed export flags in advanced/agent guidance.
 - Treat the next product arc as agent reliability, not more user workflow. Humans should know only a few obvious commands while agents handle refresh, changed-work review, readiness repair, export verification, scope lifecycle, and customer-safe export preparation.
 - Keep private commercial strategy, pricing, and future paid SaaS planning out of tracked public-repo docs unless the user explicitly says the content is public-safe; use ignored local folders for private planning notes.

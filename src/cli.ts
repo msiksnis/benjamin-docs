@@ -25,7 +25,7 @@ import { initProject, looksLikeCodebase, promoteToCodebase, type InitProjectOpti
 import { getAnchorHelpText, getHelpText, getInitHelpText, getIntroductionText, getPackageVersion, getScopeHelpText } from "./info.js";
 import { checkHooks, formatHooksResult, installHooks, knownHookTargets, uninstallHooks, type HookTargetId } from "./hooks.js";
 import { formatInstallSkillResult, installSkill, knownSkillTargets, type InstallSkillOptions, type SkillTargetId } from "./install-skill.js";
-import { formatSessionStart, formatSessionStop, parseStopHookActive, type SessionHookFormat } from "./session.js";
+import { formatSessionStart, formatSessionStop, parseSessionHookInput, type SessionHookFormat } from "./session.js";
 import { checkMcp, formatMcpResult, installMcp, knownMcpTargets, uninstallMcp, type McpTargetId } from "./mcp-install.js";
 import { serveMcp } from "./mcp-server.js";
 import { formatNextMessage, getNextPrompt } from "./next.js";
@@ -123,7 +123,8 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "session-start") {
-    const output = formatSessionStart(cwd, parseSessionFormat(argv.slice(1), "session-start"), process.argv[1]);
+    const hookInput = parseSessionHookInput(await readStdinText());
+    const output = formatSessionStart(cwd, parseSessionFormat(argv.slice(1), "session-start"), process.argv[1], hookInput);
     if (output) console.log(output);
     return 0;
   }
@@ -161,8 +162,8 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "session-stop") {
-    const stopHookActive = parseStopHookActive(await readStdinText());
-    const output = formatSessionStop(cwd, parseSessionFormat(argv.slice(1), "session-stop"), stopHookActive);
+    const hookInput = parseSessionHookInput(await readStdinText());
+    const output = formatSessionStop(cwd, parseSessionFormat(argv.slice(1), "session-stop"), hookInput);
     if (output) console.log(output);
     return 0;
   }

@@ -48,7 +48,7 @@ source: session-capture
 - Should generated `AGENTS.md` remain short, or include a slightly stronger operating contract for scope choice, evidence, and closeout?
 - Decision for 0.10.0: yes to automation hooks. `bd hooks install` wires consent-based session hooks for Claude Code, Codex, and Cursor; `bd session-start` injects memory context and `bd session-stop` nudges updates once per turn chain. Freshness no longer depends only on agent discipline.
 - Decision for 0.10.0: committed-history drift (`bd drift`) stays advisory in `ready` with `--strict` reserved for CI, because broad default watch rules would flap a blocking gate on every code commit.
-- Does the stop nudge feel like nagging in real sessions when an agent legitimately makes code-only changes across several turns?
+- Decision for 0.11.1: stop nudges compare content against a per-session start baseline, acknowledge identical dirty state after one continuation, fail open without reliable state, and explicitly preserve the original user-facing answer. Repeated whole-working-tree warnings are not acceptable agent-side noise because Codex can surface the continuation as the final answer.
 - Decision for 0.11.0: the MCP server ships as six stdio tools with manifest-scoped access and transactional validated writes; session-start context stays in hooks for now (resource form deferred until tool-based consumption dominates).
 - Is lexical section search good enough for large memories, or will retrieval quality force smarter scoring?
 - Should `bd init` eventually offer MCP registration alongside the hooks consent prompt, or does that overload one consent moment?

@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runCliResult, withTempDir } from "./helpers.js";
 
@@ -26,6 +26,37 @@ function commitSourceChange(dir: string): void {
   writeFileSync(join(dir, "src/app.ts"), "export const a = 1;\nexport const b = 2;\n");
   git(dir, "add", "-A");
   git(dir, "commit", "-m", "code change without doc update");
+}
+
+interface CodexHookPayload {
+  session_id: string;
+  turn_id: string;
+  stop_hook_active: boolean;
+  last_assistant_message: string;
+}
+
+function codexHookPayload(overrides: Partial<CodexHookPayload> = {}): CodexHookPayload {
+  return {
+    session_id: "session-1",
+    turn_id: "turn-1",
+    stop_hook_active: false,
+    last_assistant_message: "The requested work is complete.",
+    ...overrides,
+  };
+}
+
+function runCodexSessionCommand(dir: string, command: "session-start" | "session-stop", payload: CodexHookPayload): string {
+  return execFileSync("node", [join(process.cwd(), "dist/src/cli.js"), command, "--format", "codex"], {
+    cwd: dir,
+    encoding: "utf8",
+    input: JSON.stringify(payload),
+    env: {
+      ...process.env,
+      NO_COLOR: "1",
+      BENJAMIN_DOCS_NO_UPDATE_CHECK: "1",
+      BENJAMIN_DOCS_HOME: join(dir, ".git", "benjamin-docs-test-home"),
+    },
+  });
 }
 
 describe("drift", () => {
@@ -296,6 +327,115 @@ describe("session commands", () => {
       });
 
       assert.equal(output.trim(), "");
+    });
+  });
+
+  it("ignores source changes that were already dirty when the session started", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+      const payload = codexHookPayload();
+
+      runCodexSessionCommand(dir, "session-start", payload);
+      const output = runCodexSessionCommand(dir, "session-stop", payload);
+
+      assert.equal(output.trim(), "");
+    });
+  });
+
+  it("nudges for new source changes once and preserves the user-facing answer contract", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      const firstTurn = codexHookPayload();
+      runCodexSessionCommand(dir, "session-start", firstTurn);
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+
+      const firstStop = JSON.parse(runCodexSessionCommand(dir, "session-stop", firstTurn)) as { decision: string; reason: string };
+      assert.equal(firstStop.decision, "block");
+      assert.match(firstStop.reason, /complete answer to the user's original request/i);
+      assert.match(firstStop.reason, /never respond only with Benjamin Docs/i);
+      assert.doesNotMatch(firstStop.reason, /state why briefly and finish/i);
+
+      const continuation = codexHookPayload({ stop_hook_active: true });
+      assert.equal(runCodexSessionCommand(dir, "session-stop", continuation).trim(), "");
+
+      const nextTurn = codexHookPayload({ turn_id: "turn-2", last_assistant_message: "Yes, the migration is applied." });
+      assert.equal(runCodexSessionCommand(dir, "session-stop", nextTurn).trim(), "");
+    });
+  });
+
+  it("detects when an already-dirty source file changes again during the session", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+      const payload = codexHookPayload();
+      runCodexSessionCommand(dir, "session-start", payload);
+
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 3;\n");
+      const output = JSON.parse(runCodexSessionCommand(dir, "session-stop", payload)) as { decision: string; reason: string };
+
+      assert.equal(output.decision, "block");
+      assert.match(output.reason, /Source files changed \(1\)/);
+    });
+  });
+
+  it("fails open when a stop hook has no session baseline", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+
+      const output = runCodexSessionCommand(dir, "session-stop", codexHookPayload({ session_id: "missing-session" }));
+
+      assert.equal(output.trim(), "");
+    });
+  });
+
+  it("stays quiet when memory changed along with new source work", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      const payload = codexHookPayload();
+      runCodexSessionCommand(dir, "session-start", payload);
+
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+      const agentBrief = join(dir, "benjamin-docs/handoff/agent-brief.md");
+      writeFileSync(agentBrief, `${readFileSync(agentBrief, "utf8")}\nUpdated for this source change.\n`);
+
+      assert.equal(runCodexSessionCommand(dir, "session-stop", payload).trim(), "");
+    });
+  });
+
+  it("keeps session baselines isolated", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      const firstSession = codexHookPayload({ session_id: "session-a" });
+      runCodexSessionCommand(dir, "session-start", firstSession);
+
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+      const secondSession = codexHookPayload({ session_id: "session-b" });
+      runCodexSessionCommand(dir, "session-start", secondSession);
+
+      const firstOutput = JSON.parse(runCodexSessionCommand(dir, "session-stop", firstSession)) as { decision: string };
+      assert.equal(firstOutput.decision, "block");
+      assert.equal(runCodexSessionCommand(dir, "session-stop", secondSession).trim(), "");
+    });
+  });
+
+  it("prunes expired session state when a new session starts", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      runCodexSessionCommand(dir, "session-start", codexHookPayload({ session_id: "expired-session" }));
+
+      const stateDir = join(dir, ".git", "benjamin-docs-test-home", ".benjamin-docs", "session-hooks");
+      const [expiredFile] = readdirSync(stateDir);
+      assert.ok(expiredFile);
+      const expiredPath = join(stateDir, expiredFile);
+      const expired = JSON.parse(readFileSync(expiredPath, "utf8")) as Record<string, unknown>;
+      expired.updatedAt = "2000-01-01T00:00:00.000Z";
+      writeFileSync(expiredPath, `${JSON.stringify(expired, null, 2)}\n`);
+
+      runCodexSessionCommand(dir, "session-start", codexHookPayload({ session_id: "current-session" }));
+
+      assert.equal(readdirSync(stateDir).length, 1);
     });
   });
 });

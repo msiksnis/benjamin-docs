@@ -347,6 +347,12 @@ Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
 
 ## Current Version
 
+`0.11.1` fixes session-hook turn safety:
+
+- Session start fingerprints the existing dirty working tree, so pre-existing source edits do not trigger false update nudges on later read-only turns.
+- Stop hooks compare content changes introduced after that baseline, stay isolated per agent session, and fail open when state is missing or unreadable.
+- A legitimate stop continuation now explicitly preserves the complete answer to the user's original request instead of allowing Benjamin Docs bookkeeping to replace it.
+
 `0.11.0` turns project memory into a native agent interface:
 
 - `bd mcp` serves project memory as MCP tools over stdio: `memory_context`, `memory_search`, `memory_read`, `memory_update`, `memory_record_decision`, `memory_status`.

@@ -1,6 +1,6 @@
 {
   "name": "benjamin-docs",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Persistent project memory for AI coding agents. Session hooks load it into Claude Code, Codex, and Cursor automatically; drift detection flags docs that fell behind the code.",
   "keywords": [
     "ai",

@@ -14,24 +14,24 @@ freshness: status
 
 ## Status
 
-Implemented and tested for 0.10.0, including the follow-up `bd upgrade` command and the cached npm update check. Code, tests, skill, README, help text, and project memory are updated. Version bumped to 0.10.0. Not yet published to npm.
+0.10.0 is published. The 0.11.1 hotfix is implemented and locally verified: session hooks now compare content against a per-session start baseline, suppress identical pre-existing dirty state, detect further edits to already-dirty files, and preserve the user's answer when a real nudge blocks once. The working package is 0.11.1 and remains unpublished.
 
 ## Risks / Open Questions
 
-- The stop nudge repeats on later turns while the working tree has source changes and no doc updates; it goes quiet once any memory doc is touched. Accepted; revisit only if users report nagging.
+- Agents that omit a session/conversation ID use a project-and-format fallback key, so simultaneous sessions for that tool are not fully isolated.
 - Hook commands assume a global `benjamin-docs` install on PATH.
 - Codex needs `features.hooks = true` in `~/.codex/config.toml` and hook trust via `/hooks`; the install output explains this.
 - Cursor project hooks run automatically for anyone opening the repo; hooks are only written on explicit consent.
 
 ## Next Actions
 
-- Publish 0.10.0 following `benjamin-docs/releases/npm-publish-checklist.md` (npm publish, then `pnpm run release:github`, then `pnpm run release:verify-public`).
-- Start the MCP server release (`bd mcp`): stdio server exposing memory read/search/write tools via `@modelcontextprotocol/sdk`, with writes validated by the existing `validate.ts` logic.
+- Run the full release checks, then publish 0.11.1 following `benjamin-docs/releases/npm-publish-checklist.md` only when explicitly requested.
+- After publish, update the global CLI and repeat the two-turn Codex dogfood in Atelier.
 
 ## Continuation Proof
 
-- Read first: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`, `src/drift.ts`, `src/hooks.ts`, `src/session.ts`.
-- Current status: feature complete on main working tree, unpublished.
-- Checks: `pnpm check`; manual smoke via `bd init --mode codebase --hooks` in a temp git repo, then `bd drift` after a committed source change.
+- Read first: `docs/superpowers/specs/2026-07-09-drift-and-session-hooks-design.md`, `src/drift.ts`, `src/hooks.ts`, `src/session.ts`, `src/session-state.ts`.
+- Current status: 0.10.0 shipped; 0.11.1 hook-safety hotfix implemented in the working tree and unpublished.
+- Checks: `pnpm check`; focused `dist/test/drift-hooks.test.js`; live Atelier baseline smoke using the built CLI with its existing dirty `package.json`.
 - Risks: see above; do not weaken the user-content preservation guarantees in `src/hooks.ts`.
 - Next: publish 0.10.0, then design `bd mcp`.

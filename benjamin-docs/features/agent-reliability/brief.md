@@ -14,6 +14,8 @@ freshness: status
 
 2026-07-09 update: the session-automation portion of this arc (memory loading at session start, update nudges at stop, committed-history drift detection) shipped as the separate Drift And Session Hooks scope in 0.10.0. With 0.11.0, validated memory writes moved to the MCP Memory Server scope. This scope continues to own verification, readiness repair, and lifecycle workflows.
 
+2026-07-09 hotfix update: real Codex dogfooding showed that the stop nudge treated old dirty files as new on every turn and could replace the agent's actual answer with hook bookkeeping. The 0.11.1 working tree fixes both failure modes with per-session content baselines, fail-open state handling, and an answer-preserving continuation contract.
+
 Agent Reliability is the next BD product arc after guided export. The goal is to keep the human-facing command surface tiny while making agents more dependable at maintaining, verifying, repairing, and exporting project memory in the background.
 
 ## Outcome

@@ -28,6 +28,7 @@ This plan turns the user's product direction into small agent-led improvements. 
 8. Polish feature lifecycle closeout so agents archive shipped/abandoned scopes and refresh views/handoff/changelog context.
 9. Run a fresh-agent dogfood exercise that starts from only `README.md`, `AGENTS.md`, `.benjamin-docs/`, and `benjamin-docs/`.
 10. Run a first-contact dogfood exercise where a fresh human or agent sees only the GitHub README or npm package page and must identify BD as persistent project memory, not a generic docs helper.
+11. Fix stop-hook turn safety with per-session content baselines, fail-open recovery, and an answer-preserving continuation contract. Implemented and locally dogfooded for the unreleased 0.11.1 hotfix.
 
 ## Validation
 

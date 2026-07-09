@@ -14,6 +14,7 @@ freshness: status
 
 - Decided 2026-07-09: enforcement of the read-and-update loop belongs in tool-level session hooks plus deterministic drift measurement, not in longer skill prompts. Shipped in 0.10.0 under the Drift And Session Hooks scope.
 - Decided 2026-07-09: agent write safety belongs at the tool boundary — MCP memory tools validate on write and roll back regressions (0.11.0, MCP Memory Server scope) — rather than in ever-stricter after-the-fact review.
+- Decided 2026-07-09 for 0.11.1: hook reliability is subordinate to the user's request. Without a trustworthy session baseline the hook fails open; when it legitimately blocks once, its continuation must return the complete user-facing answer rather than only documenting the memory decision.
 
 ## Decisions
 

@@ -28,6 +28,8 @@ The 0.9.3 release packaged that public positioning for npmjs. The 0.10.0 release
 
 The 0.11.0 release candidate adds the MCP memory server: `bd mcp` exposes the memory as native tools (context, search, read, validated writes, decisions, status) over stdio, registered per project with `bd mcp install` for Claude Code, Cursor, and Codex. Hooks push context into sessions; MCP lets agents pull exactly the sections they need and write back safely. This introduces bd's first runtime dependencies (the official MCP SDK plus zod), an accepted exception to the dependency-light posture.
 
+The 0.11.1 hotfix makes those session hooks safe at turn boundaries. Hook state fingerprints the existing dirty tree at session start and compares later content against that baseline, so old edits do not create repeated false positives while further edits to an already-dirty file still count. Missing state fails open. When a real stop nudge continues the turn, the hook must preserve a complete answer to the user's original request instead of replacing it with memory-maintenance commentary.
+
 Agent Reliability now includes clearer handling for local prerequisites. When agents record that project checks are blocked by missing tools or services, such as a command that is not installed or a database that is not listening, `bd ready` surfaces those notes under a dedicated environment/tooling category instead of blending them into generic project failure language.
 
 Release hygiene is now part of that agent-owned operating contract. After npm publish, maintainers/agents should run `pnpm run release:github` and `pnpm run release:verify-public` so the public npm version, git tag, and GitHub Release stay aligned.
