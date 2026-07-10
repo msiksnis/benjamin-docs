@@ -5,12 +5,22 @@ scope_id: agent-brief
 audience: [agent]
 status: review
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: session-capture
 freshness: status
 ---
 
 # Agent Brief
+
+## 2026-07-10 Dependable Standard Program
+
+An exhaustive pre-public-launch product, architecture, documentation, AI-agent, developer-experience, open-source, and competitive audit is complete. Read `benjamin-docs/features/launch-readiness-audit/brief.md` before new product work.
+
+Audit verdict: version 0.11.1 has a strong project-memory concept and a safety-conscious CLI foundation, but it is not ready to be presented as a dependable developer standard. Reproduced blockers include false-ready behavior when watched docs are behind committed code, working-tree freshness gaps, unsafe customer export paths, optional global artifacts blocking repository readiness, confidentiality ambiguity around `visibility: private`, pointer-only session loading, and contradictory self-documentation passing current checks.
+
+The maintainer accepted the trust-first direction. The program plan is `benjamin-docs/features/launch-readiness-audit/plan.md`; the first executable plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`. Start with Task 1, which locks the current latency and token baseline before runtime behavior changes.
+
+Hard constraints: BD must not suppress, replace, delay, or materially rewrite the substantive user-facing answer; installed stop hooks must not block or auto-submit follow-ups; session-start stays at or below 400 characters / 100 estimated tokens; task memory context stays at or below 2,400 characters / 600 estimated tokens; and the core skill stays at or below 1,200 words. Reading memory needs no mention. After a durable update, an optional BD note is one sentence and at most 120 characters.
 
 ## Current State
 
@@ -65,7 +75,7 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo. Keep MCP tool access manifest-scoped; never widen it to arbitrary repo files.
 
-Next actions: keep dogfooding the 0.11.1 registry hooks in real Claude Code, Codex, and Cursor sessions; continue watching MCP retrieval quality on larger memories.
+Next action: execute Task 1 of `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md` in an isolated worktree, using test-first steps and the benchmark baseline recorded in the plan.
 
 ## Implemented So Far
 
@@ -204,7 +214,7 @@ When continuing this project:
 
 ## Likely Next Work
 
-- Dogfood the 0.5.0 Continuation Proof workflow on a fresh project and an older initialized project.
-- Improve `skills/benjamin-docs/SKILL.md` whenever dogfooding shows vague, thin, or unsafe capture behavior.
-- Keep `README.md` short and point advanced users to `bd commands`.
-- Dogfood `bd review --changed` on real projects before deciding whether changed-work warnings should become part of `ready`.
+- Complete the 0.12.0 trust-foundation plan task by task.
+- Write the impact-evidence plan only after structured readiness and complete Git change accounting are proven.
+- Write the canonical-state and agent-interface plans after impact evidence is stable.
+- Write the protocol/conformance plan only after canonical-state behavior is stable.

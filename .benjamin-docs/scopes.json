@@ -76,7 +76,7 @@
       "kind": "feature",
       "title": "Agent Reliability",
       "path": "benjamin-docs/features/agent-reliability",
-      "status": "draft"
+      "status": "archived"
     },
     {
       "id": "drift-and-session-hooks",
@@ -91,6 +91,13 @@
       "title": "Mcp Memory Server",
       "path": "benjamin-docs/features/mcp-memory-server",
       "status": "archived"
+    },
+    {
+      "id": "launch-readiness-audit",
+      "kind": "feature",
+      "title": "Launch Readiness Audit",
+      "path": "benjamin-docs/features/launch-readiness-audit",
+      "status": "approved"
     }
   ]
 }

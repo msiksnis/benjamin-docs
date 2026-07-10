@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: manual
 ---
 
@@ -13,36 +13,20 @@ source: manual
 
 Derived from decision and rejected-option sections across managed Benjamin docs.
 
-## [Agent Reliability Decisions](../features/agent-reliability/decisions.md)
+## [launch-readiness-audit Decisions](../features/launch-readiness-audit/decisions.md)
 
-Source: `benjamin-docs/features/agent-reliability/decisions.md` (updated 2026-07-09)
+Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 2026-07-10)
 
 ### Decisions
 
-- Keep the user-facing BD surface very small. New reliability work should be agent-facing, advanced, or automatic through repo-local guidance.
-- Customer-facing feature export verification should require explicit evidence recorded by an agent, not just a hidden phrase.
-- `bd export --verify <feature> --evidence "<what the agent checked>"` is an advanced command for agents and scripts. It updates the feature handoff's Implementation Verification section so later customer exports can pass readiness.
-- The CLI records verification evidence but does not claim to semantically inspect the product. Agents still own the actual implementation-vs-docs comparison.
-- Changed-work review should not warn on archived or stale docs, even when an old watch rule still matches changed source files.
-- Keep generated exports under `exports/` as disposable snapshots inside the active project root.
-- `bd ready` should distinguish recorded local prerequisites from BD setup/doc failures. Missing tools or services such as `cargo` or PostgreSQL should appear under a dedicated environment/tooling category when agents documented them in project memory.
-- BD should not run arbitrary project build/test commands by itself in this slice; agents still own executing project checks and recording blockers in handoff docs.
-- Package release hygiene should be scripted and verified instead of relying on agent memory. After npm publish, `release:github` owns tag/GitHub Release creation and `release:verify-public` confirms npm, tags, release object, and latest-release state.
-- Public first-contact surfaces must lead with persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. README, npm metadata, CLI intro/help, and the bundled skill should not make people or agents infer the core value from lower-level Markdown/doc mechanics.
-- Treat 0.9.3 as a patch release because behavior is unchanged. Its job is to publish the public README/npm metadata clarity already prepared in the repo.
-
-### Rejected Options
-
-- Do not make export verification another primary human command.
-- Do not let customer-facing export silently pass because the docs look polished; implementation evidence is required.
-- Do not build a background daemon in this slice. BD can strengthen the agent contract and deterministic checks without pretending it runs autonomously.
-- Do not treat every documented blocked project check as a readiness failure. A project can be handoff-ready when the blocker is clearly recorded as local environment state.
-- Do not leave GitHub Releases as a manual afterthought separate from the npm publish flow.
-- Do not headline BD as a documentation package, Markdown helper, or chat-to-docs converter. Those are implementation details or workflows, not the value proposition. Also do not imply BD is an autonomous daemon; the update loop comes from agent guidance and the installed skill.
+- 2026-07-10: Accept the launch audit's trust-first direction. Freeze unrelated feature expansion until readiness truth, export safety, repository-local health, bounded agent context, and response-safe integrations are implemented and verified.
+- 2026-07-10: Treat agent overhead as a release contract: session-start stays at or below 400 characters and 100 estimated tokens; task-scoped memory_context stays at or below 2,400 characters and 600 estimated tokens; the core skill stays at or below 1,200 words; session-start and no-op session-stop p95 stay at or below 400 ms on the maintainer reference machine and 750 ms in CI.
+- 2026-07-10: Benjamin Docs must never suppress, replace, delay, or materially rewrite the user's substantive final answer. Installed stop hooks will not block or auto-submit follow-ups. Reading memory needs no mention; after a durable update, an agent may append one sentence of at most 120 characters.
+- 2026-07-10: Execute the dependable-standard work as staged plans. Start with docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md; follow with separate impact-evidence, canonical-state, agent-interface, and protocol/conformance plans after the preceding interfaces are proven.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-09)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-10)
 
 ### Recent Decisions
 

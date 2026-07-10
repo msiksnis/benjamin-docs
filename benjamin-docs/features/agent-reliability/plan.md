@@ -3,9 +3,9 @@ title: Agent Reliability Plan
 scope: feature
 scope_id: agent-reliability
 audience: [developer, agent]
-status: review
+status: archived
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: manual
 freshness: status
 ---

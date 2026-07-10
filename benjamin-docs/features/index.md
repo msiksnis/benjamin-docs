@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, agent, business]
 status: review
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: session-capture
 ---
 
@@ -17,10 +17,11 @@ Because this repository is public, do not create feature scopes for private comm
 
 ## Active
 
-- [Agent Reliability](./agent-reliability/brief.md): next product arc for keeping BD simple for humans while agents handle project-memory upkeep, export verification, release hygiene, readiness repair, freshness repair, lifecycle cleanup, public first-contact clarity, hook turn safety, and fresh-agent dogfooding through advanced workflows. Published 0.11.1 prevents repeated dirty-tree nudges and hook-only final answers.
+- [Launch Readiness Audit / Dependable Standard Program](./launch-readiness-audit/brief.md): the maintainer accepted the audit verdict and trust-first direction on 2026-07-10. The approved program plan sequences response-safe hooks, numerical latency/token budgets, truthful readiness, export safety, impact evidence, canonical state, agent interfaces, and finally a vendor-neutral protocol plus conformance suite. The first executable plan targets 0.12.0.
 
 ## Shipped (archived)
 
+- [Agent Reliability](./agent-reliability/brief.md): early agent-maintenance, verification, release-hygiene, positioning, and hook-safety arc through 0.11.1. Archived on 2026-07-10 because its remaining goals are now owned by the approved Dependable Standard Program.
 - [MCP Memory Server](./mcp-memory-server/brief.md): shipped in 0.11.0 and archived. `bd mcp` serves memory as native MCP tools over stdio (context, search, read, transactional validated writes, decisions, status) with manifest-scoped access; `bd mcp install` registers Claude Code, Cursor, and Codex. Dogfooded live before publish.
 - [Drift And Session Hooks](./drift-and-session-hooks/brief.md): shipped in 0.10.0 and archived; turn-safety corrections are prepared for 0.11.1. Covers committed-history drift, consent-based Claude Code/Codex/Cursor hooks, per-session content baselines, answer-preserving stop nudges, `bd upgrade`, and the cached opt-out npm update check.
 - [Guided Export Workflow](./guided-export-workflow/brief.md): shipped in 0.9.0 and archived after 0.9.2 release prep. Human-facing `bd export` menu, app/feature/handoff/summary Markdown snapshots, readiness labels, detail levels, customer/developer profiles, feature matching, readiness blocks, snapshot metadata, and implementation-verification prompts.

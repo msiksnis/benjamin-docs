@@ -5,7 +5,7 @@ scope_id: project
 audience: [agent]
 status: draft
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: manual
 ---
 
@@ -13,77 +13,49 @@ source: manual
 
 Derived from continuation-proof, read-first, current-state, check, risk, and next-action sections for future agents.
 
-## [Agent Reliability Handoff](../features/agent-reliability/handoff.md)
+## [launch-readiness-audit Handoff](../features/launch-readiness-audit/handoff.md)
 
-Source: `benjamin-docs/features/agent-reliability/handoff.md` (updated 2026-07-09)
+Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-10)
 
 ### Risks / Open Questions
 
-- Verification quality still depends on the agent actually checking the implementation before running the command.
-- The command records a single evidence line for now. Future work may need richer structured verification history.
-- This should remain an advanced/agent workflow; humans should usually just run `bd export` or ask the agent for an export.
-- The daycare export scenario worktree is useful as a test fixture but should not become the normal artifact location pattern.
-- The environment/tooling detector is pattern-based and depends on agents recording blockers plainly in source docs.
-- Release automation depends on npm and GitHub CLI credentials in local maintainer flows; the tag-push GitHub Action is the backup path.
-- Public copy can drift back toward "docs helper" language if future edits over-focus on Markdown structure or chat-to-project mechanics. Keep the first screen anchored on project memory, living knowledge, continuity, and the agent-updated workflow.
-- Hook integrations that omit a session/conversation ID fall back to project-and-format state, so only ID-bearing integrations have full concurrent-session isolation.
-
-2026-07-09 (later): the memory-interface slice also moved out: the MCP Memory Server scope (`benjamin-docs/features/mcp-memory-server/`) gives agents validated write tools, which advances this arc's reliability goal — agents can no longer corrupt frontmatter or structure through hand edits when they write via MCP.
-
-2026-07-09: the automation slice of this arc shipped separately as the Drift And Session Hooks scope (`benjamin-docs/features/drift-and-session-hooks/`). Drift detection and session hooks now enforce the read-and-update loop mechanically, which removes the biggest reliability dependency on agent discipline.
-
-### Next Actions
-
-- Continue grouped `bd ready` repair hints beyond environment/tooling blockers, especially stale views, watch coverage, missing paths, and setup repair prompts.
-- Add a guided freshness repair path for agents.
-- Add lifecycle closeout polish for shipped or abandoned scopes.
-- Run the fresh-agent continuation dogfood exercise.
-- After the next publish, run a fresh first-contact dogfood read of GitHub and npm; passing means the reader describes BD as persistent project memory or living project knowledge for AI coding agents, not a generic docs generator.
-- Continue real-session dogfooding of the 0.11.1 hooks across Claude Code, Codex, and Cursor.
+- The vendor-neutral protocol name remains open; Project Memory Protocol is the working description, not a final brand decision.
+- Release Train B must solve false positives before strict readiness is considered low-friction at scale.
+- The current 4,264-word skill is a material token cost when activated; the first release train must split it.
+- Current task-scoped memory_context measured about 776 estimated tokens in this repo, above the accepted 600-token target.
+- Target-specific hook capabilities differ. The safe common denominator is session-start context plus no blocking/follow-up at stop.
+- Customer app/handoff/summary and public/user audience exports will be temporarily disabled rather than left unsafe.
+- Semantic contradiction detection remains limited until canonical state is implemented; public wording must stay exact meanwhile.
 
 ### Continuation Proof
 
 Read first:
 
-- `benjamin-docs/project/brief.md`
-- `benjamin-docs/project/roadmap.md`
-- `benjamin-docs/project/open-questions.md`
-- `benjamin-docs/handoff/agent-brief.md`
-- `benjamin-docs/features/agent-reliability/plan.md`
-- `README.md`
-- `package.json`
-- `src/info.ts`
-- `skills/benjamin-docs/SKILL.md`
-- `src/export.ts`
-- `src/environment.ts`
-- `src/ready.ts`
-- `scripts/release-github.mjs`
-- `.github/workflows/release.yml`
-- `src/cli.ts`
-- `test/ready.test.ts`
-- `test/validate-export.test.ts`
-- `test/info.test.ts`
+- benjamin-docs/features/launch-readiness-audit/brief.md
+- benjamin-docs/features/launch-readiness-audit/plan.md
+- benjamin-docs/features/launch-readiness-audit/decisions.md
+- docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md
+- benjamin-docs/features/launch-readiness-audit/handoff.md
 
-Current status: first agent reliability slices are implemented and focused tests passed. The slices cover export verification recording, one freshness-noise fix for inactive docs, recorded environment/tooling blocker surfacing in `ready`, release hygiene, and public first-contact positioning. The latest README/npm pass emphasizes that agents read, follow, and update BD memory while they work, while avoiding the false claim that BD is an autonomous background daemon.
+Before implementation:
 
-Release guard status: implemented and verified against the current public `0.9.2` release. For the prepared `0.9.3` publish, run `pnpm run release:github` after npm publish, then `pnpm run release:verify-public`.
+- git status --short --branch
+- pnpm check
+- pnpm benchmark:agent-overhead after Task 1 creates it
+- node dist/src/cli.js ready
 
-Checks:
+Before every implementation handoff:
 
-```bash
-pnpm build
-node --test dist/test/ready.test.js
-node --test dist/test/validate-export.test.js
-node --test dist/test/commands.test.js
-node --test dist/test/info.test.js
-pnpm run release:verify-public
-node dist/src/cli.js review --changed --since HEAD
-node dist/src/cli.js ready
-```
+- run the focused tests named by the task;
+- run pnpm check;
+- run the benchmark after agent-context/hook changes;
+- update the smallest durable Benjamin source docs;
+- run views, review --changed, drift, and ready;
+- preserve the substantive user-facing response and keep any BD note to one short sentence.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-09)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-10)
 
 ### Current State
 
@@ -138,4 +110,4 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo. Keep MCP tool access manifest-scoped; never widen it to arbitrary repo files.
 
-Next actions: keep dogfooding the 0.11.1 registry hooks in real Claude Code, Codex, and Cursor sessions; continue watching MCP retrieval quality on larger memories.
+Next action: execute Task 1 of `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md` in an isolated worktree, using test-first steps and the benchmark baseline recorded in the plan.

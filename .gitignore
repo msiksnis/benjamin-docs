@@ -3,6 +3,8 @@ dist/
 exports/
 .DS_Store
 .remember/
+.worktrees/
+.superpowers/
 
 # Local/private planning notes for this public repo.
 .private/

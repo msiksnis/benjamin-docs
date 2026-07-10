@@ -5,16 +5,20 @@ scope_id: human-brief
 audience: [developer, designer, business, advisor]
 status: review
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: session-capture
 freshness: status
 ---
 
 # Human Brief
 
+The maintainer accepted a trust-first program on 2026-07-10. Benjamin Docs 0.11.1 has a strong project-memory core but should not yet be described as a dependable standard. The first implementation plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`, targeting 0.12.0.
+
+The program adds an explicit experience guarantee: BD should remain lightweight while agents use it in the background. Session context, task retrieval, skill size, and hook latency receive numerical release budgets. BD must never replace or materially change the answer an agent gives the user. Reading memory needs no mention; after a meaningful update, the agent may add one very short sentence saying what BD memory changed.
+
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
 
-0.10.0 makes the memory self-maintaining. `bd drift` tells you which docs fell behind the code they describe, measured against real git history instead of guesses. Session hooks (offered during `bd init`, installable with `bd hooks install`) mean Claude Code, Codex, and Cursor sessions start with project memory loaded automatically and agents get nudged to update the docs when they change code without touching them. For the human, almost nothing new to learn: `init`, `ready`, and `export` remain the core surface, hooks can be removed anytime with `bd hooks uninstall`, and when the CLI updates, one command (`bd upgrade`) catches a repo up — bd itself tells you (through the agent) when a newer version exists, so nobody has to remember to check.
+0.10.0 added drift checks and session hooks. `bd drift` compares watched docs with committed Git history. Session-start hooks provide compact orientation and point agents to project memory; they do not load or verify every fact automatically. The 0.12.0 plan removes stop-hook continuations so BD maintenance cannot replace or distort the final user response. For humans, the surface stays small: `init`, `status`, and `export`, with advanced checks handled by agents.
 
 The product promise is simple: every new AI coding session should start with usable context instead of a cold read. BD preserves the project purpose, decisions, progress, conventions, risks, open questions, next actions, and handoff notes in Markdown. The docs live in the project under `benjamin-docs/`; metadata lives under `.benjamin-docs/`.
 
@@ -22,7 +26,7 @@ The product promise is simple: every new AI coding session should start with usa
 
 Recent work made the first-run story stronger: `ready` is the primary handoff gate, `export` is the guided local deliverable path, `commands` is an interactive advanced drawer, `bd` is the short alias, agent guidance can be installed into `AGENTS.md` without overwriting existing user-owned instructions, and `install-skill` / `package-skill` distribute the bundled skill.
 
-The current release is 0.11.0, published 2026-07-09: an MCP server that turns the memory into native agent tools — agents search and read exactly the sections they need and write back through validated, roll-back-safe updates. Register per project with `bd mcp install`. This sits on top of the 0.10.0 drift/hooks/upgrade work. BD should turn maintained project memory into concise generated snapshots without making humans learn many commands. Agents should record implementation verification before customer-facing exports and clearly separate local environment/tooling blockers from actual project-memory failures.
+Version 0.11.0 introduced the MCP server that turns memory into native agent tools; 0.11.1 is the current published release. Agents can search and read selected sections and write through structurally validated, rollback-safe updates. Register per project with `bd mcp install`. The trust program will bound retrieval size, distinguish structural checks from semantic evidence, and fail unsafe customer/public exports closed.
 
 The published 0.11.1 hotfix makes the hook behavior match that safety promise: old dirty files no longer trigger repeated warnings on read-only turns, real new changes still get one maintenance pass, and the maintenance continuation must return the complete answer the user asked for.
 

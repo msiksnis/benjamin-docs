@@ -5,12 +5,20 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: session-capture
 freshness: status
 ---
 
 # Project Brief
+
+## Dependable Standard Direction
+
+The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first program. Version 0.11.1 is not yet a dependable standard. The immediate target is 0.12.0, implemented through `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`.
+
+The agent workflow now has explicit product budgets. Session-start context stays under 400 characters / 100 estimated tokens; task-scoped memory context stays under 2,400 characters / 600 estimated tokens; the core skill stays under 1,200 words; and session-boundary commands have p95 latency gates. BD maintenance must never suppress, replace, delay, or materially rewrite the substantive answer to the user. Reading memory needs no mention; after a durable update, an agent may append one sentence of at most 120 characters.
+
+The program ships in stages: trust foundation, impact evidence, canonical state and agent interfaces, then a vendor-neutral protocol and conformance suite. Unrelated feature expansion, hosted publishing, dashboards, and additional export types remain deferred until the trust gates pass.
 
 `benjamin-docs` is a persistent repo-local project memory system for AI coding agents and humans. It turns a repo into living project knowledge that agents read, follow, and update while they work, so a new coding session starts with context: what the project is, where work stopped, what decisions and conventions matter, what is risky, and what should happen next.
 
@@ -24,11 +32,11 @@ The core product model is asymmetric: humans should see a calm, tiny surface and
 
 Public entry points now need to work for both humans and agents. The GitHub README, npm description, package keywords, CLI `introduce` text, and bundled skill should all use the same framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Preserve the caveat that BD is not a background daemon; upkeep happens because the installed skill and repo-local guidance instruct agents to maintain the memory as part of normal work.
 
-The 0.9.3 release packaged that public positioning for npmjs. The 0.10.0 release candidate makes the memory self-maintaining: `bd drift` measures docs against committed git history through watch rules, and consent-based session hooks load memory into Claude Code, Codex, and Cursor sessions automatically while nudging agents to update docs when source changes without them. The "not a background daemon" caveat softens accordingly: with hooks installed, the user's agent environment does invoke BD at session boundaries.
+The 0.9.3 release packaged that public positioning for npmjs. Version 0.10.0 added `bd drift` and consent-based session hooks. Drift measures watched docs against committed Git history. Session-start hooks provide compact orientation and pointers; they do not semantically verify or fully load every project fact. Version 0.12.0 will remove blocking/follow-up stop behavior so memory maintenance happens during normal agent work and cannot distort the final answer.
 
 The 0.11.0 release candidate adds the MCP memory server: `bd mcp` exposes the memory as native tools (context, search, read, validated writes, decisions, status) over stdio, registered per project with `bd mcp install` for Claude Code, Cursor, and Codex. Hooks push context into sessions; MCP lets agents pull exactly the sections they need and write back safely. This introduces bd's first runtime dependencies (the official MCP SDK plus zod), an accepted exception to the dependency-light posture.
 
-The 0.11.1 hotfix makes those session hooks safe at turn boundaries. Hook state fingerprints the existing dirty tree at session start and compares later content against that baseline, so old edits do not create repeated false positives while further edits to an already-dirty file still count. Missing state fails open. When a real stop nudge continues the turn, the hook must preserve a complete answer to the user's original request instead of replacing it with memory-maintenance commentary.
+The 0.11.1 hotfix reduced stop-hook failures by fingerprinting the dirty tree at session start and preserving the user's requested answer during a continuation. The audit found that any blocking stop continuation still cannot guarantee an unchanged final answer. The approved 0.12.0 direction therefore removes blocking and auto-follow-up behavior instead of trying to make it less intrusive.
 
 Agent Reliability now includes clearer handling for local prerequisites. When agents record that project checks are blocked by missing tools or services, such as a command that is not installed or a database that is not listening, `bd ready` surfaces those notes under a dedicated environment/tooling category instead of blending them into generic project failure language.
 

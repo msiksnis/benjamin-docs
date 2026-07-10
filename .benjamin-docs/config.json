@@ -203,6 +203,31 @@
         "benjamin-docs/features/mcp-memory-server/decisions.md",
         "benjamin-docs/features/mcp-memory-server/handoff.md"
       ]
+    },
+    {
+      "label": "feature/launch-readiness-audit",
+      "paths": [
+        "src/**",
+        "app/**",
+        "apps/**",
+        "lib/**",
+        "pages/**",
+        "components/**",
+        "server/**",
+        "api/**",
+        "**/*.sql",
+        "**/migrations/**",
+        "README.md",
+        "docs/**",
+        ".claude/**",
+        ".cursor/**"
+      ],
+      "docs": [
+        "benjamin-docs/features/launch-readiness-audit/brief.md",
+        "benjamin-docs/features/launch-readiness-audit/plan.md",
+        "benjamin-docs/features/launch-readiness-audit/decisions.md",
+        "benjamin-docs/features/launch-readiness-audit/handoff.md"
+      ]
     }
   ],
   "bdVersion": "0.11.1"

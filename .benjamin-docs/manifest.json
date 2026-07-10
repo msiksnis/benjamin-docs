@@ -54,6 +54,10 @@
     "benjamin-docs/features/mcp-memory-server/brief.md",
     "benjamin-docs/features/mcp-memory-server/plan.md",
     "benjamin-docs/features/mcp-memory-server/decisions.md",
-    "benjamin-docs/features/mcp-memory-server/handoff.md"
+    "benjamin-docs/features/mcp-memory-server/handoff.md",
+    "benjamin-docs/features/launch-readiness-audit/brief.md",
+    "benjamin-docs/features/launch-readiness-audit/plan.md",
+    "benjamin-docs/features/launch-readiness-audit/decisions.md",
+    "benjamin-docs/features/launch-readiness-audit/handoff.md"
   ]
 }

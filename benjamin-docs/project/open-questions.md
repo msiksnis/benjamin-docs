@@ -5,11 +5,23 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: session-capture
 ---
 
 # Open Questions
+
+## Dependable Standard Program
+
+- Decision: accept the audit verdict, freeze unrelated feature expansion, and execute the trust-first release trains.
+- Decision: first ship structured readiness dimensions; known committed drift and unresolved working-tree impact block their dimensions.
+- Decision: temporarily disable unsafe customer app/handoff/summary and public/user audience exports instead of preserving unsafe behavior.
+- Decision: default installed hooks must not block completion or auto-submit follow-ups; memory maintenance happens before the final answer.
+- Decision: preserve the accepted latency, token, skill-size, and one-sentence completion-note budgets in tests and release gates.
+- Should the open specification use a vendor-neutral name such as Project Memory Protocol, with Benjamin Docs as the reference implementation?
+- Which five repositories, three stack families, and three agent products should form the first conformance benchmark?
+- What false-positive rate is acceptable for strict changed-work readiness after the impact-evidence ledger exists?
+- The program plan is `benjamin-docs/features/launch-readiness-audit/plan.md`; the first executable plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`.
 
 ## 0.7.0 Freshness And Lifecycle
 

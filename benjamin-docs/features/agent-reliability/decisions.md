@@ -3,9 +3,9 @@ title: Agent Reliability Decisions
 scope: feature
 scope_id: agent-reliability
 audience: [developer, agent]
-status: review
+status: archived
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: manual
 freshness: status
 ---
@@ -29,6 +29,7 @@ freshness: status
 - Package release hygiene should be scripted and verified instead of relying on agent memory. After npm publish, `release:github` owns tag/GitHub Release creation and `release:verify-public` confirms npm, tags, release object, and latest-release state.
 - Public first-contact surfaces must lead with persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. README, npm metadata, CLI intro/help, and the bundled skill should not make people or agents infer the core value from lower-level Markdown/doc mechanics.
 - Treat 0.9.3 as a patch release because behavior is unchanged. Its job is to publish the public README/npm metadata clarity already prepared in the repo.
+- 2026-07-10: Archive this scope as superseded by the approved launch-readiness-audit / dependable-standard program. Response-safe integrations, bounded context, readiness repair, export verification, lifecycle, and fresh-agent proof continue in the staged program plan rather than in two competing active scopes.
 
 ## Rejected Options
 
