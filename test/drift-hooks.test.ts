@@ -428,9 +428,16 @@ describe("session commands", () => {
       assert.match(plain.stdout, /Read first: benjamin-docs\/handoff\/agent-brief\.md/);
       assert.match(plain.stdout, /Drift: \d+ docs are behind watched code changes/);
       assert.match(plain.stdout, /benjamin-docs ready/);
-      const plainContext = plain.stdout.trimEnd();
-      assert.ok(plainContext.length <= CONTEXT_BUDGETS.sessionStartCharacters);
-      assert.ok(estimatedTokens(plainContext) <= CONTEXT_BUDGETS.sessionStartEstimatedTokens);
+      const claudeContext = plain.stdout.trimEnd();
+      assert.ok(claudeContext.length <= CONTEXT_BUDGETS.sessionStartCharacters);
+      assert.ok(estimatedTokens(claudeContext) <= CONTEXT_BUDGETS.sessionStartEstimatedTokens);
+
+      const plainContext = runCliResult(["session-start"], dir).stdout.trim();
+      assert.ok(plainContext.length <= 400);
+      assert.ok(Math.ceil(plainContext.length / 4) <= 100);
+      assert.match(plainContext, /^Benjamin Docs project memory is active in this repo \(benjamin-docs\/\)\./);
+      assert.match(plainContext, /Read first: benjamin-docs\/handoff\/agent-brief\.md/);
+      assert.match(plainContext, / Run bd status for details\.$/);
 
       const cursor = JSON.parse(runCliResult(["session-start", "--format", "cursor"], dir).stdout) as { additional_context: string };
       assert.match(cursor.additional_context, /project memory is active/);

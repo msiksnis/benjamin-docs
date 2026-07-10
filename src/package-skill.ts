@@ -4,7 +4,7 @@ import { homedir } from "node:os";
 import { deflateRawSync } from "node:zlib";
 import { dirname as pathDirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { formatHomePath, SKILL_NAME } from "./install-skill.js";
+import { formatHomePath, SKILL_BUNDLE_FILES, SKILL_NAME } from "./install-skill.js";
 
 export const SKILL_ZIP_NAME = "benjamin-docs-skill.zip";
 
@@ -28,10 +28,15 @@ interface ZipEntry {
 export function packageSkill(options: PackageSkillOptions = {}): PackageSkillResult {
   const homeDir = resolve(options.homeDir ?? process.env.BENJAMIN_DOCS_HOME ?? homedir());
   const zipPath = resolveOutputPath(options.out, homeDir);
-  const skill = readFileSync(getBundledSkillPath());
+  const skillDir = getBundledSkillDirectory();
   const entries: ZipEntry[] = [
     { path: `${SKILL_NAME}/`, data: Buffer.alloc(0), directory: true },
-    { path: `${SKILL_NAME}/SKILL.md`, data: skill },
+    { path: `${SKILL_NAME}/SKILL.md`, data: readFileSync(join(skillDir, "SKILL.md")) },
+    { path: `${SKILL_NAME}/references/`, data: Buffer.alloc(0), directory: true },
+    ...SKILL_BUNDLE_FILES.filter((path) => path !== "SKILL.md").map((path) => ({
+      path: `${SKILL_NAME}/${path}`,
+      data: readFileSync(join(skillDir, path)),
+    })),
   ];
 
   try {
@@ -104,9 +109,9 @@ function isPermissionError(error: unknown): boolean {
   return code === "EPERM" || code === "EACCES";
 }
 
-function getBundledSkillPath(): string {
+function getBundledSkillDirectory(): string {
   const currentDir = pathDirname(fileURLToPath(import.meta.url));
-  return join(currentDir, "..", "..", "skills", SKILL_NAME, "SKILL.md");
+  return join(currentDir, "..", "..", "skills", SKILL_NAME);
 }
 
 function createZip(entries: ZipEntry[]): Buffer {

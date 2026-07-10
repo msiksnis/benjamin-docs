@@ -4,6 +4,12 @@ import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 
 export const SKILL_NAME = "benjamin-docs";
+export const SKILL_BUNDLE_FILES = [
+  "SKILL.md",
+  "references/capture.md",
+  "references/export.md",
+  "references/integrations.md",
+] as const;
 
 const TARGETS = [
   {
@@ -65,15 +71,19 @@ export function installSkill(options: InstallSkillOptions = {}): InstallSkillRes
   const homeDir = resolve(options.homeDir ?? process.env.BENJAMIN_DOCS_HOME ?? homedir());
   const target = options.target ?? "all";
   const skillSourcePath = getBundledSkillPath();
-  const skill = readFileSync(skillSourcePath, "utf8");
+  const bundle = readBundledSkillBundle();
   const targets = resolveTargets(target).map((entry) => {
     const destination = resolveSkillPath(homeDir, entry.relativePath);
     const existing = readExistingSkill(destination);
-    const status = statusFor(existing, skill, options.dryRun === true);
+    const bundleCurrent = bundle.every((file) => readExistingSkill(resolve(dirname(destination), file.path)) === file.content);
+    const status = statusFor(existing, bundleCurrent, options.dryRun === true);
 
-    if (!options.dryRun && existing !== skill) {
-      mkdirSync(dirname(destination), { recursive: true });
-      writeFileSync(destination, skill, "utf8");
+    if (!options.dryRun && !bundleCurrent) {
+      for (const file of bundle) {
+        const fileDestination = resolve(dirname(destination), file.path);
+        mkdirSync(dirname(fileDestination), { recursive: true });
+        writeFileSync(fileDestination, file.content, "utf8");
+      }
     }
 
     return {
@@ -89,11 +99,12 @@ export function installSkill(options: InstallSkillOptions = {}): InstallSkillRes
 
 export function checkInstalledSkills(homeDirOption?: string): SkillCheckResult {
   const homeDir = resolve(homeDirOption ?? process.env.BENJAMIN_DOCS_HOME ?? homedir());
-  const skill = readBundledSkill();
+  const bundle = readBundledSkillBundle();
   const targets = TARGETS.map((entry) => {
     const path = resolveSkillPath(homeDir, entry.relativePath);
     const existing = readExistingSkill(path);
-    const status: SkillCheckStatus = existing === undefined ? "missing" : existing === skill ? "ok" : "stale";
+    const bundleCurrent = bundle.every((file) => readExistingSkill(resolve(dirname(path), file.path)) === file.content);
+    const status: SkillCheckStatus = existing === undefined ? "missing" : bundleCurrent ? "ok" : "stale";
 
     return {
       id: entry.id,
@@ -142,8 +153,9 @@ function getBundledSkillPath(): string {
   return join(currentDir, "..", "..", "skills", SKILL_NAME, "SKILL.md");
 }
 
-function readBundledSkill(): string {
-  return readFileSync(getBundledSkillPath(), "utf8");
+function readBundledSkillBundle(): Array<{ path: (typeof SKILL_BUNDLE_FILES)[number]; content: string }> {
+  const skillDir = dirname(getBundledSkillPath());
+  return SKILL_BUNDLE_FILES.map((path) => ({ path, content: readFileSync(join(skillDir, path), "utf8") }));
 }
 
 function resolveTargets(target: SkillTargetId): Array<(typeof TARGETS)[number]> {
@@ -173,8 +185,8 @@ function readExistingSkill(path: string): string | undefined {
   }
 }
 
-function statusFor(existing: string | undefined, next: string, dryRun: boolean): InstallSkillStatus {
+function statusFor(existing: string | undefined, bundleCurrent: boolean, dryRun: boolean): InstallSkillStatus {
   if (existing === undefined) return dryRun ? "would-install" : "installed";
-  if (existing === next) return dryRun ? "would-keep" : "unchanged";
+  if (bundleCurrent) return dryRun ? "would-keep" : "unchanged";
   return dryRun ? "would-update" : "updated";
 }

@@ -29,7 +29,12 @@ describe("install-skill", () => {
       for (const path of expectedPaths) {
         const content = readFileSync(join(home, path), "utf8");
         assert.match(content, /^name: benjamin-docs/m);
-        assert.match(content, /Chat-To-Project Workflow/);
+        assert.match(content, /Detailed workflows/);
+
+        const skillDir = join(home, path, "..");
+        assert.match(readFileSync(join(skillDir, "references/capture.md"), "utf8"), /Chat-To-Project Workflow/);
+        assert.match(readFileSync(join(skillDir, "references/export.md"), "utf8"), /Export Workflow/);
+        assert.match(readFileSync(join(skillDir, "references/integrations.md"), "utf8"), /MCP Memory Tools/);
       }
     });
   });
@@ -56,6 +61,9 @@ describe("install-skill", () => {
 
       assert.equal(result.targets[0]?.status, "updated");
       assert.match(readFileSync(target, "utf8"), /^name: benjamin-docs/m);
+      assert.equal(existsSync(join(home, ".codex/skills/benjamin-docs/references/capture.md")), true);
+      assert.equal(existsSync(join(home, ".codex/skills/benjamin-docs/references/export.md")), true);
+      assert.equal(existsSync(join(home, ".codex/skills/benjamin-docs/references/integrations.md")), true);
     });
   });
 

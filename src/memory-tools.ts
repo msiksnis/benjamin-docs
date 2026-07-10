@@ -1,5 +1,6 @@
 import { existsSync, lstatSync, readFileSync, writeFileSync } from "node:fs";
 import { CONFIG_DIR, KNOWN_STATUSES, MANIFEST_FILE } from "./constants.js";
+import { CONTEXT_BUDGETS, truncateAtBoundary } from "./context-budget.js";
 import { detectDrift, summarizeDrift } from "./drift.js";
 import { parseMarkdown, serializeMarkdown } from "./frontmatter.js";
 import { readGeneratedJson, rootPath } from "./fsx.js";
@@ -12,9 +13,9 @@ import { validateProject } from "./validate.js";
 import { generateMemoryViews, renderMemoryViews } from "./views.js";
 
 const METADATA_LABEL = "Metadata path";
-const DEFAULT_SEARCH_LIMIT = 8;
-const MAX_SEARCH_LIMIT = 25;
-const SNIPPET_LENGTH = 500;
+const DEFAULT_SEARCH_LIMIT = CONTEXT_BUDGETS.memorySearchDefaultResults;
+const MAX_SEARCH_LIMIT = CONTEXT_BUDGETS.memorySearchMaxResults;
+const SNIPPET_LENGTH = CONTEXT_BUDGETS.memorySearchSnippetCharacters;
 
 export interface MemorySection {
   path: string;
@@ -48,7 +49,7 @@ export function listManagedDocs(root: string): string[] {
   });
 }
 
-export function searchMemory(root: string, query: string, limit = DEFAULT_SEARCH_LIMIT): MemorySection[] {
+export function searchMemory(root: string, query: string, limit: number = DEFAULT_SEARCH_LIMIT): MemorySection[] {
   const terms = tokenize(query);
   if (terms.length === 0) return [];
 
@@ -160,13 +161,20 @@ export function memoryContext(root: string, task?: string): string {
   const context = getSessionStartContext(root);
   if (!task?.trim()) return context;
 
-  const sections = searchMemory(root, task, 5);
+  const sections = searchMemory(root, task);
+  let output: string;
   if (sections.length === 0) {
-    return `${context}\n\nNo memory sections matched the task "${task.trim()}". Use memory_search with different terms or memory_read on the read-first docs.`;
+    output = `${context}\n\nNo memory sections matched the task "${task.trim()}". Use memory_search with different terms or memory_read on the read-first docs.`;
+  } else {
+    const matches = sections.map((section) => `### ${section.path} — ${section.heading}\n${section.snippet}`);
+    output = `${context}\n\nMemory sections matching the task:\n\n${matches.join("\n\n")}`;
   }
 
-  const matches = sections.map((section) => `### ${section.path} — ${section.heading}\n${section.snippet}`);
-  return `${context}\n\nMemory sections matching the task:\n\n${matches.join("\n\n")}`;
+  return truncateAtBoundary(
+    output,
+    CONTEXT_BUDGETS.memoryContextCharacters,
+    "\n\nMore context: use memory_search, then memory_read only for the selected source doc.",
+  );
 }
 
 function requireManagedDoc(root: string, path: string): string {
@@ -273,7 +281,7 @@ function tokenize(query: string): string[] {
 
 function makeSnippet(content: string): string {
   const compact = content.replace(/\n{3,}/g, "\n\n").trim();
-  return compact.length <= SNIPPET_LENGTH ? compact : `${compact.slice(0, SNIPPET_LENGTH)}…`;
+  return truncateAtBoundary(compact, SNIPPET_LENGTH, "…");
 }
 
 function normalizeBody(body: string): string {

@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { CONTEXT_BUDGETS } from "./context-budget.js";
 import { getPackageVersion } from "./info.js";
 import { memoryContext, memoryStatus, readMemoryDoc, recordDecision, searchMemory, updateMemoryDoc } from "./memory-tools.js";
 
@@ -36,7 +37,13 @@ export function buildServer(root: string): McpServer {
       description: "Search Benjamin Docs project memory. Returns scored doc sections (path, heading, snippet). Use before reading whole docs.",
       inputSchema: {
         query: z.string().describe("Search terms, e.g. feature name, decision topic, file path"),
-        limit: z.number().int().min(1).max(25).optional().describe("Max sections to return (default 8)"),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(CONTEXT_BUDGETS.memorySearchMaxResults)
+          .optional()
+          .describe("Max sections to return (default 5, maximum 8)"),
       },
     },
     async ({ query, limit }) =>

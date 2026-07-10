@@ -16,8 +16,24 @@ describe("package-skill", () => {
       assert.equal(existsSync(zipPath), true);
 
       const entries = readZipEntries(zipPath);
-      assert.deepEqual(Object.keys(entries).sort(), ["benjamin-docs/", "benjamin-docs/SKILL.md"]);
+      assert.deepEqual(Object.keys(entries).sort(), [
+        "benjamin-docs/",
+        "benjamin-docs/SKILL.md",
+        "benjamin-docs/references/",
+        "benjamin-docs/references/capture.md",
+        "benjamin-docs/references/export.md",
+        "benjamin-docs/references/integrations.md",
+      ]);
       assert.match(entries["benjamin-docs/SKILL.md"]?.toString("utf8") ?? "", /^name: benjamin-docs/m);
+      assert.match(entries["benjamin-docs/references/capture.md"]?.toString("utf8") ?? "", /Chat-To-Project Workflow/);
+      assert.match(entries["benjamin-docs/references/export.md"]?.toString("utf8") ?? "", /Export Workflow/);
+      assert.match(entries["benjamin-docs/references/integrations.md"]?.toString("utf8") ?? "", /MCP Memory Tools/);
+
+      const skillWords = readFileSync(join(process.cwd(), "skills/benjamin-docs/SKILL.md"), "utf8")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean).length;
+      assert.ok(skillWords <= 1200);
     });
   });
 

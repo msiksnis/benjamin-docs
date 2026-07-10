@@ -13,6 +13,7 @@ import { beginSessionTracking, evaluateSessionStop, type SessionHookInput } from
 export type SessionHookFormat = "claude" | "codex" | "cursor";
 
 const DRIFT_LINE_LIMIT = 3;
+const OPTIONAL_CONTEXT_SUFFIX = " Run bd status for details.";
 
 export function getSessionStartContext(root: string, commandPath?: string): string {
   if (!existsSync(rootPath(root, CONFIG_DIR, "config.json"))) return "";
@@ -25,7 +26,7 @@ export function getSessionStartContext(root: string, commandPath?: string): stri
   }
   const docsRoot = config.docsRoot;
 
-  const lines = [`Benjamin Docs project memory is active in this repo (${docsRoot}/).`];
+  const requiredLines = [`Benjamin Docs project memory is active in this repo (${docsRoot}/).`];
 
   const readFirst = [`${docsRoot}/handoff/agent-brief.md`, `${docsRoot}/views/agent-continuation.md`].filter((doc) => {
     try {
@@ -35,41 +36,48 @@ export function getSessionStartContext(root: string, commandPath?: string): stri
     }
   });
   if (readFirst.length > 0) {
-    lines.push(`Read first: ${readFirst.join(", ")}`);
+    requiredLines.push(`Read first: ${readFirst.join(", ")}`);
   }
 
+  const optionalLines: string[] = [];
   const drift = detectDrift(root);
   if (drift.gitAvailable && drift.drifted.length > 0) {
     const top = drift.drifted.slice(0, DRIFT_LINE_LIMIT).map((entry) => entry.doc);
     const more = drift.drifted.length - top.length;
-    lines.push(
+    optionalLines.push(
       `Drift: ${drift.drifted.length} ${drift.drifted.length === 1 ? "doc is" : "docs are"} behind watched code changes: ${top.join(", ")}${more > 0 ? ` (+${more} more)` : ""}. Re-verify and update them while you work. Details: benjamin-docs drift`,
     );
   }
 
   const currentVersion = getPackageVersion();
   if (!config.bdVersion || compareVersions(currentVersion, config.bdVersion) > 0) {
-    lines.push(
+    optionalLines.push(
       `This repo's Benjamin Docs setup was last upgraded ${config.bdVersion ? `at ${config.bdVersion}` : "before 0.10.0"}; the CLI is ${currentVersion}. Run: benjamin-docs upgrade`,
     );
   }
 
   const update = getCachedUpdateInfo();
   if (update?.updateAvailable) {
-    lines.push(
+    optionalLines.push(
       `benjamin-docs ${update.latest} is available (installed ${update.installed}). Suggest to the user: pnpm update -g benjamin-docs, then benjamin-docs upgrade.`,
     );
   }
 
-  lines.push("Keep project memory updated as durable facts change. Before handoff run: benjamin-docs ready");
+  const closeoutLine = "Keep project memory updated as durable facts change. Before handoff run: benjamin-docs ready";
 
   spawnBackgroundUpdateRefresh(commandPath, Date.now());
 
-  return truncateAtBoundary(
-    lines.join("\n"),
-    CONTEXT_BUDGETS.sessionStartCharacters,
-    "\nMore: benjamin-docs drift. Before handoff: benjamin-docs ready",
-  );
+  const fullContext = [...requiredLines, ...optionalLines, closeoutLine].join("\n");
+  if (fullContext.length <= CONTEXT_BUDGETS.sessionStartCharacters) return fullContext;
+
+  const preservedContext = [...requiredLines, closeoutLine].join("\n");
+  if (optionalLines.length === 0 || preservedContext.length >= CONTEXT_BUDGETS.sessionStartCharacters) {
+    return preservedContext;
+  }
+
+  const optionalBudget = CONTEXT_BUDGETS.sessionStartCharacters - preservedContext.length - 1;
+  const boundedOptionalContext = truncateAtBoundary(optionalLines.join("\n"), optionalBudget, OPTIONAL_CONTEXT_SUFFIX);
+  return `${preservedContext}\n${boundedOptionalContext}`;
 }
 
 export function formatSessionStart(

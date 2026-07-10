@@ -96,6 +96,7 @@ describe("mcp server tools", () => {
       mkdirSync(join(dir, "src"), { recursive: true });
       writeFileSync(join(dir, "src/app.ts"), "export const a = 1;\n");
       runCliResult(["init", "--mode", "codebase", "--no-agent-contract"], dir);
+      seedManyMatchingMemorySections(dir);
 
       const client = await connectClient(dir);
       after(() => client.close());
@@ -106,8 +107,13 @@ describe("mcp server tools", () => {
         ["memory_context", "memory_read", "memory_record_decision", "memory_search", "memory_status", "memory_update"],
       );
 
-      const context = await callText(client, "memory_context");
-      assert.match(context.content[0]?.text ?? "", /Benjamin Docs project memory is active/);
+      const context = await callText(client, "memory_context", {
+        task: "project memory implementation decisions current workflow",
+      });
+      const text = context.content[0]?.text ?? "";
+      assert.match(text, /Benjamin Docs project memory is active/);
+      assert.ok(text.length <= 2400);
+      assert.ok(Math.ceil(text.length / 4) <= 600);
 
       const status = await callText(client, "memory_status");
       assert.match(status.content[0]?.text ?? "", /mode: codebase/);
@@ -125,6 +131,25 @@ describe("mcp server tools", () => {
 
       const search = await callText(client, "memory_search", { query: "entrypoint app.ts", limit: 3 });
       assert.match(search.content[0]?.text ?? "", /code-map\.md/);
+
+      const excessiveSearch = await callText(client, "memory_search", {
+        query: "project memory implementation decisions current workflow",
+        limit: 25,
+      });
+      assert.equal(excessiveSearch.isError, true);
+      assert.match(excessiveSearch.content[0]?.text ?? "", /Invalid arguments|maximum|less than or equal to 8/i);
+
+      const boundedSearch = await callText(client, "memory_search", {
+        query: "project memory implementation decisions current workflow",
+        limit: 8,
+      });
+      assert.notEqual(boundedSearch.isError, true);
+      const snippets = (boundedSearch.content[0]?.text ?? "").split(/\n\n(?=### )/);
+      assert.equal(snippets.length, 8);
+      for (const snippet of snippets) {
+        const body = snippet.slice(snippet.indexOf("\n") + 1);
+        assert.ok(body.length <= 300, `Expected snippet body to be at most 300 characters, got ${body.length}`);
+      }
 
       const unmanaged = await callText(client, "memory_read", { path: "package.json" });
       assert.equal(unmanaged.isError, true);
@@ -206,5 +231,16 @@ async function withTempDirAsync(fn: (dir: string) => Promise<void>): Promise<voi
     await fn(dir);
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+function seedManyMatchingMemorySections(dir: string): void {
+  const manifest = JSON.parse(readFileSync(join(dir, ".benjamin-docs/manifest.json"), "utf8")) as { docs: string[] };
+  const content = `${"Project memory implementation decisions current workflow. ".repeat(16)}\n`;
+
+  for (const doc of manifest.docs.filter((path) => path.endsWith(".md")).slice(0, 8)) {
+    const path = join(dir, doc);
+    if (!existsSync(path)) continue;
+    writeFileSync(path, `${readFileSync(path, "utf8").trimEnd()}\n\n## Context budget fixture\n\n${content}`);
   }
 }
