@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join } from "node:path";
 import { CONTEXT_BUDGETS, estimatedTokens } from "../src/context-budget.js";
 import { getSessionStopNudge } from "../src/session.js";
+import { MAX_DOCS_ROOT_CHARACTERS } from "../src/session-context.js";
 import { runCliResult, withTempDir } from "./helpers.js";
 
 function git(dir: string, ...args: string[]): void {
@@ -15,11 +16,18 @@ function git(dir: string, ...args: string[]): void {
   });
 }
 
-function setUpCommittedProject(dir: string): void {
+function setUpCommittedProject(dir: string, docsRoot?: string, includeContinuationView = false): void {
   git(dir, "init");
   mkdirSync(join(dir, "src"), { recursive: true });
   writeFileSync(join(dir, "src/app.ts"), "export const a = 1;\n");
-  runCliResult(["init", "--mode", "codebase", "--no-agent-contract"], dir);
+  const initArgs = ["init", "--mode", "codebase", "--no-agent-contract"];
+  if (docsRoot) initArgs.push("--docs-root", docsRoot);
+  const initialized = runCliResult(initArgs, dir);
+  assert.equal(initialized.status, 0, initialized.stderr);
+  if (docsRoot && includeContinuationView) {
+    mkdirSync(join(dir, docsRoot, "views"), { recursive: true });
+    writeFileSync(join(dir, docsRoot, "views/agent-continuation.md"), "# Agent Continuation\n");
+  }
   git(dir, "add", "-A");
   git(dir, "commit", "-m", "baseline with docs");
 }
@@ -424,10 +432,11 @@ describe("session commands", () => {
       commitSourceChange(dir);
 
       const plain = runCliResult(["session-start", "--format", "claude"], dir);
-      assert.match(plain.stdout, /Benjamin Docs project memory is active/);
-      assert.match(plain.stdout, /Read first: benjamin-docs\/handoff\/agent-brief\.md/);
+      assert.match(plain.stdout, /Benjamin Docs memory is active/);
+      assert.match(plain.stdout, /Docs root: benjamin-docs\//);
+      assert.match(plain.stdout, /Read first: handoff\/agent-brief\.md/);
       assert.match(plain.stdout, /Drift: \d+ docs are behind watched code changes/);
-      assert.match(plain.stdout, /benjamin-docs ready/);
+      assert.match(plain.stdout, /bd ready/);
       const claudeContext = plain.stdout.trimEnd();
       assert.ok(claudeContext.length <= CONTEXT_BUDGETS.sessionStartCharacters);
       assert.ok(estimatedTokens(claudeContext) <= CONTEXT_BUDGETS.sessionStartEstimatedTokens);
@@ -435,18 +444,36 @@ describe("session commands", () => {
       const plainContext = runCliResult(["session-start"], dir).stdout.trim();
       assert.ok(plainContext.length <= 400);
       assert.ok(Math.ceil(plainContext.length / 4) <= 100);
-      assert.match(plainContext, /^Benjamin Docs project memory is active in this repo \(benjamin-docs\/\)\./);
-      assert.match(plainContext, /Read first: benjamin-docs\/handoff\/agent-brief\.md/);
-      assert.match(plainContext, / Run bd status for details\.$/);
+      assert.match(plainContext, /^Benjamin Docs memory is active\./);
+      assert.match(plainContext, /^Docs root: benjamin-docs\/$/m);
+      assert.match(plainContext, /^Read first: handoff\/agent-brief\.md/m);
+      assert.doesNotMatch(plainContext, / Run bd status for details\.$/);
 
       const cursor = JSON.parse(runCliResult(["session-start", "--format", "cursor"], dir).stdout) as { additional_context: string };
-      assert.match(cursor.additional_context, /project memory is active/);
+      assert.match(cursor.additional_context, /Benjamin Docs memory is active/);
 
       const codex = JSON.parse(runCliResult(["session-start", "--format", "codex"], dir).stdout) as {
         hookSpecificOutput: { hookEventName: string; additionalContext: string };
       };
       assert.equal(codex.hookSpecificOutput.hookEventName, "SessionStart");
-      assert.match(codex.hookSpecificOutput.additionalContext, /project memory is active/);
+      assert.match(codex.hookSpecificOutput.additionalContext, /Benjamin Docs memory is active/);
+    });
+  });
+
+  it("keeps a maximum-length custom docs root and the full overflow suffix within budget", () => {
+    withTempDir((dir) => {
+      const docsRoot = "m".repeat(MAX_DOCS_ROOT_CHARACTERS);
+      setUpCommittedProject(dir, docsRoot, true);
+      commitSourceChange(dir);
+
+      const context = runCliResult(["session-start"], dir).stdout.trim();
+
+      assert.ok(context.length <= CONTEXT_BUDGETS.sessionStartCharacters, `Expected at most 400 characters, got ${context.length}`);
+      assert.ok(estimatedTokens(context) <= CONTEXT_BUDGETS.sessionStartEstimatedTokens);
+      assert.match(context, new RegExp(`^Benjamin Docs memory is active\\.\\nDocs root: ${docsRoot}/$`, "m"));
+      assert.match(context, /^Read first: handoff\/agent-brief\.md, views\/agent-continuation\.md$/m);
+      assert.ok(context.endsWith(" Run bd status for details."));
+      assert.equal(context.split(docsRoot).length - 1, 1);
     });
   });
 

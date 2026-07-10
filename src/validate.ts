@@ -4,6 +4,7 @@ import { ANCHORS_FILE, CONFIG_DIR, CONFIG_FILE, DEFAULT_DOCS_ROOT, KNOWN_FOCUS_T
 import { parseMarkdown } from "./frontmatter.js";
 import { readJson, rootPath } from "./fsx.js";
 import { isSafeDocsRoot, normalizeConfig } from "./project-config.js";
+import { MAX_DOCS_ROOT_CHARACTERS } from "./session-context.js";
 import type { BenjaminDocsConfig, AnchorsFile, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
 
 export interface ValidationResult {
@@ -135,7 +136,9 @@ function validateConfig(config: BenjaminDocsConfig, errors: string[]): void {
   if (config.mode !== "planning" && config.mode !== "codebase") {
     errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: mode must be planning or codebase`);
   }
-  if (!isSafeDocsRoot(config.docsRoot)) {
+  if (typeof config.docsRoot === "string" && config.docsRoot.length > MAX_DOCS_ROOT_CHARACTERS) {
+    errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: docsRoot must be at most ${MAX_DOCS_ROOT_CHARACTERS} characters`);
+  } else if (!isSafeDocsRoot(config.docsRoot)) {
     errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: docsRoot must be a safe relative path`);
   }
   if (!KNOWN_FOCUS_TYPES.includes(config.focus)) {

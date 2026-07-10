@@ -5,7 +5,15 @@ import { detectDrift } from "./drift.js";
 import { getChangedFiles, isReviewableSourceChange } from "./git.js";
 import { rootPath } from "./fsx.js";
 import { getPackageVersion } from "./info.js";
-import { readConfig } from "./project-config.js";
+import { assertSafeDocsRoot, readConfig } from "./project-config.js";
+import {
+  SESSION_START_CLOSEOUT,
+  SESSION_START_DOCS_ROOT_PREFIX,
+  SESSION_START_HEADER,
+  SESSION_START_OVERFLOW_SUFFIX,
+  SESSION_START_READ_FIRST_DOCS,
+  SESSION_START_READ_FIRST_PREFIX,
+} from "./session-context.js";
 import { compareVersions, getCachedUpdateInfo, spawnBackgroundUpdateRefresh } from "./update-check.js";
 import type { BenjaminDocsConfig } from "./types.js";
 import { beginSessionTracking, evaluateSessionStop, type SessionHookInput } from "./session-state.js";
@@ -13,7 +21,6 @@ import { beginSessionTracking, evaluateSessionStop, type SessionHookInput } from
 export type SessionHookFormat = "claude" | "codex" | "cursor";
 
 const DRIFT_LINE_LIMIT = 3;
-const OPTIONAL_CONTEXT_SUFFIX = " Run bd status for details.";
 
 export function getSessionStartContext(root: string, commandPath?: string): string {
   if (!existsSync(rootPath(root, CONFIG_DIR, "config.json"))) return "";
@@ -21,22 +28,23 @@ export function getSessionStartContext(root: string, commandPath?: string): stri
   let config: BenjaminDocsConfig;
   try {
     config = readConfig(root);
+    assertSafeDocsRoot(config.docsRoot);
   } catch {
     return "";
   }
   const docsRoot = config.docsRoot;
 
-  const requiredLines = [`Benjamin Docs project memory is active in this repo (${docsRoot}/).`];
+  const requiredLines = [SESSION_START_HEADER, `${SESSION_START_DOCS_ROOT_PREFIX}${docsRoot}/`];
 
-  const readFirst = [`${docsRoot}/handoff/agent-brief.md`, `${docsRoot}/views/agent-continuation.md`].filter((doc) => {
+  const readFirst = SESSION_START_READ_FIRST_DOCS.filter((doc) => {
     try {
-      return existsSync(rootPath(root, doc));
+      return existsSync(rootPath(root, docsRoot, doc));
     } catch {
       return false;
     }
   });
   if (readFirst.length > 0) {
-    requiredLines.push(`Read first: ${readFirst.join(", ")}`);
+    requiredLines.push(`${SESSION_START_READ_FIRST_PREFIX}${readFirst.join(", ")}`);
   }
 
   const optionalLines: string[] = [];
@@ -63,20 +71,18 @@ export function getSessionStartContext(root: string, commandPath?: string): stri
     );
   }
 
-  const closeoutLine = "Keep project memory updated as durable facts change. Before handoff run: benjamin-docs ready";
-
   spawnBackgroundUpdateRefresh(commandPath, Date.now());
 
-  const fullContext = [...requiredLines, ...optionalLines, closeoutLine].join("\n");
+  const fullContext = [...requiredLines, ...optionalLines, SESSION_START_CLOSEOUT].join("\n");
   if (fullContext.length <= CONTEXT_BUDGETS.sessionStartCharacters) return fullContext;
 
-  const preservedContext = [...requiredLines, closeoutLine].join("\n");
-  if (optionalLines.length === 0 || preservedContext.length >= CONTEXT_BUDGETS.sessionStartCharacters) {
-    return preservedContext;
-  }
+  const preservedContext = [...requiredLines, SESSION_START_CLOSEOUT].join("\n");
+  if (optionalLines.length === 0) return preservedContext;
 
   const optionalBudget = CONTEXT_BUDGETS.sessionStartCharacters - preservedContext.length - 1;
-  const boundedOptionalContext = truncateAtBoundary(optionalLines.join("\n"), optionalBudget, OPTIONAL_CONTEXT_SUFFIX);
+  if (optionalBudget < SESSION_START_OVERFLOW_SUFFIX.length) return "";
+
+  const boundedOptionalContext = truncateAtBoundary(optionalLines.join("\n"), optionalBudget, SESSION_START_OVERFLOW_SUFFIX);
   return `${preservedContext}\n${boundedOptionalContext}`;
 }
 

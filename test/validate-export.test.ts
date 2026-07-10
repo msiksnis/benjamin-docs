@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { MAX_DOCS_ROOT_CHARACTERS } from "../src/session-context.js";
 import { runCli, runCliResult, withTempDir } from "./helpers.js";
 
 function customerFeatureBrief(slug: string, title: string): string {
@@ -98,6 +99,22 @@ describe("validate", () => {
       assert.match(result.stderr, /watch\[0]\.label must be a string/);
       assert.match(result.stderr, /watch\[0]\.paths must be a non-empty array of glob strings/);
       assert.match(result.stderr, /watch\[0] doc must be a safe relative path: \.\.\/outside\.md/);
+    });
+  });
+
+  it("reports a configured docs root that exceeds the session-start budget", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+
+      const configPath = join(dir, ".benjamin-docs/config.json");
+      const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+      config.docsRoot = "m".repeat(MAX_DOCS_ROOT_CHARACTERS + 1);
+      writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+
+      const result = runCliResult(["validate"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, new RegExp(`docsRoot must be at most ${MAX_DOCS_ROOT_CHARACTERS} characters`, "i"));
     });
   });
 

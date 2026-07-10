@@ -111,7 +111,7 @@ describe("mcp server tools", () => {
         task: "project memory implementation decisions current workflow",
       });
       const text = context.content[0]?.text ?? "";
-      assert.match(text, /Benjamin Docs project memory is active/);
+      assert.match(text, /Benjamin Docs memory is active/);
       assert.ok(text.length <= 2400);
       assert.ok(Math.ceil(text.length / 4) <= 600);
 

@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { MAX_DOCS_ROOT_CHARACTERS } from "../src/session-context.js";
 import { withTempDir, runCli, runCliResult } from "./helpers.js";
 
 describe("init", () => {
@@ -48,6 +49,17 @@ describe("init", () => {
       assert.match(output, /Next, ask your agent:/);
       assert.match(output, /Use plain language/);
       assert.match(output, /run `benjamin-docs views`, then `benjamin-docs ready`/);
+    });
+  });
+
+  it("rejects a docs root that cannot fit the session-start context budget", () => {
+    withTempDir((dir) => {
+      const docsRoot = "m".repeat(MAX_DOCS_ROOT_CHARACTERS + 1);
+      const result = runCliResult(["init", "--docs-root", docsRoot, "--no-agent-contract", "--no-hooks"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /docs root must be at most 209 characters/i);
+      assert.equal(existsSync(join(dir, docsRoot)), false);
     });
   });
 

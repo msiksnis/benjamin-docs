@@ -1,6 +1,7 @@
 import { isAbsolute, win32 } from "node:path";
 import { CONFIG_DIR, CONFIG_FILE, DEFAULT_DOCS_ROOT } from "./constants.js";
 import { readGeneratedJson } from "./fsx.js";
+import { MAX_DOCS_ROOT_CHARACTERS } from "./session-context.js";
 import type { BenjaminDocsConfig, FocusType } from "./types.js";
 
 const METADATA_LABEL = "Metadata path";
@@ -33,14 +34,19 @@ export function normalizeConfig(config: BenjaminDocsConfig): BenjaminDocsConfig 
 }
 
 export function assertSafeDocsRoot(docsRoot: string): void {
+  if (docsRoot.length > MAX_DOCS_ROOT_CHARACTERS) {
+    throw new Error(`Invalid docs root: docs root must be at most ${MAX_DOCS_ROOT_CHARACTERS} characters to fit session-start context.`);
+  }
   if (!isSafeDocsRoot(docsRoot)) {
     throw new Error(`Invalid docs root: ${docsRoot}`);
   }
 }
 
-export function isSafeDocsRoot(docsRoot: string): boolean {
+export function isSafeDocsRoot(docsRoot: unknown): docsRoot is string {
   return (
+    typeof docsRoot === "string" &&
     Boolean(docsRoot) &&
+    docsRoot.length <= MAX_DOCS_ROOT_CHARACTERS &&
     !docsRoot.includes("\\") &&
     !isAbsolute(docsRoot) &&
     !win32.isAbsolute(docsRoot) &&
