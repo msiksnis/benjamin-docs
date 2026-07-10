@@ -13,7 +13,7 @@ export interface LastCommitsResult {
 
 export function getChangedFiles(root: string, since: string): ChangedFilesResult {
   try {
-    const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRT", since, "--"], {
+    const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRTD", since, "--"], {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
@@ -35,7 +35,7 @@ export function getChangedFiles(root: string, since: string): ChangedFilesResult
 
 export function getCommittedChanges(root: string, since: string): ChangedFilesResult {
   try {
-    const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRT", since, "HEAD", "--"], {
+    const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRTD", since, "HEAD", "--"], {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
@@ -128,10 +128,11 @@ export function gitCommitCountTouching(root: string, since: string, files: strin
   }
 }
 
+const IGNORED_SOURCE_PREFIXES = [".git/", "node_modules/", "dist/", "coverage/", "exports/"];
+
 export function isReviewableSourceChange(file: string, docsRoot: string): boolean {
   if (file.startsWith(`${docsRoot}/`) || file.startsWith(`${CONFIG_DIR}/`)) return false;
-  if (file.startsWith(".git/")) return false;
-  return /\.(ts|tsx|js|jsx|sql|json|yml|yaml|md|css|html|py|rb|go|rs|java|php)$/i.test(file);
+  return !IGNORED_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix));
 }
 
 export function uniqueStrings(values: string[]): string[] {

@@ -1,11 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { CONTEXT_BUDGETS, estimatedTokens } from "../src/context-budget.js";
 import { getSessionStopNudge } from "../src/session.js";
 import { MAX_DOCS_ROOT_CHARACTERS } from "../src/session-context.js";
+import { beginSessionTracking, evaluateSessionStop } from "../src/session-state.js";
 import { runCliResult, withTempDir } from "./helpers.js";
 
 function git(dir: string, ...args: string[]): void {
@@ -564,6 +565,34 @@ describe("session commands", () => {
       writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
 
       assert.equal(runCodexSessionCommand(dir, "session-stop", payload).trim(), "");
+    });
+  });
+
+  it("diagnoses a source deletion during a session while installed stop output stays silent", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      const payload = codexHookPayload({ session_id: "deletion-session" });
+      const previousHome = process.env.BENJAMIN_DOCS_HOME;
+      process.env.BENJAMIN_DOCS_HOME = join(dir, ".git", "benjamin-docs-test-home");
+      try {
+        const hookInput = {
+          provided: true,
+          sessionId: payload.session_id,
+          turnId: payload.turn_id,
+          stopHookActive: payload.stop_hook_active,
+          lastAssistantMessage: payload.last_assistant_message,
+        };
+        beginSessionTracking(dir, "benjamin-docs", "codex", hookInput);
+        rmSync(join(dir, "src/app.ts"));
+        const diagnostic = evaluateSessionStop(dir, "benjamin-docs", "codex", hookInput);
+
+        assert.deepEqual(diagnostic.sourceChanges, ["src/app.ts"]);
+      } finally {
+        if (previousHome === undefined) delete process.env.BENJAMIN_DOCS_HOME;
+        else process.env.BENJAMIN_DOCS_HOME = previousHome;
+      }
+
+      assert.equal(runCodexSessionCommand(dir, "session-stop", payload), "");
     });
   });
 

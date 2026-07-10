@@ -13,9 +13,13 @@ export interface SessionHookInput {
   lastAssistantMessage?: string;
 }
 
+export type FileFingerprint =
+  | { state: "present"; hash: string; size: number; modifiedMs: number }
+  | { state: "deleted" };
+
 interface WorkingTreeSnapshot {
-  source: Record<string, string>;
-  memory: Record<string, string>;
+  source: Record<string, FileFingerprint>;
+  memory: Record<string, FileFingerprint>;
 }
 
 interface StoredSessionState {
@@ -102,21 +106,26 @@ function captureWorkingTreeSnapshot(root: string, docsRoot: string): WorkingTree
   return snapshot;
 }
 
-function fingerprintFile(root: string, file: string): string | undefined {
+function fingerprintFile(root: string, file: string): FileFingerprint | undefined {
   try {
     const path = rootPath(root, file);
-    if (!existsSync(path)) return undefined;
+    if (!existsSync(path)) return { state: "deleted" };
     const stat = statSync(path);
     if (!stat.isFile()) return undefined;
-    return createHash("sha256").update(String(stat.mode)).update("\0").update(readFileSync(path)).digest("hex");
+    return {
+      state: "present",
+      hash: createHash("sha256").update(String(stat.mode)).update("\0").update(readFileSync(path)).digest("hex"),
+      size: stat.size,
+      modifiedMs: stat.mtimeMs,
+    };
   } catch {
     return undefined;
   }
 }
 
-function changedEntries(previous: Record<string, string>, current: Record<string, string>): string[] {
+function changedEntries(previous: Record<string, FileFingerprint>, current: Record<string, FileFingerprint>): string[] {
   return Object.entries(current)
-    .filter(([file, fingerprint]) => previous[file] !== fingerprint)
+    .filter(([file, fingerprint]) => !fingerprintsEqual(previous[file], fingerprint))
     .map(([file]) => file);
 }
 
@@ -124,10 +133,16 @@ function snapshotsEqual(a: WorkingTreeSnapshot, b: WorkingTreeSnapshot): boolean
   return recordsEqual(a.source, b.source) && recordsEqual(a.memory, b.memory);
 }
 
-function recordsEqual(a: Record<string, string>, b: Record<string, string>): boolean {
+function recordsEqual(a: Record<string, FileFingerprint>, b: Record<string, FileFingerprint>): boolean {
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);
-  return keysA.length === keysB.length && keysA.every((key) => a[key] === b[key]);
+  return keysA.length === keysB.length && keysA.every((key) => fingerprintsEqual(a[key], b[key]));
+}
+
+function fingerprintsEqual(a: FileFingerprint | undefined, b: FileFingerprint | undefined): boolean {
+  if (!a || !b || a.state !== b.state) return a === b;
+  if (a.state === "deleted" || b.state === "deleted") return true;
+  return a.hash === b.hash && a.size === b.size && a.modifiedMs === b.modifiedMs;
 }
 
 function stateWithBaseline(baseline: WorkingTreeSnapshot): StoredSessionState {
@@ -192,12 +207,24 @@ function isStoredSessionState(value: unknown): value is StoredSessionState {
 function isSnapshot(value: unknown): value is WorkingTreeSnapshot {
   if (typeof value !== "object" || value === null) return false;
   const record = value as Record<string, unknown>;
-  return isStringRecord(record.source) && isStringRecord(record.memory);
+  return isFingerprintRecord(record.source) && isFingerprintRecord(record.memory);
 }
 
-function isStringRecord(value: unknown): value is Record<string, string> {
+function isFingerprintRecord(value: unknown): value is Record<string, FileFingerprint> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
-  return Object.values(value as Record<string, unknown>).every((entry) => typeof entry === "string");
+  return Object.values(value as Record<string, unknown>).every(isFileFingerprint);
+}
+
+function isFileFingerprint(value: unknown): value is FileFingerprint {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  const record = value as Record<string, unknown>;
+  if (record.state === "deleted") return true;
+  return (
+    record.state === "present" &&
+    typeof record.hash === "string" &&
+    typeof record.size === "number" &&
+    typeof record.modifiedMs === "number"
+  );
 }
 
 function isAgentConfigPath(file: string): boolean {

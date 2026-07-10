@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { analyzeReadiness, type ReadinessDimensionId } from "../src/readiness.js";
 import { runCliResult, withTempDir } from "./helpers.js";
@@ -12,6 +12,17 @@ const DIMENSION_IDS: ReadinessDimensionId[] = [
   "committed_freshness",
   "working_tree_impact",
   "agent_guidance",
+];
+
+const CROSS_STACK_PATHS = [
+  "Sources/App.swift",
+  "app/src/main/Main.kt",
+  "src/App.cs",
+  "lib/main.dart",
+  "src/App.vue",
+  "src/App.svelte",
+  "scripts/deploy.sh",
+  "config/runtime.toml",
 ];
 
 describe("structured readiness", () => {
@@ -63,6 +74,39 @@ describe("structured readiness", () => {
       assert.equal(content.status, "pass");
       assert.match(workingTree.evidence.join("\n"), /Source files changed|May need update/);
       assert.equal(cli.status, 1);
+    });
+  });
+
+  it("blocks working-tree impact for every repository stack", () => {
+    for (const path of CROSS_STACK_PATHS) {
+      withTempDir((dir) => {
+        setUpCapturedRepository(dir);
+        const fullPath = join(dir, path);
+        mkdirSync(join(fullPath, ".."), { recursive: true });
+        writeFileSync(fullPath, "changed repository behavior\n", "utf8");
+
+        const report = analyzeReadiness({ cwd: dir });
+        const workingTree = dimension(report, "working_tree_impact");
+
+        assert.equal(workingTree.status, "fail", path);
+        assert.match(workingTree.evidence.join("\n"), /Source files changed|May need update/, path);
+      });
+    }
+  });
+
+  it("blocks committed freshness when a watched source file is deleted", () => {
+    withTempDir((dir) => {
+      setUpCapturedRepository(dir);
+      rmSync(join(dir, "src/app.ts"));
+      git(dir, "add", "-A");
+      git(dir, "commit", "-m", "delete source without memory");
+
+      const report = analyzeReadiness({ cwd: dir });
+      const freshness = dimension(report, "committed_freshness");
+
+      assert.equal(report.status, "not_ready");
+      assert.equal(freshness.status, "fail");
+      assert.match(freshness.evidence.join("\n"), /src\/app\.ts|watched file/i);
     });
   });
 

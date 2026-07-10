@@ -3,9 +3,37 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { isReviewableSourceChange } from "../src/git.js";
 import { runCliResult, withTempDir } from "./helpers.js";
 
 describe("review", () => {
+  it("reviews every repository file except generated, dependency, and memory paths", () => {
+    const reviewable = [
+      "Sources/App.swift",
+      "app/src/main/Main.kt",
+      "src/App.cs",
+      "lib/main.dart",
+      "src/App.vue",
+      "src/App.svelte",
+      "scripts/deploy.sh",
+      "config/runtime.toml",
+      "public/hero.webp",
+      "pnpm-lock.yaml",
+    ];
+    const ignored = [
+      ".git/index",
+      "node_modules/package/index.js",
+      "dist/src/app.js",
+      "coverage/index.html",
+      "exports/customer-handoff.md",
+      "benjamin-docs/project/brief.md",
+      ".benjamin-docs/config.json",
+    ];
+
+    for (const file of reviewable) assert.equal(isReviewableSourceChange(file, "benjamin-docs"), true, file);
+    for (const file of ignored) assert.equal(isReviewableSourceChange(file, "benjamin-docs"), false, file);
+  });
+
   it("fails when benjamin-docs is not initialized", () => {
     withTempDir((dir) => {
       const result = runCliResult(["review"], dir);
