@@ -893,7 +893,13 @@ async function runCommandDrawer(cwd: string): Promise<number> {
 }
 
 async function runExportDrawer(cwd: string): Promise<number> {
-  const choices = ["Full app documentation", "Feature documentation", "Customer handoff", "Developer handoff", "Project summary"];
+  const choices = [
+    "Full app documentation (temporarily unavailable)",
+    "Feature documentation",
+    "Customer handoff (temporarily unavailable)",
+    "Developer handoff",
+    "Project summary (temporarily unavailable)",
+  ];
   const selected = await selectChoice("What do you want to export?", choices, {
     allowCancel: true,
     hint: "Use Up/Down, j/k, or type a number. Press Enter to continue. Press q or Esc to cancel.",

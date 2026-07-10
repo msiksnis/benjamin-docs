@@ -3,7 +3,9 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { CONFIG_DIR, KNOWN_AUDIENCES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { assertGeneratedPathSafe, ensureGeneratedDir, lstatIfExists, readGeneratedJson, rootPath, writeGeneratedText } from "./fsx.js";
 import { parseMarkdown, serializeMarkdown } from "./frontmatter.js";
+import { preflightExport, type ExportOperation, type ExportPolicySource } from "./export-policy.js";
 import { readConfig } from "./project-config.js";
+import { analyzeReadiness, type ReadinessReport } from "./readiness.js";
 import { today } from "./templates.js";
 import type { Audience, BenjaminDocsConfig, ManifestFile, ParsedMarkdown, ScopeRecord, ScopesFile } from "./types.js";
 import { validateProject } from "./validate.js";
@@ -74,21 +76,29 @@ const DEFAULT_BLOCKED_PHRASES = [
 
 export function exportAudience(root: string, audience: string): string[] {
   const selectedAudience = parseAudience(audience);
-  assertProjectExportable(root);
-
   const config = readConfig(root);
+  const operation: ExportOperation = { kind: "audience", audience: selectedAudience };
+  const readiness = analyzeReadiness({ cwd: root });
+  const structuralStatus = readiness.dimensions.find((dimension) => dimension.id === "structure")?.status;
+  if (structuralStatus !== "pass") {
+    assertExportPreflight(root, operation, [], config, readiness);
+  }
   const docsRoot = rootPath(root, config.docsRoot);
   const manifest = readGeneratedJson<ManifestFile>(root, `${CONFIG_DIR}/${MANIFEST_FILE}`, "Metadata path");
   const docs = findManagedMarkdownFiles(config.docsRoot, manifest, docsRoot);
+  const selectedDocs = docs
+    .map(({ docPath, relativePath }) => {
+      const content = readFileSync(docPath, "utf8");
+      return { docPath, relativePath, content, parsed: parseMarkdown(content) };
+    })
+    .filter(({ parsed }) => parsed.frontmatter.audience.includes(selectedAudience));
+  assertExportPreflight(root, operation, selectedDocs.map(toPolicySource), config, readiness);
+
   const bundleRelativeRoot = `exports/${selectedAudience}`;
   prepareCleanBundleDirectory(root, selectedAudience);
   const written: string[] = [];
 
-  for (const { docPath, relativePath } of docs) {
-    const content = readFileSync(docPath, "utf8");
-    const parsed = parseMarkdown(content);
-    if (!parsed.frontmatter.audience.includes(selectedAudience)) continue;
-
+  for (const { relativePath, content } of selectedDocs) {
     const targetRelativePath = `${bundleRelativeRoot}/${relativePath}`;
     const targetPath = rootPath(root, ...targetRelativePath.split("/"));
     writeGeneratedText(root, targetRelativePath, content);
@@ -119,8 +129,6 @@ export function exportFeature(root: string, query: string, options: ExportFeatur
   const profile = options.profile ?? "customer";
   const detail = options.detail ?? "standard";
   assertFeatureQuerySafe(query);
-  assertProjectExportable(root);
-
   const match = findFeatureMatch(root, query);
   if (!match.scope) {
     if (match.suggestion) {
@@ -160,9 +168,7 @@ export function exportFeature(root: string, query: string, options: ExportFeatur
   const config = readConfig(root);
   const allSources = readFeatureSourceDocs(root, config.docsRoot, match.scope);
   const sources = profile === "customer" ? allSources.filter((source) => isCustomerFeatureSource(source.relativePath)) : allSources;
-  if (profile === "customer") {
-    assertCustomerFeatureReady(root, match.scope, sources, config);
-  }
+  assertExportPreflight(root, { kind: "feature", profile }, sources.map(toPolicySource), config);
 
   const content =
     profile === "customer"
@@ -180,11 +186,9 @@ export function exportFeature(root: string, query: string, options: ExportFeatur
 export function exportAppDocumentation(root: string, options: ExportDocumentOptions = {}): ExportResult {
   const profile = options.profile ?? "customer";
   const detail = options.detail ?? "standard";
-  assertProjectExportable(root);
-
   const config = readConfig(root);
   const sources = profile === "customer" ? readCustomerProjectSources(root, config) : readDeveloperProjectSources(root, config);
-  if (profile === "customer") assertCustomerDocumentReady(root, "Full app documentation", sources, config);
+  assertExportPreflight(root, { kind: "app", profile }, sources.map(toPolicySource), config);
 
   const content =
     profile === "customer"
@@ -202,11 +206,9 @@ export function exportAppDocumentation(root: string, options: ExportDocumentOpti
 export function exportHandoff(root: string, options: ExportDocumentOptions = {}): ExportResult {
   const profile = options.profile ?? "customer";
   const detail = options.detail ?? "standard";
-  assertProjectExportable(root);
-
   const config = readConfig(root);
   const sources = profile === "customer" ? readCustomerHandoffSources(root, config) : readDeveloperHandoffSources(root, config);
-  if (profile === "customer") assertCustomerDocumentReady(root, "Customer handoff", sources, config);
+  assertExportPreflight(root, { kind: "handoff", profile }, sources.map(toPolicySource), config);
 
   const content =
     profile === "customer"
@@ -224,11 +226,9 @@ export function exportHandoff(root: string, options: ExportDocumentOptions = {})
 export function exportProjectSummary(root: string, options: ExportDocumentOptions = {}): ExportResult {
   const profile = options.profile ?? "customer";
   const detail = options.detail ?? "brief";
-  assertProjectExportable(root);
-
   const config = readConfig(root);
   const sources = profile === "customer" ? readCustomerProjectSources(root, config) : readDeveloperProjectSources(root, config);
-  if (profile === "customer") assertCustomerDocumentReady(root, "Project summary", sources, config);
+  assertExportPreflight(root, { kind: "summary", profile }, sources.map(toPolicySource), config);
 
   const content = renderProjectSummary(root, config, sources, profile, detail);
   const relativePath = `exports/summary/${profile}-project-summary${detailSuffix(detail)}.md`;
@@ -317,6 +317,40 @@ function assertProjectExportable(root: string): void {
   if (validation.errors.length > 0) {
     throw new Error(["Cannot export while validation has errors:", ...validation.errors.map((error) => `- ${error}`)].join("\n"));
   }
+}
+
+function assertExportPreflight(
+  root: string,
+  operation: ExportOperation,
+  sources: ExportPolicySource[],
+  config: BenjaminDocsConfig,
+  readiness: ReadinessReport = analyzeReadiness({ cwd: root }),
+): void {
+  const result = preflightExport({
+    operation,
+    readiness,
+    sources,
+    blockedPhrases: config.export?.blockedPhrases,
+  });
+  if (result.allowed) return;
+
+  throw new Error(
+    [
+      "Export preflight blocked:",
+      ...result.reasons.map((reason) => `- ${reason}`),
+      "",
+      "Required repairs:",
+      ...result.requiredRepairs.map((repair) => `- ${repair}`),
+    ].join("\n"),
+  );
+}
+
+function toPolicySource(source: SourceDoc | { relativePath: string; parsed: ParsedMarkdown }): ExportPolicySource {
+  return {
+    path: source.relativePath,
+    visibility: source.parsed.frontmatter.visibility,
+    content: source.parsed.body,
+  };
 }
 
 function assertVerificationEvidence(evidence: string): void {
@@ -459,25 +493,6 @@ function formatFeatureChoiceLabel(scope: ScopeRecord, readiness: FeatureExportRe
   return `${scope.title} (${scope.id}) - blocked: ${readiness.messages[0] ?? "not export-ready"}`;
 }
 
-function assertCustomerFeatureReady(root: string, scope: ScopeRecord, sources: SourceDoc[], config: BenjaminDocsConfig): void {
-  const messages = customerFeatureReadinessMessages(scope, sources, config);
-  if (messages.length === 0) return;
-
-  throw new Error(
-    [
-      "Feature export readiness: blocked",
-      "",
-      ...messages.map((message) => `- ${message}`),
-      "",
-      "Next prompt:",
-      `  Verify the ${scope.id} feature implementation against its Benjamin Docs.`,
-      "  Check whether the documented behavior, limitations, roles, UI flow, and edge",
-      "  cases match the actual code. If anything is stale or missing, update the docs",
-      "  before export.",
-    ].join("\n"),
-  );
-}
-
 function customerFeatureReadinessMessages(scope: ScopeRecord, sources: SourceDoc[], config: BenjaminDocsConfig): string[] {
   const messages: string[] = [];
   const sourcePaths = new Set(sources.map((source) => source.relativePath));
@@ -502,35 +517,11 @@ function customerFeatureReadinessMessages(scope: ScopeRecord, sources: SourceDoc
   return messages;
 }
 
-function assertCustomerDocumentReady(root: string, label: string, sources: SourceDoc[], config: BenjaminDocsConfig): void {
-  const combined = sources.map((source) => source.parsed.body).join("\n\n");
-  const messages: string[] = [];
-
-  if (sources.length === 0) messages.push("No customer-relevant source docs were found.");
-  for (const leak of findLeakRisks(combined, config)) {
-    messages.push(`Possible customer-facing leak risk: ${leak}.`);
-  }
-
-  if (messages.length === 0) return;
-
-  throw new Error(
-    [
-      `${label} export readiness: blocked`,
-      "",
-      ...messages.map((message) => `- ${message}`),
-      "",
-      "Next prompt:",
-      "  Review the customer-facing Benjamin Docs source files, remove internal-only",
-      "  language, and rerun bd export.",
-    ].join("\n"),
-  );
-}
-
 function renderCustomerFeatureExport(root: string, scope: ScopeRecord, sources: SourceDoc[], detail: ExportDetail): string {
   const combined = sources.map((source) => source.parsed.body).join("\n\n");
   const sections = detailSections(
     [
-      ["What It Is", extractSection(combined, "What It Is") || firstParagraph(combined)],
+      ["What It Is", extractSection(combined, "What It Is")],
       ["When To Use It", extractSection(combined, "When To Use It")],
       ["How To Use It", extractSection(combined, "How To Use It")],
       ["What Happens", extractSection(combined, "What Happens") || extractSection(combined, "Outcome")],
@@ -577,7 +568,7 @@ function renderCustomerAppDocumentation(root: string, config: BenjaminDocsConfig
     [
       ["Overview", extractAnySection(combined, ["Current State", "Overview", "Summary"]) || firstParagraph(combined)],
       ["Core Workflows", featureSummary(root, config, { includeReasons: false })],
-      ["How To Use It", extractAnySection(combined, ["How To Use It", "How To Use", "Common Tasks"]) || "Use the workflows listed below as the starting point for customer onboarding and support."],
+      ["How To Use It", extractAnySection(combined, ["How To Use It", "How To Use", "Common Tasks"])],
       ["Roles And Permissions", extractAnySection(combined, ["Roles And Permissions", "Roles", "Permissions", "Access"])],
       ["Known Limits", extractAnySection(combined, ["Known Limits", "Known Limitations", "Non-Goals", "Open Questions"])],
       ["Support Notes", extractAnySection(combined, ["Support Notes", "Risks / Open Questions", "Next Actions"])],

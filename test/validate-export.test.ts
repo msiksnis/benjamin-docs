@@ -39,6 +39,8 @@ function customerFeatureBrief(slug: string, title: string): string {
     "## Known Limits",
     "",
     "Deletion cannot be undone.",
+    "Historical records may require deactivation instead, and operators should confirm the selected account before continuing.",
+    "The workflow reports blocked deletion clearly so support can explain the next safe action without exposing internal implementation details.",
   ].join("\n");
 }
 
@@ -67,8 +69,127 @@ function customerFeatureHandoff(slug: string, title: string): string {
     "",
     "## Support Notes",
     "",
-    "Contact support if deletion is blocked.",
+    "Contact support if deletion is blocked. Include the owner identifier, the action attempted, and the visible error message.",
+    "Support should confirm whether historical records require preservation before recommending any follow-up action.",
+    "The documented flow and its limits were checked against the implementation used by operators.",
+    "",
+    "## Current Status",
+    "",
+    "The documented owner deletion flow is implemented and ready for verified customer feature export.",
+    "",
+    "## Risks / Open Questions",
+    "",
+    "Retention rules may block deletion when historical records must remain available.",
+    "",
+    "## Next Actions",
+    "",
+    "Recheck the workflow and refresh evidence whenever implementation behavior changes.",
   ].join("\n");
+}
+
+function captureProjectBaseline(dir: string): void {
+  const bodies: Record<string, string> = {
+    "project/brief.md": [
+      "# Project Brief",
+      "",
+      "This project gives operations teams a dependable workspace for managing owners, staff, and daily records. It serves operators who need clear workflows and support staff who need durable context. The current product includes account administration, guarded deletion, historical record preservation, and documented recovery paths. Customer-facing material should explain visible behavior without exposing local paths, secrets, or agent instructions. The project prioritizes safe actions, accurate status, and concise guidance over speculative features.",
+    ].join("\n"),
+    "project/roadmap.md": [
+      "# Roadmap",
+      "",
+      "## Now",
+      "",
+      "The current milestone stabilizes owner administration, deletion safeguards, and customer documentation. Active work keeps implementation evidence aligned with user-visible behavior and verifies that exports contain only intended source material.",
+      "",
+      "## Next",
+      "",
+      "Next steps improve support guidance, exercise edge cases, and keep release notes current after behavior changes.",
+      "",
+      "## Later / Deferred",
+      "",
+      "Hosted publishing, broad customization, and unrelated workflow expansion remain deferred until the core operational path is dependable.",
+    ].join("\n"),
+    "project/open-questions.md": [
+      "# Open Questions",
+      "",
+      "Which historical records should prevent permanent deletion, and which may be detached safely? What evidence should support collect when an operator reports a blocked action? The product owner must confirm retention rules before these decisions change.",
+    ].join("\n"),
+    "handoff/human-brief.md": [
+      "# Human Brief",
+      "",
+      "The application supports day-to-day account administration for operations teams. Owners can be reviewed, deactivated, or deleted when retention rules allow it. The interface explains blocked actions and directs operators toward safe follow-up. Product memory records the current workflows, limits, decisions, and release state so a new collaborator can understand the project without reconstructing earlier conversations. Customer exports must stay concise and exclude internal implementation details.",
+    ].join("\n"),
+    "handoff/agent-brief.md": [
+      "# Agent Brief",
+      "",
+      "## Read First",
+      "",
+      "Read the project brief, roadmap, open questions, feature brief, and feature handoff before changing behavior.",
+      "",
+      "## Current State",
+      "",
+      "Owner administration and guarded deletion are implemented. Product memory describes the visible workflow, retention limits, and support path.",
+      "",
+      "## Commands And Checks",
+      "",
+      "Run benjamin-docs ready and the focused export tests before handoff. Validate implementation evidence before customer export.",
+      "",
+      "## Risks / Hazards",
+      "",
+      "Do not publish private notes, local paths, secrets, or unverified behavior. Preserve historical records when retention rules require them.",
+      "",
+      "## Next Actions",
+      "",
+      "Continue by checking edge cases, updating durable docs after behavior changes, and recording concrete verification evidence.",
+    ].join("\n"),
+    "engineering/architecture.md": [
+      "# Architecture",
+      "",
+      "The command-line application reads managed Markdown from benjamin-docs and deterministic metadata from .benjamin-docs. Export commands select source documents, run a side-effect-free publication preflight, render an eligible snapshot, and write it below exports. Readiness analysis keeps structural validation, content heuristics, committed freshness, working-tree impact, and agent guidance separate. Customer publication requires all blocking readiness dimensions to pass, while developer snapshots require structural validity.",
+    ].join("\n"),
+    "engineering/code-map.md": [
+      "# Code Map",
+      "",
+      "The CLI entry is src/cli.ts. Export orchestration and rendering live in src/export.ts. Publication decisions live in src/export-policy.ts. Structured readiness lives in src/readiness.ts. Markdown parsing lives in src/frontmatter.ts, and generated-path safety lives in src/fsx.ts. Focused export regressions live in test/validate-export.test.ts and pure publication-policy coverage lives in test/export-policy.test.ts for dependable behavior.",
+    ].join("\n"),
+    "features/index.md": "# Features Index\n\nOwner Delete is the active documented feature. Its brief and handoff describe the operator workflow, limits, support guidance, and implementation evidence.\n",
+    "releases/changelog.md": "# Changelog\n\nThe current release includes guarded owner deletion, preservation checks for historical records, operator-facing blocked states, support guidance, and verified customer feature documentation.\n",
+  };
+
+  for (const [relativePath, body] of Object.entries(bodies)) {
+    const path = join(dir, "benjamin-docs", relativePath);
+    const current = readFileSync(path, "utf8");
+    const frontmatter = current.match(/^---\n[\s\S]*?\n---\n/)?.[0];
+    assert.ok(frontmatter, `missing frontmatter in ${relativePath}`);
+    writeFileSync(path, `${frontmatter}\n${body}\n`, "utf8");
+  }
+}
+
+function captureFeaturePlanningDocs(dir: string, slug: string): void {
+  const docs: Record<string, string> = {
+    "plan.md": [
+      `# ${slug} Plan`,
+      "",
+      "## Steps",
+      "",
+      "Confirm the operator workflow and retention rules. Exercise successful deletion and blocked deletion against the implementation. Record visible behavior, known limits, and support guidance in the feature brief and handoff. Run focused export tests and project readiness checks. Review generated customer output for private notes, local paths, secrets, and invented prose before sharing it.",
+    ].join("\n"),
+    "decisions.md": [
+      `# ${slug} Decisions`,
+      "",
+      "## Durable Decisions",
+      "",
+      "Permanent deletion is available only when retention rules allow it. Historical records remain preserved when required. Customer documentation describes the visible workflow and blocked state without exposing implementation details. A customer export requires explicit implementation evidence and publication-safe source documents. Support guidance names the information an operator should provide when asking for help.",
+    ].join("\n"),
+  };
+
+  for (const [name, body] of Object.entries(docs)) {
+    const path = join(dir, "benjamin-docs", "features", slug, name);
+    const current = readFileSync(path, "utf8");
+    const frontmatter = current.match(/^---\n[\s\S]*?\n---\n/)?.[0];
+    assert.ok(frontmatter, `missing frontmatter in ${name}`);
+    writeFileSync(path, `${frontmatter}\n${body}\n`, "utf8");
+  }
 }
 
 describe("validate", () => {
@@ -512,7 +633,9 @@ describe("status and export", () => {
   it("exports concise customer feature documentation", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
+      captureProjectBaseline(dir);
       runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
       writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
       writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
 
@@ -543,7 +666,9 @@ describe("status and export", () => {
   it("regenerates feature exports from current source docs", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
+      captureProjectBaseline(dir);
       runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
       const briefPath = join(dir, "benjamin-docs/features/owner-delete/brief.md");
       writeFileSync(briefPath, customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
       writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
@@ -582,7 +707,7 @@ describe("status and export", () => {
     });
   });
 
-  it("exports app documentation, handoff, summary, and detail variants", () => {
+  it("blocks customer app, handoff, and summary exports before writing", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
       runCli(["scope", "create", "feature", "owner-delete"], dir);
@@ -596,25 +721,31 @@ describe("status and export", () => {
       );
       writeFileSync(join(dir, "benjamin-docs/features/leak-risk/handoff.md"), customerFeatureHandoff("leak-risk", "Leak Risk"), "utf8");
 
-      const app = runCli(["export", "--type", "app", "--profile", "customer"], dir);
-      const handoff = runCli(["export", "--type", "handoff", "--profile", "customer", "--detail", "brief"], dir);
-      const developer = runCli(["export", "--type", "handoff", "--profile", "developer", "--detail", "detailed"], dir);
-      const summary = runCli(["export", "--type", "summary"], dir);
+      const app = runCliResult(["export", "--type", "app", "--profile", "customer"], dir);
+      const handoff = runCliResult(["export", "--type", "handoff", "--profile", "customer", "--detail", "brief"], dir);
+      const summary = runCliResult(["export", "--type", "summary"], dir);
 
-      assert.match(app, /Exported customer app documentation/);
-      assert.match(handoff, /Exported customer handoff/);
-      assert.match(developer, /Exported developer handoff/);
-      assert.match(summary, /Exported customer project summary/);
-      assert.equal(existsSync(join(dir, "exports/app/customer-app-documentation.md")), true);
-      assert.equal(existsSync(join(dir, "exports/handoff/customer-handoff-brief.md")), true);
+      assert.equal(app.status, 1);
+      assert.equal(handoff.status, 1);
+      assert.equal(summary.status, 1);
+      assert.match(app.stderr, /Customer app export is disabled until the publication schema is implemented/);
+      assert.match(handoff.stderr, /Customer handoff export is disabled until the publication schema is implemented/);
+      assert.match(summary.stderr, /Customer summary export is disabled until the publication schema is implemented/);
+      assert.equal(existsSync(join(dir, "exports/app")), false);
+      assert.equal(existsSync(join(dir, "exports/handoff")), false);
+      assert.equal(existsSync(join(dir, "exports/summary")), false);
+    });
+  });
+
+  it("keeps developer handoff exports available after structural validation", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+
+      const result = runCliResult(["export", "--type", "handoff", "--profile", "developer", "--detail", "detailed"], dir);
+
+      assert.equal(result.status, 0);
+      assert.match(result.stdout, /Exported developer handoff/);
       assert.equal(existsSync(join(dir, "exports/handoff/developer-handoff-detailed.md")), true);
-      assert.equal(existsSync(join(dir, "exports/summary/customer-project-summary-brief.md")), true);
-      const appOutput = readFileSync(join(dir, "exports/app/customer-app-documentation.md"), "utf8");
-      assert.match(appOutput, /# App Documentation/);
-      assert.match(appOutput, /## Core Workflows/);
-      assert.match(appOutput, /Owner Delete: ready/);
-      assert.match(appOutput, /Leak Risk: blocked: not export-ready/);
-      assert.doesNotMatch(appOutput, /internal only/);
     });
   });
 
@@ -686,17 +817,42 @@ describe("status and export", () => {
       const result = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
 
       assert.equal(result.status, 1);
-      assert.match(result.stderr, /Feature export readiness: blocked/);
+      assert.match(result.stderr, /Export preflight blocked/);
       assert.match(result.stderr, /Customer-facing feature export should be verified against implementation first/);
-      assert.match(result.stderr, /Verify the owner-delete feature implementation against its Benjamin Docs/);
+      assert.match(result.stderr, /benjamin-docs export --verify <feature> --evidence/);
       assert.equal(existsSync(join(dir, "exports/features/owner-delete-customer.md")), false);
+    });
+  });
+
+  it("blocks absolute paths and untouched starter text before creating customer feature output", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      captureProjectBaseline(dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
+      writeFileSync(
+        join(dir, "benjamin-docs/features/owner-delete/brief.md"),
+        `${customerFeatureBrief("owner-delete", "Owner Delete")}\n\nCapture what this feature is meant to accomplish.\n\nLocal checkout: /Users/alice/project\n`,
+        "utf8",
+      );
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      const result = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /absolute user path/);
+      assert.match(result.stderr, /untouched starter content/);
+      assert.match(result.stderr, /benjamin-docs\/features\/owner-delete\/brief\.md/);
+      assert.equal(existsSync(join(dir, "exports/features")), false);
     });
   });
 
   it("records agent verification evidence before customer feature export", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
+      captureProjectBaseline(dir);
       runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
       writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
       writeFileSync(
         join(dir, "benjamin-docs/features/owner-delete/handoff.md"),
@@ -756,6 +912,23 @@ describe("status and export", () => {
       assert.equal(existsSync(join(dir, "exports/agent/handoff/agent-brief.md")), true);
       assert.equal(existsSync(join(dir, "exports/agent/project/brief.md")), true);
       assert.equal(existsSync(join(dir, "exports/agent/handoff/human-brief.md")), false);
+    });
+  });
+
+  it("blocks public and user audience bundles without creating or cleaning their directories", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      mkdirSync(join(dir, "exports/public"), { recursive: true });
+      writeFileSync(join(dir, "exports/public/existing.md"), "keep me\n", "utf8");
+
+      for (const audience of ["public", "user"]) {
+        const result = runCliResult(["export", "--audience", audience], dir);
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, new RegExp(`${audience} audience export is disabled until the publication schema is implemented`, "i"));
+      }
+
+      assert.equal(readFileSync(join(dir, "exports/public/existing.md"), "utf8"), "keep me\n");
+      assert.equal(existsSync(join(dir, "exports/user")), false);
     });
   });
 
@@ -831,7 +1004,8 @@ describe("status and export", () => {
       const result = runCliResult(["export", "--audience", "agent"], dir);
 
       assert.equal(result.status, 1);
-      assert.match(result.stderr, /Cannot export while validation has errors/);
+      assert.match(result.stderr, /Export preflight blocked/);
+      assert.match(result.stderr, /validation findings/);
       assert.equal(existsSync(join(dir, "exports/agent/project/brief.md")), false);
     });
   });
