@@ -77,6 +77,9 @@ describe("doctor", () => {
       assert.equal(result.status, 1);
       assert.match(result.stdout, /benjamin-docs doctor --strict/);
       assert.match(result.stdout, /Strict\n  - Project is not initialized/);
+      assert.doesNotMatch(result.stdout, /\nSkills\n/);
+      assert.doesNotMatch(result.stdout, /Shared Agent Skills|Claude Code|Codex|Cursor|Claude Desktop|upload zip:/);
+      assert.doesNotMatch(result.stdout, /\nFix\n|\nClaude Desktop fix\n/);
     });
   });
 
@@ -91,6 +94,8 @@ describe("doctor", () => {
       assert.equal(result.status, 0);
       assert.match(result.stdout, /benjamin-docs doctor --strict/);
       assert.doesNotMatch(result.stdout, /Strict\n/);
+      assert.doesNotMatch(result.stdout, /\nSkills\n|Shared Agent Skills|Claude Code|Codex|Cursor|Claude Desktop|upload zip:/);
+      assert.doesNotMatch(result.stdout, /\nFix\n|\nClaude Desktop fix\n/);
     });
   });
 
@@ -101,9 +106,14 @@ describe("doctor", () => {
       const result = runCliResult(["doctor", "--strict", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
 
       assert.equal(result.status, 1);
-      assert.match(result.stdout, /Codex/);
+      assert.match(result.stdout, /\nCodex\n/);
+      assert.match(result.stdout, /skill: missing/);
+      assert.match(result.stdout, /session hook: not installed/);
       assert.match(result.stdout, /Strict\n  - Codex skill is missing/);
-      assert.doesNotMatch(result.stdout, /Claude Desktop upload zip/);
+      assert.match(result.stdout, /install-skill --target codex/);
+      assert.match(result.stdout, /hooks install --target codex/);
+      assert.doesNotMatch(result.stdout, /\nSkills\n|Shared Agent Skills|Claude Code|Cursor|Claude Desktop|upload zip:/);
+      assert.doesNotMatch(result.stdout, /\nFix\n|\nClaude Desktop fix\n|package-skill/);
     });
   });
 
@@ -114,8 +124,12 @@ describe("doctor", () => {
       const result = runCliResult(["doctor", "--strict", "--target", "claude-desktop"], dir, { BENJAMIN_DOCS_HOME: dir });
 
       assert.equal(result.status, 1);
+      assert.match(result.stdout, /\nClaude Desktop\n/);
+      assert.match(result.stdout, /upload zip: missing/);
       assert.match(result.stdout, /Strict\n  - Claude Desktop upload zip is missing/);
-      assert.doesNotMatch(result.stdout, /Strict\n  - .*install-skill/);
+      assert.match(result.stdout, /package-skill/);
+      assert.doesNotMatch(result.stdout, /\nSkills\n|Shared Agent Skills|Claude Code|Codex|Cursor/);
+      assert.doesNotMatch(result.stdout, /\nFix\n|\nClaude Desktop fix\n|install-skill/);
     });
   });
 
@@ -128,7 +142,11 @@ describe("doctor", () => {
       const result = runCliResult(["doctor", "--strict", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
 
       assert.equal(result.status, 0, result.stdout);
+      assert.match(result.stdout, /\nCodex\n/);
+      assert.match(result.stdout, /skill: ok/);
+      assert.match(result.stdout, /session hook: installed/);
       assert.doesNotMatch(result.stdout, /Strict\n/);
+      assert.doesNotMatch(result.stdout, /\nSkills\n|Shared Agent Skills|Claude Code|Cursor|Claude Desktop|upload zip:/);
     });
   });
 
@@ -140,7 +158,10 @@ describe("doctor", () => {
       const result = runCliResult(["doctor", "--strict", "--target", "claude-desktop"], dir, { BENJAMIN_DOCS_HOME: dir });
 
       assert.equal(result.status, 0, result.stdout);
+      assert.match(result.stdout, /\nClaude Desktop\n/);
+      assert.match(result.stdout, /upload zip: ok/);
       assert.doesNotMatch(result.stdout, /Strict\n/);
+      assert.doesNotMatch(result.stdout, /\nSkills\n|Shared Agent Skills|Claude Code|Codex|Cursor/);
     });
   });
 

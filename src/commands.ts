@@ -25,7 +25,11 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs mcp status", args: ["mcp", "status"], description: "Show which MCP client registrations are installed." },
   { command: "benjamin-docs session-start", args: ["session-start"], description: "Print compact session-start context. Used by installed agent hooks." },
   { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
-  { command: "benjamin-docs doctor --strict", args: ["doctor", "--strict"], description: "Run setup checks as a strict gate." },
+  {
+    command: "benjamin-docs doctor [--strict] [--target shared|claude-code|codex|cursor|claude-desktop]",
+    args: ["doctor", "--strict"],
+    description: "Gate repository health, optionally for one integration target.",
+  },
   { command: "benjamin-docs views", args: ["views"], description: "Generate local Memory Views from managed docs." },
   { command: "benjamin-docs export --verify <slug>", args: ["export", "--verify", "<slug>", "--evidence", "<evidence>"], description: "Record agent implementation verification before customer export." },
   { command: "benjamin-docs scope create feature <slug>", args: ["scope", "create", "feature", "<slug>"], description: "Create feature docs and metadata." },

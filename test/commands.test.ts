@@ -17,7 +17,7 @@ describe("commands", () => {
       assert.match(output, /benjamin-docs validate/);
       assert.match(output, /benjamin-docs review/);
       assert.match(output, /benjamin-docs review --changed/);
-      assert.match(output, /benjamin-docs doctor/);
+      assert.match(output, /benjamin-docs doctor \[--strict\] \[--target shared\|claude-code\|codex\|cursor\|claude-desktop\]/);
       assert.match(output, /benjamin-docs views/);
       assert.match(output, /benjamin-docs export --verify <slug>/);
       assert.match(output, /benjamin-docs anchor list/);
@@ -52,6 +52,8 @@ describe("commands", () => {
     assert.deepEqual(commands[13]?.args, ["mcp", "install"]);
     assert.deepEqual(commands[14]?.args, ["mcp", "status"]);
     assert.deepEqual(commands[15]?.args, ["session-start"]);
+    assert.equal(commands[17]?.command, "benjamin-docs doctor [--strict] [--target shared|claude-code|codex|cursor|claude-desktop]");
+    assert.deepEqual(commands[17]?.args, ["doctor", "--strict"]);
     assert.deepEqual(commands[18]?.args, ["views"]);
     assert.deepEqual(commands[19]?.args, ["export", "--verify", "<slug>", "--evidence", "<evidence>"]);
     assert.deepEqual(commands[20]?.args, ["scope", "create", "feature", "<slug>"]);

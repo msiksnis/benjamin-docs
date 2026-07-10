@@ -42,12 +42,14 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
     "CLI",
     `  version: ${getPackageVersion()}`,
     `  command: ${commandPath}`,
-    "",
-    "Skills",
   ];
 
-  for (const target of skills.targets) {
-    lines.push(`  ${target.status.padEnd(7)} ${target.label.padEnd(19)} ${formatHomePath(skills.homeDir, target.path)}`);
+  if (!options.strict) {
+    lines.push("");
+    lines.push("Skills");
+    for (const target of skills.targets) {
+      lines.push(`  ${target.status.padEnd(7)} ${target.label.padEnd(19)} ${formatHomePath(skills.homeDir, target.path)}`);
+    }
   }
 
   lines.push("");
@@ -72,27 +74,50 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
     for (const warning of project.warnings) lines.push(`  - ${warning}`);
   }
 
+  if (options.strict && options.target === "claude-desktop") {
+    lines.push("");
+    lines.push("Claude Desktop");
+    lines.push(`  upload zip: ${hasSkillZip ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath)}`);
+  }
+
+  if (options.strict && options.target && options.target !== "claude-desktop") {
+    const skillTargetId = options.target === "shared" ? "agents" : options.target;
+    const skill = skills.targets.find((candidate) => candidate.id === skillTargetId);
+    if (skill) {
+      lines.push("");
+      lines.push(skill.label);
+      lines.push(`  skill: ${skill.status} ${formatHomePath(skills.homeDir, skill.path)}`);
+    }
+
+    if (options.target !== "shared") {
+      const hook = checkHooks(cwd, [options.target]).targets[0];
+      if (hook) lines.push(`  session hook: ${hook.status} ${hook.path}`);
+    }
+  }
+
   if (strictErrors.length > 0) {
     lines.push("");
     lines.push("Strict");
     for (const error of strictErrors) lines.push(`  - ${error}`);
   }
 
-  lines.push("");
-  lines.push("Claude Desktop");
-  lines.push(`  upload folder: ${formatHomePath(skills.homeDir, join(skills.homeDir, ".claude", "skills", SKILL_NAME))}`);
-  lines.push(`  upload zip: ${hasSkillZip ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath)}`);
-
-  if (skills.targets.some((target) => target.status !== "ok")) {
+  if (!options.strict) {
     lines.push("");
-    lines.push("Fix");
-    lines.push("  benjamin-docs install-skill");
-  }
+    lines.push("Claude Desktop");
+    lines.push(`  upload folder: ${formatHomePath(skills.homeDir, join(skills.homeDir, ".claude", "skills", SKILL_NAME))}`);
+    lines.push(`  upload zip: ${hasSkillZip ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath)}`);
 
-  if (!hasSkillZip) {
-    lines.push("");
-    lines.push("Claude Desktop fix");
-    lines.push("  benjamin-docs package-skill");
+    if (skills.targets.some((target) => target.status !== "ok")) {
+      lines.push("");
+      lines.push("Fix");
+      lines.push("  benjamin-docs install-skill");
+    }
+
+    if (!hasSkillZip) {
+      lines.push("");
+      lines.push("Claude Desktop fix");
+      lines.push("  benjamin-docs package-skill");
+    }
   }
 
   return {
