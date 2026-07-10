@@ -185,18 +185,7 @@ function removeSharedSchemaHooks(content: JsonObject): boolean {
   let changed = false;
 
   for (const event of Object.keys(hookMap)) {
-    const groups = hookMap[event];
-    if (!Array.isArray(groups)) continue;
-
-    const kept = groups.filter((group) => !sharedSchemaGroupHasMarker(group));
-    if (kept.length !== groups.length) {
-      changed = true;
-      if (kept.length === 0) {
-        delete hookMap[event];
-      } else {
-        hookMap[event] = kept;
-      }
-    }
+    changed = removeBenjaminEntriesFromEvent(hookMap, event, "session-") || changed;
   }
 
   if (changed && Object.keys(hookMap).length === 0) {

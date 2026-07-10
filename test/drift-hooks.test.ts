@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { CONTEXT_BUDGETS, estimatedTokens } from "../src/context-budget.js";
+import { getSessionStopNudge } from "../src/session.js";
 import { runCliResult, withTempDir } from "./helpers.js";
 
 function git(dir: string, ...args: string[]): void {
@@ -148,6 +149,28 @@ describe("drift", () => {
     });
   });
 
+  it("keeps commit counts specific to each document's last update", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      commitSourceChange(dir);
+      writeFileSync(
+        join(dir, "benjamin-docs/engineering/code-map.md"),
+        `${readFileSync(join(dir, "benjamin-docs/engineering/code-map.md"), "utf8")}\nre-verified after first source change\n`,
+      );
+      git(dir, "add", "-A");
+      git(dir, "commit", "-m", "update code map between source changes");
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 1;\nexport const b = 2;\nexport const c = 3;\n");
+      git(dir, "add", "-A");
+      git(dir, "commit", "-m", "second code change without doc update");
+
+      const result = runCliResult(["drift", "--json"], dir);
+      const parsed = JSON.parse(result.stdout) as { drifted: Array<{ doc: string; commitsBehind?: number }> };
+
+      assert.equal(parsed.drifted.find((entry) => entry.doc === "benjamin-docs/engineering/code-map.md")?.commitsBehind, 1);
+      assert.equal(parsed.drifted.find((entry) => entry.doc === "benjamin-docs/engineering/architecture.md")?.commitsBehind, 2);
+    });
+  });
+
   it("shows an advisory drift section in ready output", () => {
     withTempDir((dir) => {
       setUpCommittedProject(dir);
@@ -260,6 +283,60 @@ describe("hooks", () => {
     });
   });
 
+  it("removes only Benjamin commands when directly uninstalling mixed shared-schema groups", () => {
+    withTempDir((dir) => {
+      mkdirSync(join(dir, ".claude"), { recursive: true });
+      const mixedSettings = {
+        permissions: { allow: ["Bash(git status:*)"] },
+        hooks: {
+          SessionStart: [
+            {
+              matcher: "startup|resume|clear",
+              customField: "keep-start-group",
+              hooks: [
+                { type: "command", command: "echo user-start", timeout: 5 },
+                { type: "command", command: "benjamin-docs session-start --format claude" },
+              ],
+            },
+          ],
+          Stop: [
+            {
+              customField: "keep-stop-group",
+              hooks: [
+                { type: "command", command: "echo user-stop" },
+                { type: "command", command: "benjamin-docs session-stop --format claude" },
+              ],
+            },
+          ],
+        },
+      };
+      writeFileSync(join(dir, ".claude/settings.json"), JSON.stringify(mixedSettings, null, 2));
+
+      const uninstall = runCliResult(["hooks", "uninstall", "--target", "claude-code"], dir);
+      const afterUninstall = JSON.parse(readFileSync(join(dir, ".claude/settings.json"), "utf8")) as typeof mixedSettings;
+
+      assert.equal(uninstall.status, 0);
+      assert.deepEqual(afterUninstall, {
+        permissions: { allow: ["Bash(git status:*)"] },
+        hooks: {
+          SessionStart: [
+            {
+              matcher: "startup|resume|clear",
+              customField: "keep-start-group",
+              hooks: [{ type: "command", command: "echo user-start", timeout: 5 }],
+            },
+          ],
+          Stop: [
+            {
+              customField: "keep-stop-group",
+              hooks: [{ type: "command", command: "echo user-stop" }],
+            },
+          ],
+        },
+      });
+    });
+  });
+
   it("preserves unparseable hook files and reports them as skipped", () => {
     withTempDir((dir) => {
       mkdirSync(join(dir, ".claude"), { recursive: true });
@@ -328,6 +405,30 @@ describe("session commands", () => {
 
       assert.equal(runCliResult(["session-stop", "--format", "claude"], dir).stdout, "");
       assert.equal(runCliResult(["session-stop", "--format", "cursor"], dir).stdout, "");
+    });
+  });
+
+  it("keeps the source-change nudge available as an explicit diagnostic", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+
+      const nudge = getSessionStopNudge(dir);
+
+      assert.match(nudge, /Source files changed \(1\)/);
+      assert.match(nudge, /no Benjamin Docs project memory was updated/);
+      assert.match(nudge, /complete answer to the user's original request/);
+    });
+  });
+
+  it("keeps the explicit diagnostic quiet when memory changed with source work", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+      const agentBrief = join(dir, "benjamin-docs/handoff/agent-brief.md");
+      writeFileSync(agentBrief, `${readFileSync(agentBrief, "utf8")}\nUpdated for this source change.\n`);
+
+      assert.equal(getSessionStopNudge(dir), "");
     });
   });
 

@@ -1,7 +1,17 @@
 import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { CONFIG_DIR } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
-import { getChangedFiles, getCommittedChanges, getUntrackedFiles, gitCommitCountTouching, gitLastCommit, isReviewableSourceChange, uniqueStrings } from "./git.js";
+import {
+  getChangedFiles,
+  getCommittedChanges,
+  getUntrackedFiles,
+  gitCommitCountTouching,
+  gitLastCommit,
+  gitLastCommits,
+  isReviewableSourceChange,
+  uniqueStrings,
+  type ChangedFilesResult,
+} from "./git.js";
 import { rootPath } from "./fsx.js";
 import { readConfig } from "./project-config.js";
 import type { WatchRule } from "./types.js";
@@ -52,6 +62,7 @@ export function detectDrift(root: string): DriftResult {
   const rulesByDoc = groupRulesByDoc(rules);
   const drifted: DriftedDoc[] = [];
   const skipped: SkippedDoc[] = [];
+  const candidates: Array<{ doc: string; docRules: WatchRule[] }> = [];
   let docsChecked = 0;
 
   for (const [doc, docRules] of rulesByDoc) {
@@ -80,7 +91,18 @@ export function detectDrift(root: string): DriftResult {
       continue;
     }
 
-    const lastCommit = gitLastCommit(root, doc);
+    candidates.push({ doc, docRules });
+  }
+
+  const batchedLastCommits = gitLastCommits(
+    root,
+    candidates.map((candidate) => candidate.doc),
+  );
+  const committedChangesByRef = new Map<string, ChangedFilesResult>();
+  const commitCountsByQuery = new Map<string, number | undefined>();
+
+  for (const { doc, docRules } of candidates) {
+    const lastCommit = batchedLastCommits.ok ? batchedLastCommits.commits.get(doc) : gitLastCommit(root, doc);
     if (!lastCommit) {
       skipped.push({ doc, reason: "doc has no git history yet" });
       continue;
@@ -88,7 +110,11 @@ export function detectDrift(root: string): DriftResult {
 
     docsChecked += 1;
 
-    const changedSinceDoc = getCommittedChanges(root, lastCommit);
+    let changedSinceDoc = committedChangesByRef.get(lastCommit);
+    if (!changedSinceDoc) {
+      changedSinceDoc = getCommittedChanges(root, lastCommit);
+      committedChangesByRef.set(lastCommit, changedSinceDoc);
+    }
     if (!changedSinceDoc.ok) continue;
 
     const watchedChanges = uniqueStrings(
@@ -104,12 +130,20 @@ export function detectDrift(root: string): DriftResult {
         .filter((rule) => watchedChanges.some((file) => matchesAnyGlob(rule.paths, file)))
         .map((rule) => rule.label ?? "watched files"),
     );
+    const commitCountKey = [lastCommit, ...watchedChanges].join("\0");
+    let commitsBehind: number | undefined;
+    if (commitCountsByQuery.has(commitCountKey)) {
+      commitsBehind = commitCountsByQuery.get(commitCountKey);
+    } else {
+      commitsBehind = gitCommitCountTouching(root, lastCommit, watchedChanges);
+      commitCountsByQuery.set(commitCountKey, commitsBehind);
+    }
 
     drifted.push({
       doc,
       areas,
       changedFiles: watchedChanges,
-      commitsBehind: gitCommitCountTouching(root, lastCommit, watchedChanges),
+      commitsBehind,
     });
   }
 

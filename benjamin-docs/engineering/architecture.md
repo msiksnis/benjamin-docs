@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: session-capture
 ---
 
@@ -47,8 +47,8 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Metadata and path-safety helpers live in `src/fsx.ts`, `src/project-config.ts`, and `src/types.ts`.
 - Validation lives in `src/validate.ts`.
 - Docs quality and changed-work freshness review live in `src/review.ts`.
-- Shared git history helpers live in `src/git.ts`; committed-history drift detection lives in `src/drift.ts`.
-- Agent session hook installation lives in `src/hooks.ts`; session-start context and stop-nudge wording live in `src/session.ts`; local per-session dirty-tree baselines live in `src/session-state.ts`.
+- Shared git history helpers live in `src/git.ts`; committed-history drift detection lives in `src/drift.ts`. Session-start drift reads last-doc commits in one batched Git query and caches identical diff/count queries so the hook stays within its latency budget without changing per-doc drift semantics.
+- Agent session hook installation lives in `src/hooks.ts`; bounded session-start context, the silent legacy stop adapter, and explicit stop-diagnostic wording live in `src/session.ts`; local per-session dirty-tree baselines live in `src/session-state.ts`.
 - MCP memory tools live in `src/memory-tools.ts` (logic) and `src/mcp-server.ts` (stdio protocol); client registration lives in `src/mcp-install.ts`.
 - Watch-rule globs and stack-agnostic changed-file mapping live in `src/watch.ts`.
 - Memory Views rendering and lifecycle filtering live in `src/views.ts`.
@@ -76,9 +76,9 @@ Plain `bd review` (and therefore `bd ready`) also runs deterministic staleness c
 
 Since 0.10.0, `bd drift` covers the committed-history half of freshness: for every doc referenced by a watch rule, it diffs the commits since the doc last changed and flags docs whose watched code moved on without them. Drift is deliberately advisory (a non-blocking section in `ready`, `--strict` for CI) because the broad default watch rules would make a blocking check flap on every code commit. `review --changed` owns working-tree hygiene; `drift` owns cross-session rot.
 
-Also since 0.10.0, the update loop no longer depends on the human prompting it. `bd hooks install` writes Benjamin-owned entries into Claude Code, Codex, and Cursor project hook files; sessions then start with `bd session-start` context (memory location, read-first docs, drift summary) and end with a `bd session-stop` nudge when source changed without a memory update. Hook files are user-owned: the CLI merges conservatively, marks its entries by the `benjamin-docs session-` command string, preserves unparseable files untouched, and uninstall removes only marked entries. Hooks are installed only with consent (interactive `init` prompt, `init --hooks`, or explicit `hooks install`).
+Version 0.10.0 introduced consent-based hooks for Claude Code, Codex, and Cursor. The 0.12.0 trust-foundation behavior installs only `bd session-start`, which injects bounded context containing the memory location, read-first docs, and drift summary. Existing `bd session-stop` commands remain accepted but produce no output, so they cannot block completion or auto-submit follow-up work. Hook files are user-owned: install migrates only legacy Benjamin stop entries, uninstall removes only marked Benjamin commands even inside mixed groups, and every user command, custom field, and unparseable file is preserved. Hooks are installed only with consent (interactive `init` prompt, `init --hooks`, or explicit `hooks install`).
 
-The 0.11.1 hotfix makes stop decisions turn-safe. Session start fingerprints existing dirty source and memory content into a local cache keyed by repository, tool format, and session identity. Stop compares against that baseline, so old dirty files are ignored, further edits to those files remain detectable, and missing state fails open. A pending nudge is acknowledged once and becomes the next baseline. The continuation prompt keeps the user's request primary and forbids returning only hook bookkeeping.
+The 0.11.1 session-state and nudge logic remains available for a future explicit diagnostic path, including content fingerprints and fail-open recovery. Installed hooks no longer invoke that logic at stop. Final-answer policy now lives in generated root agent guidance: finish BD maintenance before answering, never let bookkeeping replace or materially change the answer, and mention a durable update only through an optional one-sentence note.
 
 All of this stays warning-only inside `review`, but `ready` fails on review warnings, so the gate enforces freshness. This is intentionally heuristic, not an AI reviewer. The product rule is unchanged: agents should either update Benjamin Docs or explicitly state why a change has no durable project-memory impact.
 

@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-10
 source: session-capture
 ---
 
@@ -33,11 +33,11 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 - `src/validate.ts` validates config (including `watch` rules), manifest, scopes, anchors, managed Markdown, links, and symlink/root safety.
 - `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, empty open-question docs, weak continuation proof, freshness blind spots for status-bearing docs, git churn since engineering docs last changed, missing inline-code path references, stale Memory Views, and changed source work that likely needs project-memory updates. Archived and stale docs are skipped for quality checks and changed-work watch warnings.
-- `src/git.ts` holds shared git helpers (`getChangedFiles`, `getCommittedChanges`, `gitLastCommit`, `gitCommitCountTouching`, `isReviewableSourceChange`) used by review, drift, and session commands.
-- `src/drift.ts` implements `bd drift`: per-doc committed-history comparison against watch rules, with advisory formatting, `--json`, and `--strict` handled in the CLI. Skips archived/stale docs, uncommitted-doc updates, and never-committed docs.
-- `src/session.ts` implements `bd session-start` context, typed hook-payload parsing, per-tool output, and the answer-preserving stop-nudge contract.
+- `src/git.ts` holds shared git helpers (`getChangedFiles`, `getCommittedChanges`, scalar and batched last-commit lookup, `gitCommitCountTouching`, `isReviewableSourceChange`) used by review, drift, and session commands.
+- `src/drift.ts` implements `bd drift`: per-doc committed-history comparison against watch rules, with advisory formatting, `--json`, and `--strict` handled in the CLI. It skips archived/stale docs, uncommitted-doc updates, and never-committed docs. Last-doc commits are fetched in one Git process; identical committed-change and commit-count queries are cached while retaining each doc's own last-update boundary.
+- `src/session.ts` implements budgeted `bd session-start` context, typed hook-payload parsing, per-tool output, the always-silent legacy `formatSessionStop()` adapter, and `getSessionStopNudge()` for an explicit diagnostic path.
 - `src/session-state.ts` owns local per-session working-tree fingerprints, new-content comparison, pending-nudge acknowledgement, fail-open recovery, and seven-day state pruning.
-- `src/hooks.ts` installs/reports/uninstalls agent session hooks in the target project's Claude Code settings file plus the Codex and Cursor `hooks.json` files (under the project's `.claude`, `.codex`, and `.cursor` folders). Ownership marker: hook command contains `benjamin-docs session-`. Preserves all user content; unparseable files are skipped, never rewritten.
+- `src/hooks.ts` installs/reports/uninstalls session-start-only hooks in the target project's Claude Code settings file plus the Codex and Cursor `hooks.json` files (under the project's `.claude`, `.codex`, and `.cursor` folders). Ownership marker: hook command contains `benjamin-docs session-`. Install removes legacy Benjamin stop entries, and uninstall removes only Benjamin commands inside mixed groups while retaining user hooks and custom fields; unparseable files are skipped, never rewritten.
 - `src/memory-tools.ts` holds protocol-free MCP tool logic: manifest-scoped doc access, section search with term scoring, transactional updates (validate then roll back on regression), decision appends, and status with drift.
 - `src/mcp-server.ts` wires those tools into an `McpServer` over `StdioServerTransport` with zod input schemas; `bd mcp` serves until stdin closes. Tool failures return readable text with `isError` instead of protocol faults.
 - `src/mcp-install.ts` registers/reports/removes the `benjamin-docs` MCP server entry in the project's Claude Code, Cursor, and Codex client configs (JSON key ownership; marker-comment block in Codex TOML).
@@ -76,6 +76,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `test/views.test.ts` covers view generation, stable rewrites, archived-scope exclusion, and per-doc section grouping.
 - `test/scopes-anchors.test.ts` covers feature-scope watch registration, `scope status` cascade, and rejection of unknown scopes and statuses.
 - `test/ready.test.ts` covers the combined handoff gate, including failure when status docs have no freshness coverage and non-failing surfacing of recorded environment/tooling blockers.
+- `test/drift-hooks.test.ts` covers committed-history drift semantics, session-start-only install/migration/uninstall behavior, silent stop compatibility, and the explicit stop diagnostic. `test/context-budget.test.ts` locks public context limits; `scripts/benchmark-agent-overhead.mjs` asserts session-boundary p95 and output budgets.
 - `test/fsx.test.ts` and `test/frontmatter.test.ts` cover low-level path and Markdown parsing behavior.
 
 ## Change Guide

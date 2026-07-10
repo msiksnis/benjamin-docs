@@ -6,6 +6,11 @@ export interface ChangedFilesResult {
   ok: boolean;
 }
 
+export interface LastCommitsResult {
+  commits: Map<string, string>;
+  ok: boolean;
+}
+
 export function getChangedFiles(root: string, since: string): ChangedFilesResult {
   try {
     const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRT", since, "--"], {
@@ -67,6 +72,36 @@ export function gitLastCommit(root: string, file: string): string | undefined {
     return output || undefined;
   } catch {
     return undefined;
+  }
+}
+
+export function gitLastCommits(root: string, files: string[]): LastCommitsResult {
+  if (files.length === 0) return { commits: new Map(), ok: true };
+
+  try {
+    const marker = "__BENJAMIN_DOCS_COMMIT__";
+    const requested = new Set(files);
+    const output = execFileSync("git", ["log", `--format=${marker}%H`, "--name-only", "--diff-filter=ACMRT", "--", ...files], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: 10 * 1024 * 1024,
+    });
+    const commits = new Map<string, string>();
+    let currentCommit: string | undefined;
+
+    for (const line of output.split(/\r?\n/)) {
+      if (line.startsWith(marker)) {
+        currentCommit = line.slice(marker.length);
+        continue;
+      }
+      if (!currentCommit || !requested.has(line) || commits.has(line)) continue;
+      commits.set(line, currentCommit);
+    }
+
+    return { commits, ok: true };
+  } catch {
+    return { commits: new Map(), ok: false };
   }
 }
 
