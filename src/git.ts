@@ -99,6 +99,12 @@ export function gitLastCommits(root: string, files: string[]): LastCommitsResult
       commits.set(line, currentCommit);
     }
 
+    for (const file of requested) {
+      if (commits.has(file)) continue;
+      const commit = gitLastCommit(root, file);
+      if (commit) commits.set(file, commit);
+    }
+
     return { commits, ok: true };
   } catch {
     return { commits: new Map(), ok: false };

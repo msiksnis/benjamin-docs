@@ -171,6 +171,51 @@ describe("drift", () => {
     });
   });
 
+  it("tracks non-ASCII watched docs through batched last-commit lookup", () => {
+    withTempDir((dir) => {
+      setUpCommittedProject(dir);
+      const watchedDoc = "benjamin-docs/engineering/überblick.md";
+      writeFileSync(
+        join(dir, watchedDoc),
+        [
+          "---",
+          "title: Überblick",
+          "scope: project",
+          "scope_id: project",
+          "audience: [developer, agent]",
+          "status: review",
+          "visibility: private",
+          "updated: 2026-07-10",
+          "source: codebase-scan",
+          "---",
+          "",
+          "# Überblick",
+          "",
+          "Tracks source changes.",
+          "",
+        ].join("\n"),
+      );
+      const configPath = join(dir, ".benjamin-docs/config.json");
+      const config = JSON.parse(readFileSync(configPath, "utf8")) as {
+        watch: Array<{ label: string; paths: string[]; docs: string[] }>;
+      };
+      config.watch.push({ label: "non-ASCII doc", paths: ["src/**"], docs: [watchedDoc] });
+      writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
+      git(dir, "add", "-A");
+      git(dir, "commit", "-m", "add non-ASCII watched doc");
+
+      writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
+      git(dir, "add", "-A");
+      git(dir, "commit", "-m", "change source after non-ASCII doc");
+
+      const result = runCliResult(["drift", "--json"], dir);
+      const parsed = JSON.parse(result.stdout) as { drifted: Array<{ doc: string; changedFiles: string[] }> };
+      const entry = parsed.drifted.find((candidate) => candidate.doc === watchedDoc);
+
+      assert.deepEqual(entry?.changedFiles, ["src/app.ts"]);
+    });
+  });
+
   it("shows an advisory drift section in ready output", () => {
     withTempDir((dir) => {
       setUpCommittedProject(dir);
