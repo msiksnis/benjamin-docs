@@ -3,7 +3,7 @@ import { dirname, isAbsolute, join, normalize, relative, resolve, sep, win32 } f
 import { ANCHORS_FILE, CONFIG_DIR, CONFIG_FILE, DEFAULT_DOCS_ROOT, KNOWN_FOCUS_TYPES, KNOWN_SCOPES, KNOWN_STATUSES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
 import { readJson, rootPath } from "./fsx.js";
-import { isSafeDocsRoot, normalizeConfig } from "./project-config.js";
+import { isSafeDocsRoot, isSafeRelativePath, normalizeConfig } from "./project-config.js";
 import { MAX_DOCS_ROOT_CHARACTERS } from "./session-context.js";
 import type { BenjaminDocsConfig, AnchorsFile, ManifestFile, ScopeRecord, ScopesFile } from "./types.js";
 
@@ -188,7 +188,7 @@ function validateWatchRules(watch: unknown, errors: string[]): void {
     }
 
     for (const doc of rule.docs) {
-      if (!isSafeDocsRoot(doc)) {
+      if (!isSafeRelativePath(doc)) {
         errors.push(`${CONFIG_DIR}/${CONFIG_FILE}: watch[${index}] doc must be a safe relative path: ${doc}`);
       }
     }

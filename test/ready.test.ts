@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { MAX_DOCS_ROOT_CHARACTERS } from "../src/session-context.js";
 import { runCliResult, withTempDir } from "./helpers.js";
 
 describe("ready", () => {
@@ -51,6 +52,27 @@ describe("ready", () => {
       assert.match(result.stdout, /ok\s+doctor --strict/);
       assert.match(result.stdout, /ok\s+agent guidance - /);
       assert.match(result.stdout, /Project memory is ready for handoff/);
+    });
+  });
+
+  it("keeps a maximum-length custom docs root valid through validate and ready", () => {
+    withTempDir((dir) => {
+      const docsRoot = "m".repeat(MAX_DOCS_ROOT_CHARACTERS);
+      const env = { BENJAMIN_DOCS_HOME: dir };
+      runCliResult(["install-skill"], dir, env);
+      runCliResult(["package-skill"], dir, env);
+      const initialized = runCliResult(["init", "--mode", "codebase", "--docs-root", docsRoot], dir, env);
+      assert.equal(initialized.status, 0, initialized.stderr);
+      writeReadyBaseline(dir, docsRoot);
+
+      const validation = runCliResult(["validate"], dir, env);
+      assert.equal(validation.status, 0, validation.stderr);
+      assert.doesNotMatch(validation.stderr, /watch\[\d+\] doc must be a safe relative path/);
+
+      const ready = runCliResult(["ready"], dir, env);
+      assert.equal(ready.status, 0, ready.stdout);
+      assert.match(ready.stdout, /status: ready/);
+      assert.doesNotMatch(ready.stdout, /watch\[\d+\] doc must be a safe relative path/);
     });
   });
 
@@ -208,16 +230,16 @@ describe("ready", () => {
   });
 });
 
-function writeReadyBaseline(dir: string): void {
-  writeBaselineDoc(dir, "benjamin-docs/project/brief.md", "Project Brief", capturedBody("This product helps teams preserve project context across AI sessions. It serves owners, developers, and future agents. The important baseline is local-first documentation with clear handoff notes, not hosted publishing or transcript dumping."));
-  writeBaselineDoc(dir, "benjamin-docs/project/roadmap.md", "Roadmap", capturedBody("The current roadmap is to stabilize capture flows, improve existing-codebase onboarding, and keep README guidance short. Near-term work focuses on doc quality checks. Deferred work includes SaaS publishing, dashboards, and hosted collaboration."));
-  writeBaselineDoc(dir, "benjamin-docs/project/open-questions.md", "Open Questions", "## Decisions\n\n- Should review warnings become stricter over time?\n- Which docs should be required for feature captures?\n- Should package publishing stay manual until the project is more stable?\n");
-  writeBaselineDoc(dir, "benjamin-docs/handoff/human-brief.md", "Human Brief", capturedBody("This project is a local project-memory tool. It turns useful planning and build conversations into durable Markdown files. The important thing for a human reader is that docs stay inside the project and are meant to explain decisions, next steps, and open questions plainly."));
-  writeBaselineDoc(dir, "benjamin-docs/handoff/agent-brief.md", "Agent Brief", capturedBody("Future agents should read the README, project brief, roadmap, open questions, architecture, and code map before changing behavior. Preserve local-first behavior, ask before creating chat projects, run benjamin-docs ready and pnpm check after edits, and avoid risky assumptions or hazards when context is missing. Next action is to improve deterministic review without making the CLI harder to use."));
-  writeBaselineDoc(dir, "benjamin-docs/engineering/architecture.md", "Architecture", capturedBody("The CLI is a Node command that writes a docs workspace and metadata into the current project. Metadata lives in .benjamin-docs while human-readable docs live under benjamin-docs. Validation checks frontmatter, manifest entries, anchors, links, and path safety."));
-  writeBaselineDoc(dir, "benjamin-docs/engineering/code-map.md", "Code Map", capturedBody("The main CLI entry is src/cli.ts. Initialization lives in src/init.ts. Validation lives in src/validate.ts. Skill installation lives in src/install-skill.ts. Prompt helpers live in src/next.ts and src/chat-project.ts. Tests live under test."));
-  writeBaselineDoc(dir, "benjamin-docs/features/index.md", "Features Index", capturedBody("Feature scopes are created only when a distinct change needs its own brief, plan, decisions, and handoff. Current work is focused on baseline capture quality. Deferred feature work includes hosted publishing and collaboration."));
-  writeBaselineDoc(dir, "benjamin-docs/releases/changelog.md", "Changelog", capturedBody("Recent changes include initialization, validation, review, readiness checks, agent guidance, skill installation, and package publishing. Release notes should stay concrete and mention behavior that future users or agents need to know."));
+function writeReadyBaseline(dir: string, docsRoot = "benjamin-docs"): void {
+  writeBaselineDoc(dir, `${docsRoot}/project/brief.md`, "Project Brief", capturedBody("This product helps teams preserve project context across AI sessions. It serves owners, developers, and future agents. The important baseline is local-first documentation with clear handoff notes, not hosted publishing or transcript dumping."));
+  writeBaselineDoc(dir, `${docsRoot}/project/roadmap.md`, "Roadmap", capturedBody("The current roadmap is to stabilize capture flows, improve existing-codebase onboarding, and keep README guidance short. Near-term work focuses on doc quality checks. Deferred work includes SaaS publishing, dashboards, and hosted collaboration."));
+  writeBaselineDoc(dir, `${docsRoot}/project/open-questions.md`, "Open Questions", "## Decisions\n\n- Should review warnings become stricter over time?\n- Which docs should be required for feature captures?\n- Should package publishing stay manual until the project is more stable?\n");
+  writeBaselineDoc(dir, `${docsRoot}/handoff/human-brief.md`, "Human Brief", capturedBody("This project is a local project-memory tool. It turns useful planning and build conversations into durable Markdown files. The important thing for a human reader is that docs stay inside the project and are meant to explain decisions, next steps, and open questions plainly."));
+  writeBaselineDoc(dir, `${docsRoot}/handoff/agent-brief.md`, "Agent Brief", capturedBody("Future agents should read the README, project brief, roadmap, open questions, architecture, and code map before changing behavior. Preserve local-first behavior, ask before creating chat projects, run benjamin-docs ready and pnpm check after edits, and avoid risky assumptions or hazards when context is missing. Next action is to improve deterministic review without making the CLI harder to use."));
+  writeBaselineDoc(dir, `${docsRoot}/engineering/architecture.md`, "Architecture", capturedBody("The CLI is a Node command that writes a docs workspace and metadata into the current project. Metadata lives in .benjamin-docs while human-readable docs live under benjamin-docs. Validation checks frontmatter, manifest entries, anchors, links, and path safety."));
+  writeBaselineDoc(dir, `${docsRoot}/engineering/code-map.md`, "Code Map", capturedBody("The main CLI entry is src/cli.ts. Initialization lives in src/init.ts. Validation lives in src/validate.ts. Skill installation lives in src/install-skill.ts. Prompt helpers live in src/next.ts and src/chat-project.ts. Tests live under test."));
+  writeBaselineDoc(dir, `${docsRoot}/features/index.md`, "Features Index", capturedBody("Feature scopes are created only when a distinct change needs its own brief, plan, decisions, and handoff. Current work is focused on baseline capture quality. Deferred feature work includes hosted publishing and collaboration."));
+  writeBaselineDoc(dir, `${docsRoot}/releases/changelog.md`, "Changelog", capturedBody("Recent changes include initialization, validation, review, readiness checks, agent guidance, skill installation, and package publishing. Release notes should stay concrete and mention behavior that future users or agents need to know."));
 }
 
 function writeBaselineDoc(root: string, path: string, title: string, body: string): void {

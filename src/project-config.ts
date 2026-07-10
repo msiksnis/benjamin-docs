@@ -43,14 +43,17 @@ export function assertSafeDocsRoot(docsRoot: string): void {
 }
 
 export function isSafeDocsRoot(docsRoot: unknown): docsRoot is string {
+  return isSafeRelativePath(docsRoot) && docsRoot.length <= MAX_DOCS_ROOT_CHARACTERS;
+}
+
+export function isSafeRelativePath(path: unknown): path is string {
   return (
-    typeof docsRoot === "string" &&
-    Boolean(docsRoot) &&
-    docsRoot.length <= MAX_DOCS_ROOT_CHARACTERS &&
-    !docsRoot.includes("\\") &&
-    !isAbsolute(docsRoot) &&
-    !win32.isAbsolute(docsRoot) &&
-    !docsRoot.split("/").some((part) => part === "" || part === "." || part === "..")
+    typeof path === "string" &&
+    Boolean(path) &&
+    !path.includes("\\") &&
+    !isAbsolute(path) &&
+    !win32.isAbsolute(path) &&
+    !path.split("/").some((part) => part === "" || part === "." || part === "..")
   );
 }
 
