@@ -16,7 +16,7 @@ freshness: status
 
 The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction. Trust-foundation Tasks 1-4 are implemented on the dependable-standard branch.
 
-The current branch now has locked context and latency budgets, response-safe session-start-only hooks, bounded task retrieval, a split core skill, batched drift history lookup, and truthful structured readiness. Task 4 adds `src/readiness.ts`, `bd ready --json`, separate baseline and changed-work warnings, blocking committed drift and working-tree impact, non-blocking non-Git planning behavior, and repository readiness without doctor setup. Continue with Task 5 after the Task 4 commit.
+The current branch now has locked context and latency budgets, response-safe session-start-only hooks, bounded task retrieval, a split core skill, batched drift history lookup, and truthful structured readiness. Task 4 adds `src/readiness.ts`, `bd ready --json`, separate baseline and changed-work warnings, blocking committed drift and working-tree impact, non-blocking non-Git planning behavior, and repository readiness without doctor setup. Review follow-up adds validation-only and thrown-drift regressions: content heuristics now excludes validation findings, and unexpected drift-analysis errors fail closed. Continue with Task 5 after the Task 4 follow-up commit.
 
 Executable plan:
 

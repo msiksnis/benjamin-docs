@@ -249,7 +249,7 @@ Non-goals for 0.4.0:
 - `benjamin-docs doctor --strict` exists and should remain the setup readiness gate.
 - `benjamin-docs review` exists and should remain a docs-quality gate, not a full AI reviewer.
 - `benjamin-docs chat-project` exists and should remain confirmation-first.
-- `benjamin-docs ready` is now a repository-local structured gate over validation, content heuristics, committed freshness, working-tree impact, and configured agent guidance. Optional machine setup remains outside repository readiness.
+- `benjamin-docs ready` is now a repository-local structured gate over validation, content heuristics, committed freshness, working-tree impact, and configured agent guidance. Optional machine setup remains outside repository readiness. Validation-only findings stay in structure, and analysis errors fail freshness closed instead of being treated as non-Git planning.
 - Future polish should make these commands clearer before adding new surfaces.
 
 ## Deferred SaaS

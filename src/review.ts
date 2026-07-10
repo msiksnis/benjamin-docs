@@ -5,7 +5,7 @@ import { getChangedFiles, gitLastCommit, isReviewableSourceChange } from "./git.
 import { readGeneratedJson, rootPath } from "./fsx.js";
 import { readConfig } from "./project-config.js";
 import type { ManifestFile, WatchRule } from "./types.js";
-import { validateProject, type ValidationResult } from "./validate.js";
+import { validateProject } from "./validate.js";
 import { renderMemoryViews, type RenderedMemoryView } from "./views.js";
 import { defaultWatchRules, matchesAnyGlob, resolveWatchRules } from "./watch.js";
 
@@ -26,7 +26,7 @@ export interface ReviewIssue {
 export interface ReviewOptions {
   changed?: boolean;
   since?: string;
-  validation?: ValidationResult;
+  includeValidation?: boolean;
 }
 
 interface ChangedReviewResult {
@@ -123,9 +123,11 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
     return formatReview({ docsChecked: 0, errors, warnings, changedWarnings: [] });
   }
 
-  const validation = options.validation ?? validateProject(root);
-  for (const error of validation.errors) errors.push({ message: error });
-  for (const warning of validation.warnings) warnings.push({ message: warning });
+  if (options.includeValidation !== false) {
+    const validation = validateProject(root);
+    for (const error of validation.errors) errors.push({ message: error });
+    for (const warning of validation.warnings) warnings.push({ message: warning });
+  }
 
   let docsRoot = "benjamin-docs";
   let mode = "planning";

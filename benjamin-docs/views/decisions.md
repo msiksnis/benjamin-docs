@@ -24,6 +24,8 @@ Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 20
 - Git unavailability is non-blocking only for planning mode.
 - Enabled broken Benjamin guidance blocks `agent_guidance`; absent guidance is reported as not configured.
 - Optional global setup remains in doctor diagnostics and does not determine repository readiness. Recorded environment blockers are visible but non-blocking.
+- Validation findings belong only to `structure`; `content_heuristics` consumes review-specific baseline findings.
+- Only a returned Git-unavailable result may be non-blocking for planning. A thrown drift-analysis error fails `committed_freshness` with evidence and a repair command.
 
 ### Decisions
 

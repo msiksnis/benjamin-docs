@@ -54,7 +54,7 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Memory Views rendering and lifecycle filtering live in `src/views.ts`.
 - Setup diagnostics live in `src/doctor.ts`.
 - Recorded local prerequisite detection lives in `src/environment.ts`.
-- Structured repository readiness lives in `src/readiness.ts`; `src/ready.ts` formats the same versioned report for human output or `bd ready --json`. Validation, baseline content warnings, committed drift, working-tree impact, and agent guidance remain separate dimensions. Optional doctor setup is outside this boundary.
+- Structured repository readiness lives in `src/readiness.ts`; `src/ready.ts` formats the same versioned report for human output or `bd ready --json`. Validation runs once and `reviewProject(..., { includeValidation: false })` supplies only review-specific findings, so structure and content heuristics cannot double-count validation. Drift analysis uses an injectable detector seam; returned Git unavailability can be non-blocking for planning, while thrown analysis errors become blocking committed-freshness failures. Optional doctor setup is outside this boundary.
 - Skill installation and Claude zip packaging live in `src/install-skill.ts` and `src/package-skill.ts`.
 - Agent-facing behavior lives in `skills/benjamin-docs/SKILL.md`.
 

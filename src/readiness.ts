@@ -30,13 +30,16 @@ export interface ReadinessReport {
 
 export interface AnalyzeReadinessOptions {
   cwd?: string;
+  dependencies?: {
+    detectDrift?: (cwd: string) => DriftResult;
+  };
 }
 
 export function analyzeReadiness(options: AnalyzeReadinessOptions = {}): ReadinessReport {
   const cwd = options.cwd ?? process.cwd();
   const validation = validateProject(cwd);
-  const review = reviewProject(cwd, { changed: true, since: "HEAD", validation });
-  const drift = safeDetectDrift(cwd);
+  const review = reviewProject(cwd, { changed: true, since: "HEAD", includeValidation: false });
+  const driftAnalysis = analyzeDrift(cwd, options.dependencies?.detectDrift ?? detectDrift);
   const agentGuidance = checkAgentContracts(cwd);
   const planningMode = readMode(cwd) === "planning";
   const baselineWarnings = review.warnings.slice(0, review.warnings.length - review.changedWarnings.length);
@@ -65,8 +68,8 @@ export function analyzeReadiness(options: AnalyzeReadinessOptions = {}): Readine
       "Managed docs have deterministic content-quality findings.",
       "benjamin-docs review",
     ),
-    committedFreshnessDimension(drift, planningMode),
-    workingTreeDimension(review.changedWarnings, drift.gitAvailable, planningMode),
+    committedFreshnessDimension(driftAnalysis, planningMode),
+    workingTreeDimension(review.changedWarnings, driftAnalysis.result?.gitAvailable ?? false, planningMode),
     agentGuidanceDimension(agentGuidance),
   ];
 
@@ -91,7 +94,20 @@ function dimensionFromIssues(
     : { id, status: "fail", blocking: true, summary: failingSummary, evidence, repair };
 }
 
-function committedFreshnessDimension(drift: DriftResult, planningMode: boolean): ReadinessDimension {
+function committedFreshnessDimension(driftAnalysis: DriftAnalysis, planningMode: boolean): ReadinessDimension {
+  if (driftAnalysis.error) {
+    return {
+      id: "committed_freshness",
+      status: "fail",
+      blocking: true,
+      summary: "Committed freshness analysis failed.",
+      evidence: [`Drift analysis failed: ${errorMessage(driftAnalysis.error)}`],
+      repair: "benjamin-docs drift",
+    };
+  }
+
+  const drift = driftAnalysis.result;
+  if (!drift) throw new Error("Internal error: drift analysis has neither a result nor an error.");
   if (!drift.gitAvailable) {
     return {
       id: "committed_freshness",
@@ -194,11 +210,16 @@ function agentGuidanceDimension(result: ReturnType<typeof checkAgentContracts>):
   };
 }
 
-function safeDetectDrift(cwd: string): DriftResult {
+interface DriftAnalysis {
+  result?: DriftResult;
+  error?: unknown;
+}
+
+function analyzeDrift(cwd: string, detector: (cwd: string) => DriftResult): DriftAnalysis {
   try {
-    return detectDrift(cwd);
-  } catch {
-    return { ok: false, gitAvailable: false, initialized: false, docsChecked: 0, drifted: [], skipped: [] };
+    return { result: detector(cwd) };
+  } catch (error) {
+    return { error };
   }
 }
 
@@ -212,4 +233,8 @@ function readMode(cwd: string): "planning" | "codebase" | "feature" | undefined 
 
 function formatReviewIssue(issue: ReviewIssue): string {
   return issue.path ? `${issue.path}: ${issue.message}` : issue.message;
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

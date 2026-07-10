@@ -99,6 +99,51 @@ describe("structured readiness", () => {
     });
   });
 
+  it("keeps validation-only findings out of content heuristics", () => {
+    withTempDir((dir) => {
+      setUpCapturedRepository(dir);
+      const anchorsPath = join(dir, ".benjamin-docs/anchors.json");
+      const anchors = JSON.parse(readFileSync(anchorsPath, "utf8")) as {
+        version: 1;
+        anchors: Record<string, { file: string; docs: string[] }>;
+      };
+      anchors.anchors["Invalid Anchor"] = { file: "src/app.ts", docs: [] };
+      writeFileSync(anchorsPath, `${JSON.stringify(anchors, null, 2)}\n`, "utf8");
+
+      const report = analyzeReadiness({ cwd: dir });
+      const structure = dimension(report, "structure");
+      const content = dimension(report, "content_heuristics");
+
+      assert.equal(report.status, "not_ready");
+      assert.equal(structure.status, "fail");
+      assert.match(structure.evidence.join("\n"), /Invalid anchor id: Invalid Anchor/);
+      assert.equal(content.status, "pass");
+      assert.deepEqual(content.evidence, []);
+    });
+  });
+
+  it("blocks committed freshness when drift analysis throws even in planning mode", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "planning", "--no-agent-contract", "--no-hooks"], dir);
+      writeReadyBaseline(dir);
+      const report = analyzeReadiness({
+        cwd: dir,
+        dependencies: {
+          detectDrift: () => {
+            throw new Error("simulated drift analyzer failure");
+          },
+        },
+      });
+      const freshness = dimension(report, "committed_freshness");
+
+      assert.equal(report.status, "not_ready");
+      assert.equal(freshness.status, "fail");
+      assert.equal(freshness.blocking, true);
+      assert.match(freshness.evidence.join("\n"), /simulated drift analyzer failure/);
+      assert.equal(freshness.repair, "benjamin-docs drift");
+    });
+  });
+
   it("prints stable JSON without ANSI text", () => {
     withTempDir((dir) => {
       setUpCapturedRepository(dir);

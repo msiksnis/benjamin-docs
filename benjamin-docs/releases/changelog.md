@@ -16,6 +16,7 @@ source: manual
 - Added a structured readiness report with stable dimensions for structure, content heuristics, committed freshness, working-tree impact, and agent guidance. `bd ready --json` emits the versioned report for agents and CI.
 - `bd ready` now blocks known committed drift and unresolved changed-work findings in their own dimensions. Changed-work warnings no longer masquerade as baseline content warnings, and non-Git planning folders remain usable with non-blocking unavailable freshness dimensions.
 - Removed global `doctor --strict` setup from repository readiness. Recorded environment/tooling blockers remain visible but non-blocking, and passing output now states that deterministic checks do not prove semantic truth.
+- Readiness no longer duplicates validation errors or warnings under content heuristics. Unexpected drift-analysis exceptions now fail committed freshness closed with actionable evidence; only a verified unavailable Git result can remain non-blocking in planning mode.
 
 ## 0.11.1
 
