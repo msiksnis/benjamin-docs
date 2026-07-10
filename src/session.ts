@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { CONFIG_DIR } from "./constants.js";
+import { CONTEXT_BUDGETS, truncateAtBoundary } from "./context-budget.js";
 import { detectDrift } from "./drift.js";
 import { getChangedFiles, isReviewableSourceChange } from "./git.js";
 import { rootPath } from "./fsx.js";
@@ -64,7 +65,11 @@ export function getSessionStartContext(root: string, commandPath?: string): stri
 
   spawnBackgroundUpdateRefresh(commandPath, Date.now());
 
-  return lines.join("\n");
+  return truncateAtBoundary(
+    lines.join("\n"),
+    CONTEXT_BUDGETS.sessionStartCharacters,
+    "\nMore: benjamin-docs drift. Before handoff: benjamin-docs ready",
+  );
 }
 
 export function formatSessionStart(
@@ -120,21 +125,11 @@ export function getSessionStopNudge(
 }
 
 export function formatSessionStop(
-  root: string,
-  format: SessionHookFormat | undefined,
-  hookInput: SessionHookInput | boolean,
+  _root: string,
+  _format: SessionHookFormat | undefined,
+  _hookInput: SessionHookInput | boolean,
 ): string {
-  const input = typeof hookInput === "boolean" ? { ...emptySessionHookInput(), stopHookActive: hookInput } : hookInput;
-  if (!input.provided && input.stopHookActive) return "";
-
-  const nudge = getSessionStopNudge(root, format, input);
-  if (!nudge) return "";
-
-  if (format === "cursor") {
-    return JSON.stringify({ followup_message: nudge });
-  }
-
-  return JSON.stringify({ decision: "block", reason: nudge });
+  return "";
 }
 
 function isAgentConfigPath(file: string): boolean {

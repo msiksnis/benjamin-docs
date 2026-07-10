@@ -223,6 +223,9 @@ function rootContractSection(docsRoot: string, childPaths: string[]): string {
 - Update Benjamin docs when durable decisions, workflows, architecture, risks, or handoff context change.
 - Use feature docs for distinct features or changes; use handoff docs for continuation context.
 - After code, config, schema, test, workflow, or product behavior changes, review docs impact before final response.
+- Complete Benjamin Docs maintenance before writing the final user-facing answer.
+- Never let Benjamin Docs bookkeeping replace, delay, or materially change that answer.
+- Reading memory alone needs no mention. After a durable memory update, an optional final note must be one short sentence, for example: \`Benjamin Docs updated: checkout handoff.\`
 - Feature docs are not enough when project-level memory becomes stale; update roadmap, architecture, code map, changelog, or handoff docs when those facts change.
 - When a feature ships or is abandoned, run \`benjamin-docs scope status <slug> archived\` so derived views stay current.
 - Prefer concrete evidence: code paths, commands, decisions, risks, and next actions.

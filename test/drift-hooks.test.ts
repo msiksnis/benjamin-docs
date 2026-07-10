@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { CONTEXT_BUDGETS, estimatedTokens } from "../src/context-budget.js";
 import { runCliResult, withTempDir } from "./helpers.js";
 
 function git(dir: string, ...args: string[]): void {
@@ -170,18 +171,24 @@ describe("hooks", () => {
       assert.match(install.stdout, /installed\s+Cursor\s+\.cursor\/hooks\.json/);
 
       const claudeSettings = JSON.parse(readFileSync(join(dir, ".claude/settings.json"), "utf8")) as {
-        hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }>; Stop: Array<{ hooks: Array<{ command: string }> }> };
+        hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }>; Stop?: unknown };
       };
-      assert.match(claudeSettings.hooks.SessionStart[0]?.hooks[0]?.command ?? "", /benjamin-docs session-start --format claude/);
-      assert.match(claudeSettings.hooks.Stop[0]?.hooks[0]?.command ?? "", /benjamin-docs session-stop --format claude/);
+      assert.match(claudeSettings.hooks.SessionStart[0]?.hooks[0]?.command ?? "", /session-start --format claude/);
+      assert.equal(claudeSettings.hooks.Stop, undefined);
 
-      const cursorHooks = JSON.parse(readFileSync(join(dir, ".cursor/hooks.json"), "utf8")) as {
-        version: number;
-        hooks: { sessionStart: Array<{ command: string }>; stop: Array<{ command: string; loop_limit: number }> };
+      const codexSettings = JSON.parse(readFileSync(join(dir, ".codex/hooks.json"), "utf8")) as {
+        hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }>; Stop?: unknown };
       };
-      assert.equal(cursorHooks.version, 1);
-      assert.match(cursorHooks.hooks.sessionStart[0]?.command ?? "", /--format cursor/);
-      assert.equal(cursorHooks.hooks.stop[0]?.loop_limit, 1);
+      assert.match(codexSettings.hooks.SessionStart[0]?.hooks[0]?.command ?? "", /session-start --format codex/);
+      assert.equal(codexSettings.hooks.Stop, undefined);
+
+      const cursorSettings = JSON.parse(readFileSync(join(dir, ".cursor/hooks.json"), "utf8")) as {
+        version: number;
+        hooks: { sessionStart: Array<{ command: string }>; stop?: unknown };
+      };
+      assert.equal(cursorSettings.version, 1);
+      assert.match(cursorSettings.hooks.sessionStart[0]?.command ?? "", /session-start --format cursor/);
+      assert.equal(cursorSettings.hooks.stop, undefined);
 
       const again = runCliResult(["hooks", "install"], dir);
       assert.match(again.stdout, /already installed\s+Claude Code/);
@@ -202,7 +209,19 @@ describe("hooks", () => {
       mkdirSync(join(dir, ".claude"), { recursive: true });
       const userSettings = {
         permissions: { allow: ["Bash(ls:*)"] },
-        hooks: { SessionStart: [{ matcher: "startup", hooks: [{ type: "command", command: "echo user-hook" }] }] },
+        hooks: {
+          SessionStart: [{ matcher: "startup", hooks: [{ type: "command", command: "echo user-hook" }] }],
+          Stop: [
+            {
+              matcher: "user-stop",
+              customField: "preserve-me",
+              hooks: [
+                { type: "command", command: "echo user-stop", timeout: 10 },
+                { type: "command", command: "benjamin-docs session-stop --format claude" },
+              ],
+            },
+          ],
+        },
       };
       writeFileSync(join(dir, ".claude/settings.json"), JSON.stringify(userSettings, null, 2));
 
@@ -210,20 +229,34 @@ describe("hooks", () => {
 
       const afterInstall = JSON.parse(readFileSync(join(dir, ".claude/settings.json"), "utf8")) as {
         permissions: { allow: string[] };
-        hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }> };
+        hooks: {
+          SessionStart: Array<{ hooks: Array<{ command: string }> }>;
+          Stop: Array<{ matcher: string; customField: string; hooks: Array<{ command: string; timeout?: number }> }>;
+        };
       };
       assert.deepEqual(afterInstall.permissions.allow, ["Bash(ls:*)"]);
       assert.equal(afterInstall.hooks.SessionStart.length, 2);
+      assert.deepEqual(afterInstall.hooks.Stop, [
+        {
+          matcher: "user-stop",
+          customField: "preserve-me",
+          hooks: [{ type: "command", command: "echo user-stop", timeout: 10 }],
+        },
+      ]);
 
       runCliResult(["hooks", "uninstall", "--target", "claude-code"], dir);
 
       const afterUninstall = JSON.parse(readFileSync(join(dir, ".claude/settings.json"), "utf8")) as {
         permissions: { allow: string[] };
-        hooks: { SessionStart: Array<{ hooks: Array<{ command: string }> }> };
+        hooks: {
+          SessionStart: Array<{ hooks: Array<{ command: string }> }>;
+          Stop: Array<{ matcher: string; customField: string; hooks: Array<{ command: string; timeout?: number }> }>;
+        };
       };
       assert.deepEqual(afterUninstall.permissions.allow, ["Bash(ls:*)"]);
       assert.equal(afterUninstall.hooks.SessionStart.length, 1);
       assert.equal(afterUninstall.hooks.SessionStart[0]?.hooks[0]?.command, "echo user-hook");
+      assert.deepEqual(afterUninstall.hooks.Stop, afterInstall.hooks.Stop);
     });
   });
 
@@ -273,6 +306,9 @@ describe("session commands", () => {
       assert.match(plain.stdout, /Read first: benjamin-docs\/handoff\/agent-brief\.md/);
       assert.match(plain.stdout, /Drift: \d+ docs are behind watched code changes/);
       assert.match(plain.stdout, /benjamin-docs ready/);
+      const plainContext = plain.stdout.trimEnd();
+      assert.ok(plainContext.length <= CONTEXT_BUDGETS.sessionStartCharacters);
+      assert.ok(estimatedTokens(plainContext) <= CONTEXT_BUDGETS.sessionStartEstimatedTokens);
 
       const cursor = JSON.parse(runCliResult(["session-start", "--format", "cursor"], dir).stdout) as { additional_context: string };
       assert.match(cursor.additional_context, /project memory is active/);
@@ -285,18 +321,13 @@ describe("session commands", () => {
     });
   });
 
-  it("nudges once when source changed without memory updates", () => {
+  it("keeps the legacy session-stop command silent for every output format", () => {
     withTempDir((dir) => {
       setUpCommittedProject(dir);
       writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
 
-      const nudge = runCliResult(["session-stop", "--format", "claude"], dir);
-      const parsed = JSON.parse(nudge.stdout) as { decision: string; reason: string };
-      assert.equal(parsed.decision, "block");
-      assert.match(parsed.reason, /no Benjamin Docs project memory was updated/);
-
-      const cursorNudge = JSON.parse(runCliResult(["session-stop", "--format", "cursor"], dir).stdout) as { followup_message: string };
-      assert.match(cursorNudge.followup_message, /no Benjamin Docs project memory was updated/);
+      assert.equal(runCliResult(["session-stop", "--format", "claude"], dir).stdout, "");
+      assert.equal(runCliResult(["session-stop", "--format", "cursor"], dir).stdout, "");
     });
   });
 
@@ -343,28 +374,18 @@ describe("session commands", () => {
     });
   });
 
-  it("nudges for new source changes once and preserves the user-facing answer contract", () => {
+  it("does not continue the agent loop when source changes during a session", () => {
     withTempDir((dir) => {
       setUpCommittedProject(dir);
-      const firstTurn = codexHookPayload();
-      runCodexSessionCommand(dir, "session-start", firstTurn);
+      const payload = codexHookPayload();
+      runCodexSessionCommand(dir, "session-start", payload);
       writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
 
-      const firstStop = JSON.parse(runCodexSessionCommand(dir, "session-stop", firstTurn)) as { decision: string; reason: string };
-      assert.equal(firstStop.decision, "block");
-      assert.match(firstStop.reason, /complete answer to the user's original request/i);
-      assert.match(firstStop.reason, /never respond only with Benjamin Docs/i);
-      assert.doesNotMatch(firstStop.reason, /state why briefly and finish/i);
-
-      const continuation = codexHookPayload({ stop_hook_active: true });
-      assert.equal(runCodexSessionCommand(dir, "session-stop", continuation).trim(), "");
-
-      const nextTurn = codexHookPayload({ turn_id: "turn-2", last_assistant_message: "Yes, the migration is applied." });
-      assert.equal(runCodexSessionCommand(dir, "session-stop", nextTurn).trim(), "");
+      assert.equal(runCodexSessionCommand(dir, "session-stop", payload).trim(), "");
     });
   });
 
-  it("detects when an already-dirty source file changes again during the session", () => {
+  it("stays silent when an already-dirty source file changes again during the session", () => {
     withTempDir((dir) => {
       setUpCommittedProject(dir);
       writeFileSync(join(dir, "src/app.ts"), "export const a = 2;\n");
@@ -372,10 +393,7 @@ describe("session commands", () => {
       runCodexSessionCommand(dir, "session-start", payload);
 
       writeFileSync(join(dir, "src/app.ts"), "export const a = 3;\n");
-      const output = JSON.parse(runCodexSessionCommand(dir, "session-stop", payload)) as { decision: string; reason: string };
-
-      assert.equal(output.decision, "block");
-      assert.match(output.reason, /Source files changed \(1\)/);
+      assert.equal(runCodexSessionCommand(dir, "session-stop", payload).trim(), "");
     });
   });
 
@@ -414,8 +432,7 @@ describe("session commands", () => {
       const secondSession = codexHookPayload({ session_id: "session-b" });
       runCodexSessionCommand(dir, "session-start", secondSession);
 
-      const firstOutput = JSON.parse(runCodexSessionCommand(dir, "session-stop", firstSession)) as { decision: string };
-      assert.equal(firstOutput.decision, "block");
+      assert.equal(runCodexSessionCommand(dir, "session-stop", firstSession).trim(), "");
       assert.equal(runCodexSessionCommand(dir, "session-stop", secondSession).trim(), "");
     });
   });

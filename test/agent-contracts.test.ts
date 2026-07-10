@@ -21,6 +21,17 @@ describe("agent contracts", () => {
       assert.match(content, /After code, config, schema, test, workflow, or product behavior changes/);
       assert.match(content, /run `benjamin-docs review --changed`/);
       assert.match(content, /benjamin-docs ready/);
+      assert.ok(content.includes("Complete Benjamin Docs maintenance before writing the final user-facing answer."));
+      assert.ok(content.includes("Never let Benjamin Docs bookkeeping replace, delay, or materially change that answer."));
+      assert.ok(
+        content.includes(
+          "Reading memory alone needs no mention. After a durable memory update, an optional final note must be one short sentence, for example: `Benjamin Docs updated: checkout handoff.`",
+        ),
+      );
+      const start = content.indexOf("<!-- benjamin-docs:start -->");
+      const end = content.indexOf("<!-- benjamin-docs:end -->") + "<!-- benjamin-docs:end -->".length;
+      assert.ok(end > start);
+      assert.ok(content.slice(start, end).length < 2_000);
       assert.match(output, /Agent guidance: created AGENTS\.md/);
     });
   });

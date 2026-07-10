@@ -56,7 +56,7 @@ export function formatHooksResult(action: "install" | "uninstall" | "status", re
 
   lines.push("");
   if (action === "install") {
-    lines.push("Session hooks inject Benjamin Docs context at session start and nudge memory updates when source changes without doc updates.");
+    lines.push("Session-start hooks inject Benjamin Docs context when an agent session begins.");
     lines.push("Codex: enable hooks with features.hooks = true in ~/.codex/config.toml, then trust the hooks via /hooks in Codex.");
     lines.push("Remove them anytime with: benjamin-docs hooks uninstall");
   }
@@ -152,19 +152,12 @@ function sessionStartCommand(format: string): string {
   return `benjamin-docs session-start --format ${format}`;
 }
 
-function sessionStopCommand(format: string): string {
-  return `benjamin-docs session-stop --format ${format}`;
-}
-
 function addSharedSchemaHooks(content: JsonObject, targetId: HookTargetId): boolean {
   const format = targetId === "codex" ? "codex" : "claude";
   const hooks = ensureObject(content, "hooks");
-  let changed = false;
-
-  changed = addSharedSchemaEntry(hooks, "SessionStart", "startup|resume|clear", sessionStartCommand(format)) || changed;
-  changed = addSharedSchemaEntry(hooks, "Stop", undefined, sessionStopCommand(format)) || changed;
-
-  return changed;
+  const removedLegacyStop = removeBenjaminEntriesFromEvent(hooks, "Stop", "session-stop");
+  const addedStart = addSharedSchemaEntry(hooks, "SessionStart", "startup|resume|clear", sessionStartCommand(format));
+  return removedLegacyStop || addedStart;
 }
 
 function addSharedSchemaEntry(hooks: JsonObject, event: string, matcher: string | undefined, command: string): boolean {
@@ -214,14 +207,64 @@ function removeSharedSchemaHooks(content: JsonObject): boolean {
 }
 
 function addCursorHooks(content: JsonObject): boolean {
-  if (content.version === undefined) content.version = 1;
-  const hooks = ensureObject(content, "hooks");
   let changed = false;
-
+  if (content.version === undefined) {
+    content.version = 1;
+    changed = true;
+  }
+  const hooks = ensureObject(content, "hooks");
+  changed = removeBenjaminEntriesFromEvent(hooks, "stop", "session-stop") || changed;
   changed = addCursorEntry(hooks, "sessionStart", { command: sessionStartCommand("cursor") }) || changed;
-  changed = addCursorEntry(hooks, "stop", { command: sessionStopCommand("cursor"), loop_limit: 1 }) || changed;
 
   return changed;
+}
+
+function removeBenjaminEntriesFromEvent(hooks: JsonObject, event: string, commandName: string): boolean {
+  const groups = hooks[event];
+  if (!Array.isArray(groups)) return false;
+
+  const commandMarker = `benjamin-docs ${commandName}`;
+  let changed = false;
+  const keptGroups: unknown[] = [];
+
+  for (const group of groups) {
+    if (entryHasCommandMarker(group, commandMarker)) {
+      changed = true;
+      continue;
+    }
+
+    if (typeof group !== "object" || group === null || Array.isArray(group)) {
+      keptGroups.push(group);
+      continue;
+    }
+
+    const groupObject = group as JsonObject;
+    const entries = groupObject.hooks;
+    if (!Array.isArray(entries)) {
+      keptGroups.push(group);
+      continue;
+    }
+
+    const keptEntries = entries.filter((entry) => !entryHasCommandMarker(entry, commandMarker));
+    if (keptEntries.length === entries.length) {
+      keptGroups.push(group);
+      continue;
+    }
+
+    changed = true;
+    if (keptEntries.length > 0) {
+      groupObject.hooks = keptEntries;
+      keptGroups.push(groupObject);
+    }
+  }
+
+  if (!changed) return false;
+  if (keptGroups.length === 0) {
+    delete hooks[event];
+  } else {
+    hooks[event] = keptGroups;
+  }
+  return true;
 }
 
 function addCursorEntry(hooks: JsonObject, event: string, entry: JsonObject): boolean {
@@ -262,9 +305,13 @@ function removeCursorHooks(content: JsonObject): boolean {
 }
 
 function entryHasMarker(entry: unknown): boolean {
+  return entryHasCommandMarker(entry, HOOK_COMMAND_MARKER);
+}
+
+function entryHasCommandMarker(entry: unknown, marker: string): boolean {
   if (typeof entry !== "object" || entry === null) return false;
   const command = (entry as JsonObject).command;
-  return typeof command === "string" && command.includes(HOOK_COMMAND_MARKER);
+  return typeof command === "string" && command.includes(marker);
 }
 
 function hasBenjaminHooks(content: JsonObject): boolean {
