@@ -14,7 +14,7 @@ freshness: status
 
 ## Trust-Foundation Progress
 
-Tasks 1-4 are implemented on the dependable-standard branch. The work locks context/token/latency budgets, removes installed stop-hook continuations, bounds task retrieval and the core skill, batches drift history queries, and introduces truthful structured readiness. `bd ready` and `bd ready --json` now report separate structure, content-heuristic, committed-freshness, working-tree-impact, and agent-guidance dimensions. Known committed drift and unresolved changed work block independently; non-Git planning stays usable; optional doctor setup and recorded environment blockers do not determine repository readiness. Task 4 review fixes also prevent validation findings from contaminating content heuristics and distinguish verified Git unavailability from internal drift-analysis failure.
+Tasks 1-4 are implemented on the dependable-standard branch. The work locks context/token/latency budgets, removes installed stop-hook continuations, bounds task retrieval and the core skill, batches drift history queries, and introduces truthful structured readiness. `bd ready` and `bd ready --json` now report separate structure, content-heuristic, committed-freshness, working-tree-impact, and agent-guidance dimensions. Known committed drift and unresolved changed work block independently; non-Git planning stays usable; optional doctor setup and recorded environment blockers do not determine repository readiness. Task 4 review fixes prevent validation findings from contaminating content heuristics, distinguish verified Git unavailability from internal drift-analysis failure, and keep changed-work findings independent from drift-analysis availability.
 
 Audit date: 2026-07-10
 Audited version: 0.11.1 at commit 3705444

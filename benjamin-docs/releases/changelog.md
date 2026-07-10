@@ -17,6 +17,7 @@ source: manual
 - `bd ready` now blocks known committed drift and unresolved changed-work findings in their own dimensions. Changed-work warnings no longer masquerade as baseline content warnings, and non-Git planning folders remain usable with non-blocking unavailable freshness dimensions.
 - Removed global `doctor --strict` setup from repository readiness. Recorded environment/tooling blockers remain visible but non-blocking, and passing output now states that deterministic checks do not prove semantic truth.
 - Readiness no longer duplicates validation errors or warnings under content heuristics. Unexpected drift-analysis exceptions now fail committed freshness closed with actionable evidence; only a verified unavailable Git result can remain non-blocking in planning mode.
+- Working-tree availability now comes directly from changed-work review, so unresolved untracked or modified source warnings remain blocking even when committed drift analysis throws.
 
 ## 0.11.1
 

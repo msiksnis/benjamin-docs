@@ -144,6 +144,31 @@ describe("structured readiness", () => {
     });
   });
 
+  it("preserves changed-work failures when drift analysis throws", () => {
+    withTempDir((dir) => {
+      setUpCapturedRepository(dir);
+      writeFileSync(join(dir, "src/untracked-change.ts"), "export const changed = true;\n", "utf8");
+
+      const report = analyzeReadiness({
+        cwd: dir,
+        dependencies: {
+          detectDrift: () => {
+            throw new Error("simulated committed freshness failure");
+          },
+        },
+      });
+      const freshness = dimension(report, "committed_freshness");
+      const workingTree = dimension(report, "working_tree_impact");
+
+      assert.equal(report.status, "not_ready");
+      assert.equal(freshness.status, "fail");
+      assert.match(freshness.evidence.join("\n"), /simulated committed freshness failure/);
+      assert.equal(workingTree.status, "fail");
+      assert.match(workingTree.evidence.join("\n"), /Source files changed|May need update/);
+      assert.equal(workingTree.repair, "benjamin-docs review --changed --since HEAD");
+    });
+  });
+
   it("prints stable JSON without ANSI text", () => {
     withTempDir((dir) => {
       setUpCapturedRepository(dir);

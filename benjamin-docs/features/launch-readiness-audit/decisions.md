@@ -65,6 +65,7 @@ Reason: archived scopes, superseded plans, and generated duplicates can currentl
 - Optional global setup remains in doctor diagnostics and does not determine repository readiness. Recorded environment blockers are visible but non-blocking.
 - Validation findings belong only to `structure`; `content_heuristics` consumes review-specific baseline findings.
 - Only a returned Git-unavailable result may be non-blocking for planning. A thrown drift-analysis error fails `committed_freshness` with evidence and a repair command.
+- `working_tree_impact` uses changed review's own `changedWorkStatus`, never the committed drift result, so both dimensions can fail with their own evidence in the same report.
 
 ## Accepted Product Direction
 

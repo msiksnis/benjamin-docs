@@ -16,6 +16,7 @@ export interface ReviewResult {
   errors: ReviewIssue[];
   warnings: ReviewIssue[];
   changedWarnings: ReviewIssue[];
+  changedWorkStatus: "available" | "unavailable" | "not_requested";
 }
 
 export interface ReviewIssue {
@@ -31,6 +32,7 @@ export interface ReviewOptions {
 
 interface ChangedReviewResult {
   filesChecked: number;
+  status: "available" | "unavailable";
 }
 
 const STARTER_PHRASES = [
@@ -120,7 +122,13 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
 
   if (!existsSync(rootPath(root, CONFIG_DIR, "config.json"))) {
     errors.push({ message: "benjamin-docs is not initialized. Run: benjamin-docs init" });
-    return formatReview({ docsChecked: 0, errors, warnings, changedWarnings: [] });
+    return formatReview({
+      docsChecked: 0,
+      errors,
+      warnings,
+      changedWarnings: [],
+      changedWorkStatus: options.changed ? "unavailable" : "not_requested",
+    });
   }
 
   if (options.includeValidation !== false) {
@@ -183,7 +191,14 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
     changedWarnings = warnings.slice(changedWarningsStart);
   }
 
-  return formatReview({ docsChecked, errors, warnings, changedWarnings, changedFilesChecked: changedReview?.filesChecked });
+  return formatReview({
+    docsChecked,
+    errors,
+    warnings,
+    changedWarnings,
+    changedWorkStatus: changedReview?.status ?? "not_requested",
+    changedFilesChecked: changedReview?.filesChecked,
+  });
 }
 
 function reviewChangedWork(root: string, docsRoot: string, rules: WatchRule[], since: string, warnings: ReviewIssue[]): ChangedReviewResult {
@@ -232,7 +247,7 @@ function reviewChangedWork(root: string, docsRoot: string, rules: WatchRule[], s
 
   reviewStaleClaims(root, docsRoot, sourceChanges.length > 0, warnings);
 
-  return { filesChecked: sourceChanges.length };
+  return { filesChecked: sourceChanges.length, status: changedResult.ok ? "available" : "unavailable" };
 }
 
 function expectedRuleDocs(rules: WatchRule[]): string[] {
@@ -683,6 +698,7 @@ function formatReview(result: {
   errors: ReviewIssue[];
   warnings: ReviewIssue[];
   changedWarnings: ReviewIssue[];
+  changedWorkStatus: ReviewResult["changedWorkStatus"];
   changedFilesChecked?: number;
 }): ReviewResult {
   const ok = result.errors.length === 0;
@@ -725,6 +741,7 @@ function formatReview(result: {
     errors: result.errors,
     warnings: result.warnings,
     changedWarnings: result.changedWarnings,
+    changedWorkStatus: result.changedWorkStatus,
   };
 }
 

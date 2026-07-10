@@ -69,7 +69,7 @@ export function analyzeReadiness(options: AnalyzeReadinessOptions = {}): Readine
       "benjamin-docs review",
     ),
     committedFreshnessDimension(driftAnalysis, planningMode),
-    workingTreeDimension(review.changedWarnings, driftAnalysis.result?.gitAvailable ?? false, planningMode),
+    workingTreeDimension(review.changedWarnings, review.changedWorkStatus === "available", planningMode),
     agentGuidanceDimension(agentGuidance),
   ];
 

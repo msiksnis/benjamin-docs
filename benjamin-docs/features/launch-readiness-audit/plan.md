@@ -24,7 +24,7 @@ The first executable implementation plan is:
 
 That plan is the source of truth for the first release train. This document owns program sequence and release gates.
 
-Implementation status on the dependable-standard branch: Tasks 1-4 are complete through structured readiness, including review fixes for validation-dimension isolation and fail-closed drift-analysis errors. The next executable step is Task 5, separating repository health from optional integration diagnostics throughout the remaining surfaces.
+Implementation status on the dependable-standard branch: Tasks 1-4 are complete through structured readiness, including validation-dimension isolation, fail-closed drift errors, and independent changed-work availability. The next executable step is Task 5, separating repository health from optional integration diagnostics throughout the remaining surfaces.
 
 ## Product Invariants
 
