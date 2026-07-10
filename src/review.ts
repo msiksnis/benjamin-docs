@@ -5,7 +5,7 @@ import { getChangedFiles, gitLastCommit, isReviewableSourceChange } from "./git.
 import { readGeneratedJson, rootPath } from "./fsx.js";
 import { readConfig } from "./project-config.js";
 import type { ManifestFile, WatchRule } from "./types.js";
-import { validateProject } from "./validate.js";
+import { validateProject, type ValidationResult } from "./validate.js";
 import { renderMemoryViews, type RenderedMemoryView } from "./views.js";
 import { defaultWatchRules, matchesAnyGlob, resolveWatchRules } from "./watch.js";
 
@@ -15,6 +15,7 @@ export interface ReviewResult {
   docsChecked: number;
   errors: ReviewIssue[];
   warnings: ReviewIssue[];
+  changedWarnings: ReviewIssue[];
 }
 
 export interface ReviewIssue {
@@ -25,6 +26,7 @@ export interface ReviewIssue {
 export interface ReviewOptions {
   changed?: boolean;
   since?: string;
+  validation?: ValidationResult;
 }
 
 interface ChangedReviewResult {
@@ -113,14 +115,15 @@ const DOC_CHURN_THRESHOLD = 10;
 export function reviewProject(root: string, options: ReviewOptions = {}): ReviewResult {
   const errors: ReviewIssue[] = [];
   const warnings: ReviewIssue[] = [];
+  let changedWarnings: ReviewIssue[] = [];
   let changedReview: ChangedReviewResult | undefined;
 
   if (!existsSync(rootPath(root, CONFIG_DIR, "config.json"))) {
     errors.push({ message: "benjamin-docs is not initialized. Run: benjamin-docs init" });
-    return formatReview({ docsChecked: 0, errors, warnings });
+    return formatReview({ docsChecked: 0, errors, warnings, changedWarnings: [] });
   }
 
-  const validation = validateProject(root);
+  const validation = options.validation ?? validateProject(root);
   for (const error of validation.errors) errors.push({ message: error });
   for (const warning of validation.warnings) warnings.push({ message: warning });
 
@@ -173,10 +176,12 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
   reviewViewsFreshness(root, warnings);
 
   if (options.changed) {
+    const changedWarningsStart = warnings.length;
     changedReview = reviewChangedWork(root, docsRoot, watchRules, options.since ?? "HEAD", warnings);
+    changedWarnings = warnings.slice(changedWarningsStart);
   }
 
-  return formatReview({ docsChecked, errors, warnings, changedFilesChecked: changedReview?.filesChecked });
+  return formatReview({ docsChecked, errors, warnings, changedWarnings, changedFilesChecked: changedReview?.filesChecked });
 }
 
 function reviewChangedWork(root: string, docsRoot: string, rules: WatchRule[], since: string, warnings: ReviewIssue[]): ChangedReviewResult {
@@ -671,7 +676,13 @@ function isFeatureDoc(relativePath: string, basename: string): boolean {
   return relativePath.includes("/features/") && relativePath.endsWith(`/${basename}`);
 }
 
-function formatReview(result: { docsChecked: number; errors: ReviewIssue[]; warnings: ReviewIssue[]; changedFilesChecked?: number }): ReviewResult {
+function formatReview(result: {
+  docsChecked: number;
+  errors: ReviewIssue[];
+  warnings: ReviewIssue[];
+  changedWarnings: ReviewIssue[];
+  changedFilesChecked?: number;
+}): ReviewResult {
   const ok = result.errors.length === 0;
   const status = result.errors.length > 0 ? "failed" : result.warnings.length > 0 ? "passed with warnings" : "passed";
   const lines = [
@@ -705,7 +716,14 @@ function formatReview(result: { docsChecked: number; errors: ReviewIssue[]; warn
     lines.push("  Update weak docs, then run: benjamin-docs validate && benjamin-docs review");
   }
 
-  return { ok, output: lines.join("\n"), docsChecked: result.docsChecked, errors: result.errors, warnings: result.warnings };
+  return {
+    ok,
+    output: lines.join("\n"),
+    docsChecked: result.docsChecked,
+    errors: result.errors,
+    warnings: result.warnings,
+    changedWarnings: result.changedWarnings,
+  };
 }
 
 function formatIssue(issue: ReviewIssue): string {

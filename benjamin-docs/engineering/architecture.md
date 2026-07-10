@@ -21,7 +21,7 @@ The published package exposes one executable:
 benjamin-docs -> dist/src/cli.js
 ```
 
-The TypeScript source lives in `src/` and is compiled to `dist/src/` before publishing. The package intentionally ships no runtime dependencies. It uses Node built-ins for filesystem work, path safety, process execution, and test fixtures.
+The TypeScript source lives in `src/` and is compiled to `dist/src/` before publishing. Most filesystem, path-safety, process, and test-fixture work uses Node built-ins. Since 0.11.0, the MCP server adds the official `@modelcontextprotocol/sdk` and `zod` as the package's two runtime dependencies.
 
 Public first-contact surfaces are part of the architecture because this package is discovered through GitHub, npm, and CLI help before any agent workflow runs. `README.md`, `package.json` description/keywords, `src/info.ts`, and `skills/benjamin-docs/SKILL.md` must all describe the same product: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Avoid implying a background daemon; the update loop comes from repo-local agent guidance and the installed skill.
 
@@ -54,6 +54,7 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Memory Views rendering and lifecycle filtering live in `src/views.ts`.
 - Setup diagnostics live in `src/doctor.ts`.
 - Recorded local prerequisite detection lives in `src/environment.ts`.
+- Structured repository readiness lives in `src/readiness.ts`; `src/ready.ts` formats the same versioned report for human output or `bd ready --json`. Validation, baseline content warnings, committed drift, working-tree impact, and agent guidance remain separate dimensions. Optional doctor setup is outside this boundary.
 - Skill installation and Claude zip packaging live in `src/install-skill.ts` and `src/package-skill.ts`.
 - Agent-facing behavior lives in `skills/benjamin-docs/SKILL.md`.
 
@@ -74,13 +75,13 @@ Plain `bd review` (and therefore `bd ready`) also runs deterministic staleness c
 
 `review --changed` additionally scans `architecture.md` and `code-map.md` for generic stale claims such as "not implemented yet" or "does not exist yet" while source files changed, quoting the full sentence.
 
-Since 0.10.0, `bd drift` covers the committed-history half of freshness: for every doc referenced by a watch rule, it diffs the commits since the doc last changed and flags docs whose watched code moved on without them. Drift is deliberately advisory (a non-blocking section in `ready`, `--strict` for CI) because the broad default watch rules would make a blocking check flap on every code commit. `review --changed` owns working-tree hygiene; `drift` owns cross-session rot.
+Since 0.10.0, `bd drift` covers the committed-history half of freshness: for every doc referenced by a watch rule, it diffs the commits since the doc last changed and flags docs whose watched code moved on without them. Task 4 of the 0.12.0 trust foundation makes known drift block the `committed_freshness` readiness dimension. `review --changed` owns working-tree hygiene and exposes those warnings separately for `working_tree_impact`; baseline content warnings remain in `content_heuristics`.
 
 Version 0.10.0 introduced consent-based hooks for Claude Code, Codex, and Cursor. The 0.12.0 trust-foundation behavior installs only `bd session-start`, which injects bounded context containing the memory location, read-first docs, and drift summary. Existing `bd session-stop` commands remain accepted but produce no output, so they cannot block completion or auto-submit follow-up work. Hook files are user-owned: install migrates only legacy Benjamin stop entries, uninstall removes only marked Benjamin commands even inside mixed groups, and every user command, custom field, and unparseable file is preserved. Hooks are installed only with consent (interactive `init` prompt, `init --hooks`, or explicit `hooks install`).
 
 The 0.11.1 session-state and nudge logic remains available for a future explicit diagnostic path, including content fingerprints and fail-open recovery. Installed hooks no longer invoke that logic at stop. Final-answer policy now lives in generated root agent guidance: finish BD maintenance before answering, never let bookkeeping replace or materially change the answer, and mention a durable update only through an optional one-sentence note.
 
-All of this stays warning-only inside `review`, but `ready` fails on review warnings, so the gate enforces freshness. This is intentionally heuristic, not an AI reviewer. The product rule is unchanged: agents should either update Benjamin Docs or explicitly state why a change has no durable project-memory impact.
+All of this stays warning-only inside `review`, while structured readiness escalates baseline and changed-work findings in their own dimensions. This is intentionally heuristic, not an AI reviewer. Passing readiness means the configured deterministic checks passed; semantic verification remains the agent's responsibility.
 
 ## Safety Rules
 

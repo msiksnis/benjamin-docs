@@ -56,6 +56,14 @@ Reason: frontmatter does not change Git visibility. The field should represent p
 
 Reason: archived scopes, superseded plans, and generated duplicates can currently appear in search and continuation context. Agents need canonical, current results by default and explicit historical retrieval.
 
+## Implemented Trust Decisions
+
+- Readiness is a versioned structured report, not a semantic proof claim.
+- Known committed drift blocks `committed_freshness`; unresolved changed-work warnings block `working_tree_impact` and are excluded from baseline `content_heuristics`.
+- Git unavailability is non-blocking only for planning mode.
+- Enabled broken Benjamin guidance blocks `agent_guidance`; absent guidance is reported as not configured.
+- Optional global setup remains in doctor diagnostics and does not determine repository readiness. Recorded environment blockers are visible but non-blocking.
+
 ## Accepted Product Direction
 
 The maintainer accepted these recommendations on 2026-07-10. Detailed sequencing and release gates live in `plan.md`:

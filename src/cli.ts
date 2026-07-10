@@ -177,7 +177,7 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "ready") {
-    const result = checkReady({ cwd, commandPath: process.argv[1] });
+    const result = checkReady({ cwd, commandPath: process.argv[1], json: parseReadyArgs(argv.slice(1)).json });
     console.log(result.output);
     return result.ok ? 0 : 1;
   }
@@ -771,6 +771,18 @@ function parseDoctorArgs(args: string[]): { strict?: boolean } {
   }
 
   return options;
+}
+
+function parseReadyArgs(args: string[]): { json: boolean } {
+  let json = false;
+  for (const arg of args) {
+    if (arg === "--json") {
+      json = true;
+      continue;
+    }
+    throw new Error(`Unknown ready option: ${arg}`);
+  }
+  return { json };
 }
 
 function parseSkillTarget(value: string): SkillTargetId {

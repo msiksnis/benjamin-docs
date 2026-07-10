@@ -16,6 +16,8 @@ The maintainer accepted a trust-first program on 2026-07-10. Benjamin Docs 0.11.
 
 The program adds an explicit experience guarantee: BD should remain lightweight while agents use it in the background. Session context, task retrieval, skill size, and hook latency receive numerical release budgets. BD must never replace or materially change the answer an agent gives the user. Reading memory needs no mention; after a meaningful update, the agent may add one very short sentence saying what BD memory changed.
 
+The first four trust-foundation tasks are implemented on the release branch. Readiness is now a structured repository-local report: validation, content heuristics, committed freshness, working-tree impact, and agent guidance are separate checks. Known drift and unresolved changed work block readiness; optional machine setup does not. Planning folders without Git still work, and the CLI explicitly says these deterministic checks do not prove that the docs are semantically true.
+
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
 
 0.10.0 added drift checks and session hooks. `bd drift` compares watched docs with committed Git history. Session-start hooks provide compact orientation and point agents to project memory; they do not load or verify every fact automatically. The 0.12.0 plan removes stop-hook continuations so BD maintenance cannot replace or distort the final user response. For humans, the surface stays small: `init`, `status`, and `export`, with advanced checks handled by agents.

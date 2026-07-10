@@ -45,7 +45,8 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/views.ts` renders Memory Views: it filters out archived/stale docs and scopes, orders sources by updated date, groups sections per source doc, and only rewrites view files whose body changed. `renderMemoryViews` is also used by review for the freshness check.
 - `src/doctor.ts` checks CLI version, installed skills, Claude Desktop upload zip, project initialization, and validation. `--strict` turns setup gaps and validation warnings into failures.
 - `src/environment.ts` scans Benjamin-managed source docs for recorded local environment/tooling blockers such as missing commands or unavailable services.
-- `src/ready.ts` is the handoff gate. It combines validation, docs review, `doctor --strict`, and agent guidance checks, and fails when any of those checks is not clean. It also surfaces recorded environment/tooling blockers and advisory drift as non-failing handoff categories.
+- `src/readiness.ts` owns the structured readiness report used by `bd ready` and future preflight consumers. It separates structure, baseline content heuristics, committed freshness, working-tree impact, and agent guidance; committed drift and unresolved changed-work warnings block independently, while non-Git planning folders remain usable.
+- `src/ready.ts` formats that report for humans or emits it unchanged through `bd ready --json`. Repository readiness no longer runs `doctor --strict`; recorded environment/tooling blockers remain visible but non-blocking, and the human closeout explicitly limits the result to deterministic checks rather than semantic truth.
 
 ## Filesystem And Metadata
 

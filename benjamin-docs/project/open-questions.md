@@ -59,7 +59,7 @@ source: session-capture
 - If a user requested agent guidance but an existing unmarked `AGENTS.md` was preserved, should `bd ready` fail or report a stronger warning?
 - Should generated `AGENTS.md` remain short, or include a slightly stronger operating contract for scope choice, evidence, and closeout?
 - Decision for 0.10.0: yes to automation hooks. `bd hooks install` wires consent-based session hooks for Claude Code, Codex, and Cursor; `bd session-start` injects memory context and `bd session-stop` nudges updates once per turn chain. Freshness no longer depends only on agent discipline.
-- Decision for 0.10.0: committed-history drift (`bd drift`) stays advisory in `ready` with `--strict` reserved for CI, because broad default watch rules would flap a blocking gate on every code commit.
+- Superseded for 0.12.0: known committed-history drift now blocks the `committed_freshness` readiness dimension. Broad watch rules must be made dependable rather than hidden behind advisory ready output.
 - Decision for 0.11.1: stop nudges compare content against a per-session start baseline, acknowledge identical dirty state after one continuation, fail open without reliable state, and explicitly preserve the original user-facing answer. Repeated whole-working-tree warnings are not acceptable agent-side noise because Codex can surface the continuation as the final answer.
 - Decision for 0.11.0: the MCP server ships as six stdio tools with manifest-scoped access and transactional validated writes; session-start context stays in hooks for now (resource form deferred until tool-based consumption dominates).
 - Is lexical section search good enough for large memories, or will retrieval quality force smarter scoring?
@@ -68,7 +68,7 @@ source: session-capture
 
 ## Templates And Review
 
-- Decision: keep `doctor --strict` as a setup/validation gate, and use `ready` as the higher-level gate that also fails on `review` warnings.
+- Decision for 0.12.0: keep `doctor --strict` as an explicit machine/setup diagnostic, but remove it from repository readiness. `ready` evaluates only repository-local deterministic dimensions and reports recorded environment blockers without treating them as BD setup failures.
 - Decision: do not add new primary commands for 0.4.0 unless dogfooding proves a repeated workflow cannot fit under `init`, `ready`, `help`, or `commands`.
 - Should starter-template detection be centralized with template definitions to avoid drift?
 - Should release and handoff scopes get first-class create commands later, or should BD keep those as starter docs only?

@@ -224,15 +224,17 @@ describe("drift", () => {
     });
   });
 
-  it("shows an advisory drift section in ready output", () => {
+  it("blocks ready when committed watched source is ahead of memory", () => {
     withTempDir((dir) => {
       setUpCommittedProject(dir);
       commitSourceChange(dir);
 
       const result = runCliResult(["ready"], dir);
 
-      assert.match(result.stdout, /Drift \(advisory\)/);
-      assert.match(result.stdout, /Drift does not block readiness/);
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /fail\s+committed freshness/);
+      assert.match(result.stdout, /repair: benjamin-docs drift/);
+      assert.doesNotMatch(result.stdout, /advisory|does not block readiness/i);
     });
   });
 });

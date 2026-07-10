@@ -14,9 +14,9 @@ freshness: status
 
 ## Status
 
-The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction.
+The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction. Trust-foundation Tasks 1-4 are implemented on the dependable-standard branch.
 
-Planning is complete for the first release train. No product implementation has started.
+The current branch now has locked context and latency budgets, response-safe session-start-only hooks, bounded task retrieval, a split core skill, batched drift history lookup, and truthful structured readiness. Task 4 adds `src/readiness.ts`, `bd ready --json`, separate baseline and changed-work warnings, blocking committed drift and working-tree impact, non-blocking non-Git planning behavior, and repository readiness without doctor setup. Continue with Task 5 after the Task 4 commit.
 
 Executable plan:
 

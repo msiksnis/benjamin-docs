@@ -20,6 +20,8 @@ The agent workflow now has explicit product budgets. Session-start context stays
 
 The program ships in stages: trust foundation, impact evidence, canonical state and agent interfaces, then a vendor-neutral protocol and conformance suite. Unrelated feature expansion, hosted publishing, dashboards, and additional export types remain deferred until the trust gates pass.
 
+Trust-foundation Tasks 1-4 are now implemented on the dependable-standard branch. The repository has explicit context and latency budgets, session-start-only integrations with a silent legacy stop path, bounded task retrieval, batched drift queries, and a versioned readiness report. `bd ready` now blocks known committed drift and unresolved working-tree memory impact in separate dimensions, keeps non-Git planning folders usable, excludes optional doctor setup, and states that deterministic checks do not prove semantic truth.
+
 `benjamin-docs` is a persistent repo-local project memory system for AI coding agents and humans. It turns a repo into living project knowledge that agents read, follow, and update while they work, so a new coding session starts with context: what the project is, where work stopped, what decisions and conventions matter, what is risky, and what should happen next.
 
 The public positioning must make that clear in the first few sentences. BD is not a generic documentation package or Markdown helper. Markdown is the storage format; the product is continuity across agent sessions, human handoffs, and implementation work.

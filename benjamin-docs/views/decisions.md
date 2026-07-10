@@ -17,6 +17,14 @@ Derived from decision and rejected-option sections across managed Benjamin docs.
 
 Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 2026-07-10)
 
+### Implemented Trust Decisions
+
+- Readiness is a versioned structured report, not a semantic proof claim.
+- Known committed drift blocks `committed_freshness`; unresolved changed-work warnings block `working_tree_impact` and are excluded from baseline `content_heuristics`.
+- Git unavailability is non-blocking only for planning mode.
+- Enabled broken Benjamin guidance blocks `agent_guidance`; absent guidance is reported as not configured.
+- Optional global setup remains in doctor diagnostics and does not determine repository readiness. Recorded environment blockers are visible but non-blocking.
+
 ### Decisions
 
 - 2026-07-10: Accept the launch audit's trust-first direction. Freeze unrelated feature expansion until readiness truth, export safety, repository-local health, bounded agent context, and response-safe integrations are implemented and verified.

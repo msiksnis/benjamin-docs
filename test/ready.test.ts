@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { MAX_DOCS_ROOT_CHARACTERS } from "../src/session-context.js";
@@ -15,7 +16,7 @@ describe("ready", () => {
       assert.match(result.stdout, /status: not ready/);
       assert.match(result.stdout, /fail\s+validate/);
       assert.match(result.stdout, /fail\s+review/);
-      assert.match(result.stdout, /fail\s+doctor --strict/);
+      assert.doesNotMatch(result.stdout, /doctor --strict/i);
     });
   });
 
@@ -32,16 +33,16 @@ describe("ready", () => {
       assert.match(result.stdout, /ok\s+validate/);
       assert.match(result.stdout, /fail\s+review/);
       assert.match(result.stdout, /starter template/);
-      assert.match(result.stdout, /ok\s+doctor --strict/);
+      assert.doesNotMatch(result.stdout, /doctor --strict/i);
     });
   });
 
   it("passes when setup, validation, and review are clean", () => {
     withTempDir((dir) => {
-      runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
-      runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+      initializeGit(dir);
       runCliResult(["init", "--mode", "codebase"], dir);
       writeReadyBaseline(dir);
+      commitAll(dir);
 
       const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
 
@@ -49,9 +50,10 @@ describe("ready", () => {
       assert.match(result.stdout, /status: ready/);
       assert.match(result.stdout, /ok\s+validate/);
       assert.match(result.stdout, /ok\s+review/);
-      assert.match(result.stdout, /ok\s+doctor --strict/);
       assert.match(result.stdout, /ok\s+agent guidance - /);
-      assert.match(result.stdout, /Project memory is ready for handoff/);
+      assert.match(result.stdout, /Repository memory passes the configured structural, heuristic, freshness, and guidance checks\./);
+      assert.match(result.stdout, /These deterministic checks do not prove semantic truth; implementation verification remains an agent responsibility\./);
+      assert.doesNotMatch(result.stdout, /docs useful|ready for handoff/i);
     });
   });
 
@@ -59,11 +61,13 @@ describe("ready", () => {
     withTempDir((dir) => {
       const docsRoot = "m".repeat(MAX_DOCS_ROOT_CHARACTERS);
       const env = { BENJAMIN_DOCS_HOME: dir };
+      initializeGit(dir);
       runCliResult(["install-skill"], dir, env);
       runCliResult(["package-skill"], dir, env);
       const initialized = runCliResult(["init", "--mode", "codebase", "--docs-root", docsRoot], dir, env);
       assert.equal(initialized.status, 0, initialized.stderr);
       writeReadyBaseline(dir, docsRoot);
+      commitAll(dir);
 
       const validation = runCliResult(["validate"], dir, env);
       assert.equal(validation.status, 0, validation.stderr);
@@ -78,6 +82,7 @@ describe("ready", () => {
 
   it("surfaces recorded environment and tooling blockers without failing readiness", () => {
     withTempDir((dir) => {
+      initializeGit(dir);
       runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
       runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
       runCliResult(["init", "--mode", "codebase"], dir);
@@ -92,6 +97,7 @@ describe("ready", () => {
         "benjamin-docs/project/brief.md",
         "## Product Behavior\n\nBD can surface environment blockers such as missing cargo or PostgreSQL not listening when agents record concrete check results.\n",
       );
+      commitAll(dir);
 
       const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
 
@@ -149,10 +155,12 @@ describe("ready", () => {
 
   it("includes agent guidance health when AGENTS.md exists", () => {
     withTempDir((dir) => {
+      initializeGit(dir);
       runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
       runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
       runCliResult(["init", "--mode", "codebase", "--agent-contract"], dir);
       writeReadyBaseline(dir);
+      commitAll(dir);
 
       const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
 
@@ -180,11 +188,13 @@ describe("ready", () => {
 
   it("shows existing unmarked AGENTS.md as a non-fatal agent guidance warning", () => {
     withTempDir((dir) => {
+      initializeGit(dir);
       runCliResult(["install-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
       runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
       runCliResult(["init", "--mode", "codebase", "--no-agent-contract"], dir);
       writeReadyBaseline(dir);
       writeFileSync(join(dir, "AGENTS.md"), "# Existing Agent Rules\n\nKeep these.\n", "utf8");
+      commitAll(dir);
 
       const result = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: dir });
 
@@ -240,6 +250,23 @@ function writeReadyBaseline(dir: string, docsRoot = "benjamin-docs"): void {
   writeBaselineDoc(dir, `${docsRoot}/engineering/code-map.md`, "Code Map", capturedBody("The main CLI entry is src/cli.ts. Initialization lives in src/init.ts. Validation lives in src/validate.ts. Skill installation lives in src/install-skill.ts. Prompt helpers live in src/next.ts and src/chat-project.ts. Tests live under test."));
   writeBaselineDoc(dir, `${docsRoot}/features/index.md`, "Features Index", capturedBody("Feature scopes are created only when a distinct change needs its own brief, plan, decisions, and handoff. Current work is focused on baseline capture quality. Deferred feature work includes hosted publishing and collaboration."));
   writeBaselineDoc(dir, `${docsRoot}/releases/changelog.md`, "Changelog", capturedBody("Recent changes include initialization, validation, review, readiness checks, agent guidance, skill installation, and package publishing. Release notes should stay concrete and mention behavior that future users or agents need to know."));
+}
+
+function initializeGit(dir: string): void {
+  git(dir, "init");
+}
+
+function commitAll(dir: string): void {
+  git(dir, "add", "-A");
+  git(dir, "commit", "-m", "capture project memory");
+}
+
+function git(dir: string, ...args: string[]): void {
+  execFileSync("git", ["-c", "user.email=test@example.com", "-c", "user.name=Test", ...args], {
+    cwd: dir,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
 }
 
 function writeBaselineDoc(root: string, path: string, title: string, body: string): void {
