@@ -53,6 +53,7 @@
     "test": "node --test dist/test/**/*.test.js",
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm build && pnpm test",
+    "benchmark:agent-overhead": "node scripts/benchmark-agent-overhead.mjs",
     "release:check": "pnpm check && node dist/src/cli.js validate && npm pack --dry-run",
     "release:github": "node scripts/release-github.mjs release",
     "release:verify-public": "node scripts/release-github.mjs verify",
