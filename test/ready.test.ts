@@ -57,6 +57,28 @@ describe("ready", () => {
     });
   });
 
+  it("keeps repository readiness and strict doctor healthy with an empty home", () => {
+    withTempDir((dir) => {
+      withTempDir((emptyHome) => {
+        initializeGit(dir);
+        runCliResult(["init", "--mode", "codebase"], dir);
+        writeReadyBaseline(dir);
+        commitAll(dir);
+
+        const ready = runCliResult(["ready"], dir, { BENJAMIN_DOCS_HOME: emptyHome });
+        assert.equal(ready.status, 0, ready.stdout);
+
+        const projectDoctor = runCliResult(["doctor", "--strict"], dir, { BENJAMIN_DOCS_HOME: emptyHome });
+        assert.equal(projectDoctor.status, 0, projectDoctor.stdout);
+
+        const codexDoctor = runCliResult(["doctor", "--strict", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: emptyHome });
+        assert.equal(codexDoctor.status, 1);
+        assert.match(codexDoctor.stdout, /Codex/);
+        assert.doesNotMatch(codexDoctor.stdout, /Claude Desktop upload zip/);
+      });
+    });
+  });
+
   it("keeps a maximum-length custom docs root valid through validate and ready", () => {
     withTempDir((dir) => {
       const docsRoot = "m".repeat(MAX_DOCS_ROOT_CHARACTERS);

@@ -76,10 +76,7 @@ describe("doctor", () => {
 
       assert.equal(result.status, 1);
       assert.match(result.stdout, /benjamin-docs doctor --strict/);
-      assert.match(result.stdout, /Strict/);
-      assert.match(result.stdout, /install-skill/);
-      assert.match(result.stdout, /package-skill/);
-      assert.match(result.stdout, /Project is not initialized/);
+      assert.match(result.stdout, /Strict\n  - Project is not initialized/);
     });
   });
 
@@ -94,6 +91,74 @@ describe("doctor", () => {
       assert.equal(result.status, 0);
       assert.match(result.stdout, /benjamin-docs doctor --strict/);
       assert.doesNotMatch(result.stdout, /Strict\n/);
+    });
+  });
+
+  it("strict mode isolates Codex requirements from other targets", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+
+      const result = runCliResult(["doctor", "--strict", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /Codex/);
+      assert.match(result.stdout, /Strict\n  - Codex skill is missing/);
+      assert.doesNotMatch(result.stdout, /Claude Desktop upload zip/);
+    });
+  });
+
+  it("strict mode isolates Claude Desktop to the upload zip", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+
+      const result = runCliResult(["doctor", "--strict", "--target", "claude-desktop"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /Strict\n  - Claude Desktop upload zip is missing/);
+      assert.doesNotMatch(result.stdout, /Strict\n  - .*install-skill/);
+    });
+  });
+
+  it("passes a Codex target when only its skill and hook are installed", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      runCliResult(["install-skill", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
+      runCliResult(["hooks", "install", "--target", "codex"], dir);
+
+      const result = runCliResult(["doctor", "--strict", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 0, result.stdout);
+      assert.doesNotMatch(result.stdout, /Strict\n/);
+    });
+  });
+
+  it("passes a Claude Desktop target when only its upload zip exists", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      runCliResult(["package-skill"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      const result = runCliResult(["doctor", "--strict", "--target", "claude-desktop"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 0, result.stdout);
+      assert.doesNotMatch(result.stdout, /Strict\n/);
+    });
+  });
+
+  it("rejects unknown doctor targets with the exact allowed-value usage", () => {
+    withTempDir((dir) => {
+      const result = runCliResult(["doctor", "--strict", "--target", "windsurf"], dir);
+
+      assert.equal(result.status, 1);
+      assert.equal(result.stderr, "benjamin-docs doctor [--strict] [--target shared|claude-code|codex|cursor|claude-desktop]\n");
+    });
+  });
+
+  it("rejects a missing doctor target with the exact allowed-value usage", () => {
+    withTempDir((dir) => {
+      const result = runCliResult(["doctor", "--target"], dir);
+
+      assert.equal(result.status, 1);
+      assert.equal(result.stderr, "benjamin-docs doctor [--strict] [--target shared|claude-code|codex|cursor|claude-desktop]\n");
     });
   });
 });

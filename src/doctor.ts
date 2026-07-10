@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { CONFIG_DIR, CONFIG_FILE, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { readJson, rootPath } from "./fsx.js";
+import { checkHooks } from "./hooks.js";
 import { getPackageVersion } from "./info.js";
 import { checkInstalledSkills, formatHomePath, SKILL_NAME } from "./install-skill.js";
 import { getDefaultSkillZipPath, skillZipExists } from "./package-skill.js";
@@ -14,11 +15,14 @@ export interface DoctorResult {
   output: string;
 }
 
+export type DoctorTarget = "shared" | "claude-code" | "codex" | "cursor" | "claude-desktop";
+
 export interface DoctorOptions {
   cwd?: string;
   commandPath?: string;
   homeDir?: string;
   strict?: boolean;
+  target?: DoctorTarget;
 }
 
 export function runDoctor(options: DoctorOptions = {}): DoctorResult {
@@ -27,9 +31,13 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
   const skills = checkInstalledSkills(options.homeDir);
   const skillZipPath = getDefaultSkillZipPath(skills.homeDir);
   const project = inspectProject(cwd);
-  const strictErrors = options.strict ? strictDoctorErrors(project, skills.targets, skillZipExists(skills.homeDir)) : [];
+  const hasSkillZip = skillZipExists(skills.homeDir);
+  const strictErrors = options.strict ? strictDoctorErrors(cwd, project, skills.targets, hasSkillZip, options.target) : [];
+  const command = ["benjamin-docs doctor", options.strict ? "--strict" : undefined, options.target ? `--target ${options.target}` : undefined]
+    .filter((part): part is string => part !== undefined)
+    .join(" ");
   const lines = [
-    options.strict ? "benjamin-docs doctor --strict" : "benjamin-docs doctor",
+    command,
     "",
     "CLI",
     `  version: ${getPackageVersion()}`,
@@ -73,7 +81,7 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
   lines.push("");
   lines.push("Claude Desktop");
   lines.push(`  upload folder: ${formatHomePath(skills.homeDir, join(skills.homeDir, ".claude", "skills", SKILL_NAME))}`);
-  lines.push(`  upload zip: ${skillZipExists(skills.homeDir) ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath)}`);
+  lines.push(`  upload zip: ${hasSkillZip ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath)}`);
 
   if (skills.targets.some((target) => target.status !== "ok")) {
     lines.push("");
@@ -81,7 +89,7 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
     lines.push("  benjamin-docs install-skill");
   }
 
-  if (!skillZipExists(skills.homeDir)) {
+  if (!hasSkillZip) {
     lines.push("");
     lines.push("Claude Desktop fix");
     lines.push("  benjamin-docs package-skill");
@@ -94,19 +102,13 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
 }
 
 function strictDoctorErrors(
+  root: string,
   project: ProjectInspection,
   targets: ReturnType<typeof checkInstalledSkills>["targets"],
   hasSkillZip: boolean,
+  target?: DoctorTarget,
 ): string[] {
   const errors: string[] = [];
-
-  if (targets.some((target) => target.status !== "ok")) {
-    errors.push("Install or refresh local skills with: benjamin-docs install-skill");
-  }
-
-  if (!hasSkillZip) {
-    errors.push("Create the Claude Desktop upload zip with: benjamin-docs package-skill");
-  }
 
   if (project.status !== "initialized") {
     errors.push("Project is not initialized. Run: benjamin-docs init");
@@ -118,6 +120,25 @@ function strictDoctorErrors(
 
   if (project.errors.length > 0) {
     errors.push("Validation errors are present.");
+  }
+
+  if (target === "claude-desktop" && !hasSkillZip) {
+    errors.push("Claude Desktop upload zip is missing. Run: benjamin-docs package-skill");
+  }
+
+  if (target && target !== "claude-desktop") {
+    const skillTargetId = target === "shared" ? "agents" : target;
+    const skill = targets.find((candidate) => candidate.id === skillTargetId);
+    if (skill && skill.status !== "ok") {
+      errors.push(`${skill.label} skill is ${skill.status}. Run: benjamin-docs install-skill --target ${target}`);
+    }
+
+    if (target !== "shared") {
+      const hook = checkHooks(root, [target]).targets[0];
+      if (hook && hook.status !== "installed") {
+        errors.push(`${hook.label} session hook is ${hook.status}. Run: benjamin-docs hooks install --target ${target}`);
+      }
+    }
   }
 
   return errors;

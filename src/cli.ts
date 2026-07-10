@@ -7,7 +7,7 @@ import { addAnchor, listAnchors } from "./anchors.js";
 import { installAgentContracts } from "./agent-contracts.js";
 import { getChatProjectGuide, type ChatProjectGuideOptions } from "./chat-project.js";
 import { allCommands, getCommandsText, type CommandEntry } from "./commands.js";
-import { runDoctor } from "./doctor.js";
+import { runDoctor, type DoctorOptions, type DoctorTarget } from "./doctor.js";
 import { detectDrift, formatDrift } from "./drift.js";
 import {
   exportAppDocumentation,
@@ -758,12 +758,24 @@ function parseInstallSkillArgs(args: string[]): InstallSkillOptions {
   return options;
 }
 
-function parseDoctorArgs(args: string[]): { strict?: boolean } {
-  const options: { strict?: boolean } = {};
+const DOCTOR_USAGE = "benjamin-docs doctor [--strict] [--target shared|claude-code|codex|cursor|claude-desktop]";
+const DOCTOR_TARGETS: DoctorTarget[] = ["shared", "claude-code", "codex", "cursor", "claude-desktop"];
 
-  for (const arg of args) {
+function parseDoctorArgs(args: string[]): Pick<DoctorOptions, "strict" | "target"> {
+  const options: Pick<DoctorOptions, "strict" | "target"> = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
     if (arg === "--strict") {
       options.strict = true;
+      continue;
+    }
+
+    if (arg === "--target") {
+      const value = args[index + 1];
+      if (!value || !DOCTOR_TARGETS.includes(value as DoctorTarget)) throw new Error(DOCTOR_USAGE);
+      options.target = value as DoctorTarget;
+      index += 1;
       continue;
     }
 
