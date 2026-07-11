@@ -225,7 +225,7 @@ describe("doctor", () => {
 
           const install = runCliResult(["hooks", "install", "--target", target], dir);
           assert.equal(install.status, 0);
-          assert.match(install.stdout, /installed\s+(Claude Code|Codex CLI)/);
+          assert.match(install.stdout, /repaired\s+(Claude Code|Codex CLI)/);
           assert.doesNotMatch(install.stdout, /already installed/);
 
           const repaired = JSON.parse(readFileSync(join(dir, hookPath), "utf8")) as {
@@ -309,7 +309,7 @@ describe("doctor", () => {
 
         const install = runCliResult(["hooks", "install", "--target", target], dir);
         assert.equal(install.status, 0);
-        assert.match(install.stdout, /installed\s+(Claude Code|Codex CLI)/);
+        assert.match(install.stdout, /repaired\s+(Claude Code|Codex CLI)/);
 
         const repaired = JSON.parse(readFileSync(join(dir, hookPath), "utf8")) as {
           hooks: { SessionStart: Array<Record<string, unknown>> };
@@ -406,7 +406,7 @@ describe("doctor", () => {
 
         const install = runCliResult(["hooks", "install", "--target", target], dir);
         assert.equal(install.status, 0);
-        assert.match(install.stdout, /installed\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.match(install.stdout, /repaired\s+(Claude Code|Codex CLI|Cursor)/);
         assert.doesNotMatch(install.stdout, /already installed/);
 
         const repairedText = readFileSync(join(dir, hookPath), "utf8");

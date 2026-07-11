@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { hasAgentContractMarkers, installAgentContracts } from "./agent-contracts.js";
 import { CONFIG_DIR, CONFIG_FILE } from "./constants.js";
 import { rootPath, writeGeneratedJson } from "./fsx.js";
-import { checkHooks, installHooks } from "./hooks.js";
+import { installHooks } from "./hooks.js";
 import { checkMcp } from "./mcp-install.js";
 import { getPackageVersion } from "./info.js";
 import { installSkill } from "./install-skill.js";
@@ -20,6 +20,11 @@ export interface UpgradeOptions {
 export interface UpgradeResult {
   ok: boolean;
   output: string;
+}
+
+interface UpgradeStepResult {
+  ok: boolean;
+  lines: string[];
 }
 
 export async function runUpgrade(root: string, options: UpgradeOptions = {}): Promise<UpgradeResult> {
@@ -45,7 +50,8 @@ export async function runUpgrade(root: string, options: UpgradeOptions = {}): Pr
   lines.push(refreshAgentGuidance(root));
   lines.push(refreshSkills());
   lines.push(...refreshViews(root));
-  lines.push(...resolveHooks(root, options.hooks));
+  const hookStep = resolveHooks(root, options.hooks);
+  lines.push(...hookStep.lines);
   lines.push(reportMcpRegistration(root));
   lines.push(...(await reportUpdateAvailability(currentVersion)));
 
@@ -54,7 +60,7 @@ export async function runUpgrade(root: string, options: UpgradeOptions = {}): Pr
   lines.push("  benjamin-docs drift    see docs whose watched code moved on");
   lines.push("  benjamin-docs ready    run the repository readiness dimensions");
 
-  return { ok: true, output: lines.join("\n") };
+  return { ok: hookStep.ok, output: lines.join("\n") };
 }
 
 function stampConfigVersion(root: string, config: BenjaminDocsConfig, currentVersion: string): void {
@@ -99,36 +105,23 @@ function refreshViews(root: string): string[] {
   return [written.length > 0 ? `Views: regenerated ${written.length} Memory Views.` : "Views: already current."];
 }
 
-function resolveHooks(root: string, hooksOption: boolean | undefined): string[] {
-  const status = checkHooks(root);
-  const installed = status.targets.filter((target) => target.status === "installed");
-  if (installed.length > 0) {
-    const refreshed = installHooks(root, installed.map((target) => target.id));
-    const changed = refreshed.targets.filter((target) => target.status === "installed").length;
-    return [
-      changed > 0
-        ? `Hooks: refreshed ${changed} agent session hook ${changed === 1 ? "target" : "targets"}.`
-        : `Hooks: installed for ${installed.map((target) => target.label).join(", ")}.`,
-    ];
-  }
+function resolveHooks(root: string, hooksOption: boolean | undefined): UpgradeStepResult {
+  if (hooksOption === false) return { ok: true, lines: ["Hooks: skipped (--no-hooks)."] };
 
-  if (hooksOption === true) {
-    const result = installHooks(root);
-    const changed = result.targets.filter((target) => target.status === "installed").length;
-    return [
-      `Hooks: installed for ${changed} agent ${changed === 1 ? "target" : "targets"} (Claude Code, Codex, Cursor).`,
-      "  Codex: enable hooks with features.hooks = true in ~/.codex/config.toml, then trust them via /hooks in Codex.",
-    ];
-  }
+  const result = installHooks(root);
+  const installed = result.targets.filter((target) => target.status === "installed");
+  const repaired = result.targets.filter((target) => target.status === "repaired");
+  const current = result.targets.filter((target) => target.status === "already installed");
+  const skipped = result.targets.filter((target) => target.status === "skipped");
+  const lines: string[] = [];
 
-  if (hooksOption === false) {
-    return ["Hooks: skipped (--no-hooks)."];
-  }
+  if (installed.length > 0) lines.push(`Hooks: installed for ${installed.map((target) => target.label).join(", ")}.`);
+  if (repaired.length > 0) lines.push(`Hooks: repaired for ${repaired.map((target) => target.label).join(", ")}.`);
+  if (current.length > 0) lines.push(`Hooks: already current for ${current.map((target) => target.label).join(", ")}.`);
+  for (const target of skipped) lines.push(`Hooks: failed for ${target.label}: ${target.note ?? target.path}.`);
+  lines.push("  Codex: enable hooks with features.hooks = true in ~/.codex/config.toml, then trust them via /hooks in Codex.");
 
-  return [
-    "Hooks: not installed. Optional session-start context: benjamin-docs hooks install",
-    "  Hooks supply a compact pointer/context packet; agents still read and maintain memory during normal work.",
-  ];
+  return { ok: skipped.length === 0, lines };
 }
 
 function reportMcpRegistration(root: string): string {

@@ -155,7 +155,7 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "upgrade") {
-    const hooksOption = await resolveUpgradeHooksOption(argv.slice(1), cwd);
+    const hooksOption = await resolveUpgradeHooksOption(argv.slice(1));
     const result = await runUpgrade(cwd, { hooks: hooksOption });
     console.log(result.output);
     return result.ok ? 0 : 1;
@@ -467,7 +467,7 @@ function parseReviewArgs(args: string[]): ReviewOptions {
   return options;
 }
 
-async function resolveUpgradeHooksOption(args: string[], cwd: string): Promise<boolean | undefined> {
+async function resolveUpgradeHooksOption(args: string[]): Promise<boolean | undefined> {
   let hooks: boolean | undefined;
 
   for (const arg of args) {
@@ -484,12 +484,7 @@ async function resolveUpgradeHooksOption(args: string[], cwd: string): Promise<b
     throw new Error("Usage: benjamin-docs upgrade [--hooks|--no-hooks]");
   }
 
-  if (hooks !== undefined || !process.stdin.isTTY || !process.stdout.isTTY) return hooks;
-
-  const anyInstalled = checkHooks(cwd).targets.some((target) => target.status === "installed");
-  if (anyInstalled) return undefined;
-
-  return confirmChoice(hooksPromptLabel(), true);
+  return hooks;
 }
 
 interface McpArgs {

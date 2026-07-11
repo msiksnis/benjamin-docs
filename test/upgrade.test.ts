@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { compareVersions, isUpdateCacheStale } from "../src/update-check.js";
 import { runCliResult, withTempDir } from "./helpers.js";
@@ -17,6 +17,47 @@ function seedUpdateCache(homeDir: string, latest: string, lastChecked: string): 
   writeFileSync(join(homeDir, ".benjamin-docs/update-check.json"), JSON.stringify({ lastChecked, latest }));
 }
 
+function seedLegacyIntegrations(dir: string, home: string): void {
+  mkdirSync(join(dir, ".claude"), { recursive: true });
+  writeFileSync(join(dir, ".claude/settings.json"), `${JSON.stringify({
+    custom: "keep-claude",
+    hooks: {
+      SessionStart: [{ matcher: "startup|resume|clear", hooks: [
+        { type: "command", command: "benjamin-docs session-start --format claude" },
+        { type: "command", command: "echo user-start", timeout: 9 },
+      ] }],
+      Stop: [{ hooks: [
+        { type: "command", command: "benjamin-docs session-stop --format claude" },
+        { type: "command", command: "echo user-stop" },
+      ] }],
+    },
+  }, null, 2)}\n`);
+
+  mkdirSync(join(dir, ".codex"), { recursive: true });
+  writeFileSync(join(dir, ".codex/hooks.json"), `${JSON.stringify({
+    hooks: { SessionStart: [{ matcher: "wrong", hooks: [
+      { type: "command", command: "benjamin-docs session-start --format claude" },
+      { type: "command", command: "echo codex-user" },
+    ] }] },
+  }, null, 2)}\n`);
+
+  mkdirSync(join(dir, ".cursor"), { recursive: true });
+  writeFileSync(join(dir, ".cursor/hooks.json"), `${JSON.stringify({
+    version: 1,
+    custom: { preserve: true },
+    hooks: {
+      sessionStart: [{ command: "benjamin-docs session-start --format claude" }, { command: "echo cursor-user" }],
+      stop: [{ command: "benjamin-docs session-stop --format cursor" }],
+    },
+  }, null, 2)}\n`);
+
+  for (const target of [".agents", ".codex", ".claude", ".cursor"]) {
+    const skillDir = join(home, target, "skills/benjamin-docs");
+    mkdirSync(skillDir, { recursive: true });
+    writeFileSync(join(skillDir, "SKILL.md"), "old skill\n");
+  }
+}
+
 describe("upgrade", () => {
   it("fails when benjamin-docs is not initialized", () => {
     withTempDir((dir) => {
@@ -27,7 +68,7 @@ describe("upgrade", () => {
     });
   });
 
-  it("stamps bdVersion, refreshes agent guidance, and suggests hooks", () => {
+  it("stamps bdVersion, refreshes agent guidance, and installs hooks", () => {
     withTempDir((dir) => {
       withTempDir((home) => {
         runCliResult(["init", "--mode", "codebase"], dir, { BENJAMIN_DOCS_HOME: home });
@@ -40,9 +81,7 @@ describe("upgrade", () => {
         assert.equal(result.status, 0);
         assert.match(result.stdout, /Project metadata: recorded before 0\.10\.0 -> /);
         assert.match(result.stdout, /Agent guidance: refreshed the Benjamin-owned AGENTS\.md section/);
-        assert.match(result.stdout, /Hooks: not installed/);
-        assert.match(result.stdout, /compact pointer\/context packet/);
-        assert.match(result.stdout, /agents still read and maintain memory during normal work/i);
+        assert.match(result.stdout, /Hooks: installed for Claude Code, Codex CLI, Cursor/);
         assert.doesNotMatch(result.stdout, /load|maintain project memory automatically/i);
         assert.doesNotMatch(result.stdout, /Update check/);
 
@@ -56,17 +95,126 @@ describe("upgrade", () => {
     });
   });
 
-  it("installs hooks with --hooks and skips with --no-hooks", () => {
+  it("installs every supported hook during plain upgrade", () => {
     withTempDir((dir) => {
       withTempDir((home) => {
-        runCliResult(["init", "--mode", "codebase", "--no-agent-contract"], dir, { BENJAMIN_DOCS_HOME: home });
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
 
-        const skipped = runCliResult(["upgrade", "--no-hooks"], dir, { BENJAMIN_DOCS_HOME: home });
-        assert.match(skipped.stdout, /Hooks: skipped/);
+        const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
 
+        assert.equal(result.status, 0);
+        assert.match(result.stdout, /Hooks: installed.*Claude Code.*Codex CLI.*Cursor/s);
+        assert.match(readFileSync(join(dir, ".claude/settings.json"), "utf8"), /session-start --format claude/);
+        assert.match(readFileSync(join(dir, ".codex/hooks.json"), "utf8"), /session-start --format codex/);
+        assert.match(readFileSync(join(dir, ".cursor/hooks.json"), "utf8"), /session-start --format cursor/);
+      });
+    });
+  });
+
+  it("keeps --hooks as the default-compatible alias", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
         const result = runCliResult(["upgrade", "--hooks"], dir, { BENJAMIN_DOCS_HOME: home });
-        assert.match(result.stdout, /Hooks: installed for 3 agent targets/);
-        assert.ok(readFileSync(join(dir, ".claude/settings.json"), "utf8").includes("benjamin-docs session-start"));
+        assert.equal(result.status, 0);
+        assert.match(result.stdout, /Hooks: installed/);
+      });
+    });
+  });
+
+  it("leaves every hook file untouched with --no-hooks", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        mkdirSync(join(dir, ".claude"), { recursive: true });
+        const original = `${JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "echo user" }] }] } }, null, 2)}\n`;
+        writeFileSync(join(dir, ".claude/settings.json"), original);
+
+        const result = runCliResult(["upgrade", "--no-hooks"], dir, { BENJAMIN_DOCS_HOME: home });
+
+        assert.equal(result.status, 0);
+        assert.match(result.stdout, /Hooks: skipped \(--no-hooks\)/);
+        assert.equal(readFileSync(join(dir, ".claude/settings.json"), "utf8"), original);
+        assert.equal(existsSync(join(dir, ".codex/hooks.json")), false);
+        assert.equal(existsSync(join(dir, ".cursor/hooks.json")), false);
+      });
+    });
+  });
+
+  it("migrates legacy hooks, preserves user data, refreshes skills, and is idempotent", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        seedLegacyIntegrations(dir, home);
+
+        const first = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+        assert.equal(first.status, 0);
+        assert.match(first.stdout, /Hooks: repaired/);
+        assert.doesNotMatch(readFileSync(join(dir, ".claude/settings.json"), "utf8"), /session-stop/);
+        assert.match(readFileSync(join(dir, ".claude/settings.json"), "utf8"), /echo user-start/);
+        assert.match(readFileSync(join(dir, ".claude/settings.json"), "utf8"), /echo user-stop/);
+        assert.match(readFileSync(join(dir, ".codex/hooks.json"), "utf8"), /session-start --format codex/);
+        assert.match(readFileSync(join(dir, ".codex/hooks.json"), "utf8"), /echo codex-user/);
+        assert.match(readFileSync(join(dir, ".cursor/hooks.json"), "utf8"), /session-start --format cursor/);
+        assert.match(readFileSync(join(dir, ".cursor/hooks.json"), "utf8"), /echo cursor-user/);
+
+        for (const target of [".agents", ".codex", ".claude", ".cursor"]) {
+          const skillDir = join(home, target, "skills/benjamin-docs");
+          assert.match(readFileSync(join(skillDir, "SKILL.md"), "utf8"), /^name: benjamin-docs/m);
+          for (const reference of ["capture.md", "export.md", "integrations.md"]) {
+            assert.equal(existsSync(join(skillDir, "references", reference)), true);
+          }
+        }
+
+        const hookFiles = [".claude/settings.json", ".codex/hooks.json", ".cursor/hooks.json"];
+        const afterFirst = hookFiles.map((path) => readFileSync(join(dir, path), "utf8"));
+        const second = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+        assert.equal(second.status, 0);
+        assert.match(second.stdout, /Hooks: already current/);
+        assert.deepEqual(hookFiles.map((path) => readFileSync(join(dir, path), "utf8")), afterFirst);
+      });
+    });
+  });
+
+  it("fails upgrade when a required hook target cannot be migrated", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        mkdirSync(join(dir, ".codex"), { recursive: true });
+        writeFileSync(join(dir, ".codex/hooks.json"), "{ not valid json\n");
+
+        const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+
+        assert.equal(result.status, 1);
+        assert.match(result.stdout, /Hooks: failed/);
+        assert.match(result.stdout, /\.codex\/hooks\.json could not be parsed/);
+        assert.equal(readFileSync(join(dir, ".codex/hooks.json"), "utf8"), "{ not valid json\n");
+      });
+    });
+  });
+
+  it("fails upgrade when a required skill target cannot be refreshed", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        mkdirSync(join(home, ".agents/skills/benjamin-docs/SKILL.md"), { recursive: true });
+
+        const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /SKILL\.md|directory|EISDIR/i);
       });
     });
   });

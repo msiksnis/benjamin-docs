@@ -17,7 +17,7 @@ export interface HookTargetResult {
   id: HookTargetId;
   label: string;
   path: string;
-  status: "installed" | "already installed" | "removed" | "not installed" | "skipped";
+  status: "installed" | "repaired" | "already installed" | "removed" | "not installed" | "skipped";
   note?: string;
   legacyStop?: boolean;
 }
@@ -82,13 +82,14 @@ function installHooksForTarget(root: string, target: HookTarget): HookTargetResu
   }
 
   const content = existing.value ?? {};
+  const hadBenjaminHook = eventContainsCommand(content, (command) => command.includes(HOOK_COMMAND_MARKER));
   const changed = target.id === "cursor" ? addCursorHooks(content) : addSharedSchemaHooks(content, target.id);
   if (!changed) {
     return { ...target, status: "already installed" };
   }
 
   writeGeneratedText(root, target.path, `${JSON.stringify(content, null, 2)}\n`, HOOK_FILE_LABEL);
-  return { ...target, status: "installed" };
+  return { ...target, status: hadBenjaminHook ? "repaired" : "installed" };
 }
 
 function uninstallHooksForTarget(root: string, target: HookTarget): HookTargetResult {
