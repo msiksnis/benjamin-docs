@@ -109,6 +109,15 @@ function describeIncompatibleHookStructure(content: JsonObject, targetId: HookTa
   const events = targetId === "cursor" ? ["sessionStart", "stop"] : ["SessionStart", "Stop"];
   for (const event of events) {
     if (hookMap[event] !== undefined && !Array.isArray(hookMap[event])) return `${event} must be an array`;
+    if (targetId !== "cursor" && Array.isArray(hookMap[event])) {
+      for (const group of hookMap[event]) {
+        if (typeof group !== "object" || group === null || Array.isArray(group)) continue;
+        const groupObject = group as JsonObject;
+        if (Object.hasOwn(groupObject, "hooks") && !Array.isArray(groupObject.hooks)) {
+          return `${event} group hooks must be an array`;
+        }
+      }
+    }
   }
 
   return undefined;

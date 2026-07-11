@@ -223,3 +223,178 @@ Final read-only review of `0216e37..0beb5b2` approved the implementation with no
 ## Concerns
 
 No unresolved Critical or Important concern remains. Residual test-scope note: the packed smoke intentionally focuses on the required first-run installed-tarball assertion; second-run idempotency, `--no-hooks`, incompatible user configuration, and failure metadata are covered by unit/integration tests rather than additional packed-artifact scenarios. The added source-memory files beyond the brief's initial list were necessary to meet the brief's explicit zero-warning and zero-drift requirements after consuming Task 1's committed behavior.
+
+## Final Review Follow-up: Incompatible Nested Shared Groups
+
+The final review found that shared Claude/Codex event arrays were preflighted, but a group-level `hooks` property with a non-array value was not. Repair could then remove a top-level Benjamin command, discard the remaining incompatible group, and stamp the upgrade as complete. The fix adds group-level structural preflight for both `SessionStart` and `Stop`, preserving the target file unchanged and preventing the current `bdVersion` stamp. A separate regression proves that a shared group with no `hooks` property still receives the existing safe property-level repair.
+
+### RED
+
+Command:
+
+```bash
+pnpm build && node --test --test-name-pattern='preserves shared hook groups with incompatible nested hooks|repairs top-level Benjamin commands in shared groups that omit nested hooks' dist/test/upgrade.test.js
+```
+
+Output:
+
+```text
+$ tsc -p tsconfig.json
+▶ upgrade
+  ✖ preserves shared hook groups with incompatible nested hooks and leaves metadata unstamped (397.281916ms)
+  ✔ repairs top-level Benjamin commands in shared groups that omit nested hooks (358.547834ms)
+✖ upgrade (756.833708ms)
+ℹ tests 2
+ℹ suites 1
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 857.365958
+
+✖ failing tests:
+
+test at dist/test/upgrade.test.js:241:5
+✖ preserves shared hook groups with incompatible nested hooks and leaves metadata unstamped (397.281916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  0 !== 1
+```
+
+The failure was the intended missing-behavior failure: plain upgrade returned success instead of failing closed.
+
+### GREEN
+
+Command:
+
+```bash
+pnpm build && node --test --test-name-pattern='preserves shared hook groups with incompatible nested hooks|repairs top-level Benjamin commands in shared groups that omit nested hooks' dist/test/upgrade.test.js
+```
+
+Output:
+
+```text
+$ tsc -p tsconfig.json
+▶ upgrade
+  ✔ preserves shared hook groups with incompatible nested hooks and leaves metadata unstamped (359.172083ms)
+  ✔ repairs top-level Benjamin commands in shared groups that omit nested hooks (361.830292ms)
+✔ upgrade (722.039917ms)
+ℹ tests 2
+ℹ suites 1
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 823.659208
+```
+
+### Focused Upgrade, Doctor, And Drift-Hooks Verification
+
+Command:
+
+```bash
+pnpm build && node --test dist/test/upgrade.test.js dist/test/doctor.test.js dist/test/drift-hooks.test.js
+```
+
+Output:
+
+```text
+$ tsc -p tsconfig.json
+▶ doctor
+  ✔ reports missing skills and an uninitialized project without failing (187.880083ms)
+  ✔ reports installed skills and a valid initialized project (627.92275ms)
+  ✔ reports stale skills without failing (223.279417ms)
+  ✔ fails when an initialized project does not validate (480.719541ms)
+  ✔ strict mode fails on setup gaps (202.318958ms)
+  ✔ strict mode passes when setup and validation are clean (834.950709ms)
+  ✔ repository-only strict mode never reads unreadable integration state (408.57975ms)
+  ✔ strict mode isolates Codex requirements from other targets (423.176708ms)
+  ✔ strict target mode rejects a legacy stop-only hook and reports it separately (713.046ms)
+  ✔ strict target mode requires the exact session-start format command (603.540833ms)
+  ✔ repairs wrong matcher claude-code session hooks without deleting user data (1156.170625ms)
+  ✔ repairs command on group claude-code session hooks without deleting user data (1209.19325ms)
+  ✔ repairs a direct claude-code command without deleting mixed group data (1101.478209ms)
+  ✔ repairs wrong matcher codex session hooks without deleting user data (1120.968667ms)
+  ✔ repairs command on group codex session hooks without deleting user data (1124.35225ms)
+  ✔ repairs a direct codex command without deleting mixed group data (1092.861625ms)
+  ✔ repairs wrong-format and legacy-stop claude-code hooks through diagnose, install, diagnose (892.728291ms)
+  ✔ repairs wrong-format and legacy-stop codex hooks through diagnose, install, diagnose (901.401125ms)
+  ✔ repairs wrong-format and legacy-stop cursor hooks through diagnose, install, diagnose (940.87975ms)
+  ✔ strict mode isolates Claude Desktop to the upload zip (376.311791ms)
+  ✔ passes a Codex target when only its skill and hook are installed (749.53725ms)
+  ✔ passes a Claude Desktop target when only its upload zip exists (568.875333ms)
+  ✔ rejects unknown doctor targets with the exact allowed-value usage (172.146833ms)
+  ✔ rejects a missing doctor target with the exact allowed-value usage (174.472417ms)
+✔ doctor (16288.726542ms)
+▶ drift
+  ✔ fails when benjamin-docs is not initialized (187.113708ms)
+  ✔ reports unavailable outside a git repository without failing (413.594666ms)
+  ✔ reports no drift when docs are current with watched code (591.612875ms)
+  ✔ flags docs whose watched code changed in commits after the doc (919.403542ms)
+  ✔ ignores uncommitted source changes and skips docs with uncommitted updates (856.136417ms)
+  ✔ clears drift for a doc after it is updated and committed (668.639458ms)
+  ✔ keeps commit counts specific to each document's last update (776.458292ms)
+  ✔ tracks non-ASCII watched docs through batched last-commit lookup (625.808458ms)
+  ✔ blocks ready when committed watched source is ahead of memory (716.002ms)
+✔ drift (5756.73075ms)
+▶ hooks
+  ✔ installs, reports, and uninstalls hooks for all targets (818.132083ms)
+  ✔ preserves existing user hooks and settings across install and uninstall (382.090417ms)
+  ✔ removes only Benjamin commands when directly uninstalling mixed shared-schema groups (190.069791ms)
+  ✔ preserves unparseable hook files and reports them as skipped (183.347166ms)
+  ✔ installs hooks from init with --hooks and skips them with --no-hooks (380.840208ms)
+✔ hooks (1954.729667ms)
+▶ session commands
+  ✔ prints nothing outside an initialized project (173.917333ms)
+  ✔ prints compact context with drift summary per format (1318.3625ms)
+  ✔ keeps a maximum-length custom docs root and the full overflow suffix within budget (522.185917ms)
+  ✔ keeps the legacy session-stop command silent for every output format (616.497208ms)
+  ✔ keeps the source-change nudge available as an explicit diagnostic (300.876792ms)
+  ✔ keeps the explicit diagnostic quiet when memory changed with source work (298.346166ms)
+  ✔ stays quiet when memory was updated or the stop hook already fired (604.694209ms)
+  ✔ does not nudge again when the stop hook is already active (424.732291ms)
+  ✔ ignores source changes that were already dirty when the session started (670.639625ms)
+  ✔ does not continue the agent loop when source changes during a session (688.090291ms)
+  ✔ diagnoses a source deletion during a session while installed stop output stays silent (504.245ms)
+  ✔ stays silent when an already-dirty source file changes again during the session (714.321042ms)
+  ✔ fails open when a stop hook has no session baseline (441.8095ms)
+  ✔ stays quiet when memory changed along with new source work (723.381583ms)
+  ✔ keeps session baselines isolated (1075.634875ms)
+  ✔ prunes expired session state when a new session starts (722.282917ms)
+✔ session commands (9800.607125ms)
+▶ upgrade
+  ✔ fails when benjamin-docs is not initialized (184.627084ms)
+  ✔ stamps bdVersion, refreshes agent guidance, and installs hooks (653.302375ms)
+  ✔ installs every supported hook during plain upgrade (500.584958ms)
+  ✔ keeps --hooks as the default-compatible alias (424.654375ms)
+  ✔ leaves every hook file untouched with --no-hooks (446.911ms)
+  ✔ migrates legacy hooks, preserves user data, refreshes skills, and is idempotent (627.277917ms)
+  ✔ removes only a top-level legacy stop command from a mixed user-owned group (425.060292ms)
+  ✔ fails upgrade when a required hook target cannot be migrated (447.759583ms)
+  ✔ preserves incompatible user-owned hook structures and leaves metadata unstamped (519.418125ms)
+  ✔ preserves shared hook groups with incompatible nested hooks and leaves metadata unstamped (419.07825ms)
+  ✔ repairs top-level Benjamin commands in shared groups that omit nested hooks (407.060292ms)
+  ✔ fails upgrade when a required skill target cannot be refreshed (394.792833ms)
+  ✔ keeps an unmarked user AGENTS.md untouched (402.484042ms)
+✔ upgrade (5854.434458ms)
+▶ upgrade hints
+  ✔ ready shows an advisory upgrade hint for repos initialized before 0.10.0 (471.000458ms)
+  ✔ ready shows no upgrade hint when bdVersion is current (434.556833ms)
+  ✔ session-start reports version skew and cached update availability (394.991167ms)
+  ✔ session-start stays quiet about updates when checks are disabled (391.538958ms)
+✔ upgrade hints (1692.300334ms)
+▶ update-check helpers
+  ✔ compares versions numerically (0.373708ms)
+  ✔ treats missing, malformed, and old caches as stale (0.081584ms)
+✔ update-check helpers (0.542125ms)
+ℹ tests 73
+ℹ suites 7
+ℹ pass 73
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17635.979833
+```

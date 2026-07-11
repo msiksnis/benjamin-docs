@@ -277,6 +277,97 @@ describe("upgrade", () => {
     });
   });
 
+  it("preserves shared hook groups with incompatible nested hooks and leaves metadata unstamped", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        stripBdVersion(dir);
+
+        const fixtures = [
+          [".claude/settings.json", {
+            custom: "keep-claude",
+            hooks: {
+              SessionStart: [{
+                command: "benjamin-docs session-start --format claude",
+                hooks: "user-owned",
+                customGroup: "keep-session-start",
+              }],
+            },
+          }],
+          [".codex/hooks.json", {
+            custom: "keep-codex",
+            hooks: {
+              Stop: [{
+                command: "benjamin-docs session-stop --format codex",
+                hooks: { custom: "user-owned" },
+                customGroup: "keep-stop",
+              }],
+            },
+          }],
+        ] as const;
+        for (const [relativePath, value] of fixtures) {
+          mkdirSync(join(dir, relativePath.split("/")[0] ?? ""), { recursive: true });
+          writeFileSync(join(dir, relativePath), `${JSON.stringify(value, null, 2)}\n`);
+        }
+        const originals = fixtures.map(([relativePath]) => readFileSync(join(dir, relativePath), "utf8"));
+
+        const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+
+        assert.equal(result.status, 1);
+        assert.match(result.stdout, /Hooks: failed for Claude Code/);
+        assert.match(result.stdout, /SessionStart group hooks must be an array/);
+        assert.match(result.stdout, /Hooks: failed for Codex CLI/);
+        assert.match(result.stdout, /Stop group hooks must be an array/);
+        assert.deepEqual(fixtures.map(([relativePath]) => readFileSync(join(dir, relativePath), "utf8")), originals);
+        const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { bdVersion?: string };
+        assert.equal(config.bdVersion, undefined);
+      });
+    });
+  });
+
+  it("repairs top-level Benjamin commands in shared groups that omit nested hooks", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        stripBdVersion(dir);
+        mkdirSync(join(dir, ".claude"), { recursive: true });
+        writeFileSync(join(dir, ".claude/settings.json"), `${JSON.stringify({
+          hooks: {
+            SessionStart: [{
+              command: "benjamin-docs session-start --format wrong",
+              customGroup: "keep-session-start",
+            }],
+            Stop: [{
+              command: "benjamin-docs session-stop --format claude",
+              customGroup: "keep-stop",
+            }],
+          },
+        }, null, 2)}\n`);
+
+        const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+        const updated = JSON.parse(readFileSync(join(dir, ".claude/settings.json"), "utf8")) as {
+          hooks: { SessionStart: Array<Record<string, unknown>>; Stop: Array<Record<string, unknown>> };
+        };
+
+        assert.equal(result.status, 0);
+        assert.deepEqual(updated.hooks.SessionStart, [
+          { customGroup: "keep-session-start" },
+          {
+            matcher: "startup|resume|clear",
+            hooks: [{ type: "command", command: "benjamin-docs session-start --format claude" }],
+          },
+        ]);
+        assert.deepEqual(updated.hooks.Stop, [{ customGroup: "keep-stop" }]);
+        const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { bdVersion?: string };
+        assert.equal(config.bdVersion, "0.12.0");
+      });
+    });
+  });
+
   it("fails upgrade when a required skill target cannot be refreshed", () => {
     withTempDir((dir) => {
       withTempDir((home) => {
