@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-11
+updated: 2026-07-12
 source: session-capture
 ---
 
@@ -39,6 +39,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/session.ts` implements budgeted `bd session-start` context, typed hook-payload parsing, per-tool output, the always-silent legacy `formatSessionStop()` adapter, and `getSessionStopNudge()` for an explicit diagnostic path.
 - `src/session-state.ts` owns local per-session working-tree fingerprints, new-content comparison, pending-nudge acknowledgement, fail-open recovery, and seven-day state pruning.
 - `src/hooks.ts` installs/reports/uninstalls session-start-only hooks in the target project's Claude Code settings file plus the Codex and Cursor `hooks.json` files (under the project's `.claude`, `.codex`, and `.cursor` folders). Shared-schema health requires `SessionStart[].hooks[]`, matcher `startup|resume|clear`, `type: command`, and the target's exact format command; malformed or stale Benjamin entries keep diagnosis unhealthy. Install repairs at entry/property granularity: it removes a malformed top-level Benjamin command without deleting unrelated group properties or nested user hooks, reuses a valid nested Benjamin entry, and removes legacy Benjamin stop entries. Ownership is anchored to an actual Benjamin start/stop command at command start and to the target's direct schema locations: group/group-hook entries in Claude/Codex `SessionStart` or `Stop`, and flat Cursor entries in `sessionStart` or `stop`. Nested custom command metadata and custom events remain user-owned, so health, repair, upgrade, and uninstall ignore them. Unparseable files are skipped, never rewritten.
+- Hook currentness additionally requires exactly one canonical start command, the supported Cursor schema version, and object-shaped entries throughout relevant executable arrays. Duplicate or leading-whitespace Benjamin commands are unhealthy and repaired; unknown versions and incompatible structures are skipped unchanged by install and uninstall. Reads and removals reject symlinked ancestors, while writes use the atomic helper in `src/fsx.ts`. Hook mutations pass the raw text read into a best-effort final stale-state check; the helper documents that this is not cross-process compare-and-swap.
 - `src/upgrade.ts` owns the complete post-package-update migration for initialized repositories: metadata, Benjamin-owned agent guidance, the current skill bundle, existing Memory Views, default install/repair of all three session-start hook targets, legacy Benjamin stop-hook removal, user-configuration preservation, and the explicit `--no-hooks` opt-out. A required skill or hook failure makes upgrade fail truthfully and leaves the previous `bdVersion` stamp intact so readiness/session-start keep surfacing version skew until migration succeeds.
 - `src/memory-tools.ts` holds protocol-free MCP tool logic: manifest-scoped doc access, section search with term scoring, transactional updates (validate then roll back on regression), decision appends, and status with drift.
 - `src/mcp-server.ts` wires those tools into an `McpServer` over `StdioServerTransport` with zod input schemas; `bd mcp` serves until stdin closes. Tool failures return readable text with `isError` instead of protocol faults.
@@ -57,6 +58,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/frontmatter.ts` parses and serializes Benjamin-managed Markdown frontmatter, including optional `freshness: status`.
 - `src/types.ts` defines config, manifest, scopes, anchors, and frontmatter shapes.
 - `src/constants.ts` holds shared filenames, known values, freshness values, and defaults.
+- `src/fsx.ts` also owns failure-safe hook-file replacement: a same-directory temporary file is written and flushed, existing POSIX mode/owner metadata is retained, rename replaces the destination atomically, the parent directory is synced where supported, and cleanup failures are attached without hiding the primary error.
 
 ## Skills And Packaging
 
@@ -80,10 +82,11 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `test/scopes-anchors.test.ts` covers feature-scope watch registration, `scope status` cascade, and rejection of unknown scopes and statuses.
 - `test/ready.test.ts` covers the combined handoff gate, including failure when status docs have no freshness coverage and non-failing surfacing of recorded environment/tooling blockers.
 - `test/drift-hooks.test.ts` covers committed-history drift semantics, session-start-only install/migration/uninstall behavior, silent stop compatibility, and the explicit stop diagnostic. `test/context-budget.test.ts` locks public context limits; `scripts/benchmark-agent-overhead.mjs` asserts session-boundary p95 and output budgets.
+- The hook matrix also covers exact-one canonicalization, leading-whitespace duplicates, incompatible/unknown schemas, symlinked ancestors, and byte-preserving uninstall skips across Claude Code, Codex, and Cursor.
 - `test/upgrade.test.ts` covers plain-upgrade hook installation, legacy and cross-event repair with exact shared-group user-data preservation, complete flat Cursor array repair without commandless entries, anchored ownership across every target, all-target skill preflight, skill refresh, idempotency, `--hooks` compatibility, `--no-hooks`, truthful partial failure without a false current-version stamp, and unchanged parseable-but-incompatible user hook structures. Cross-event fixtures prove unhealthy status/doctor before repair, exact nested and prefixed content preservation, one correct start entry after repair, and a current second upgrade across Claude Code, Codex, and Cursor. `scripts/smoke-packed-cli.mjs` repeats the plain-upgrade contract against the installed tarball with an isolated `BENJAMIN_DOCS_HOME`.
 - `test/readiness-report.test.ts` reproduces false-ready, cross-stack, deletion, planning-mode, non-Git/unborn-HEAD availability, fail-closed Git analysis, guidance, and an 8,200-file oversized committed diff. `test/export-policy.test.ts` and `test/validate-export.test.ts` cover the shared preflight, Markdown-delimited cross-platform home paths including mixed-case Windows forms, and verified customer success path. `test/doctor.test.ts` covers target isolation, unreadable global state, exact target hook commands, stop-only legacy hooks, and diagnose-install-healthy repair for every hook target, including mixed direct-command groups, exact user-data preservation, duplicate avoidance, and idempotent reinstall for Claude Code and Codex; `test/mcp.test.ts` enforces task-context bounds.
 - `scripts/smoke-packed-cli.mjs` packs and installs the actual tarball before exercising the binary, plain upgrade, hook files, validation, and session-context budgets. `.github/workflows/ci.yml` runs `pnpm check` on Linux, macOS, and Windows with Node 22 and 24, plus a Linux trust-gates job for packed smoke, JSON readiness, and overhead budgets.
-- `test/fsx.test.ts` and `test/frontmatter.test.ts` cover low-level path and Markdown parsing behavior.
+- `test/fsx.test.ts` covers low-level paths plus atomic-write failure, cleanup-error reporting, and POSIX mode/owner preservation. `test/frontmatter.test.ts` covers Markdown parsing behavior.
 
 ## Change Guide
 

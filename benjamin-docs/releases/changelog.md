@@ -5,7 +5,7 @@ scope_id: release
 audience: [developer, business, public]
 status: review
 visibility: private
-updated: 2026-07-11
+updated: 2026-07-12
 source: manual
 ---
 
@@ -22,6 +22,8 @@ source: manual
 - Hook health, repair classification, upgrade, and uninstall now enumerate only each target's direct executable schema locations. Nested custom command metadata and unrelated custom hook events are preserved and ignored, while real direct Benjamin start/stop entries still repair or uninstall normally.
 - Agent integrations now install session-start only. Upgrade removes legacy Benjamin-owned stop/follow-up hooks while preserving user hooks, and the legacy `session-stop` compatibility command is silent for every supported format.
 - Hook health and upgrade now also reject and remove cross-event direct Benjamin commands: either session command under Stop/stop is unsafe, and `session-stop` under SessionStart/sessionStart is misplaced. Nested custom metadata and prefixed user mentions remain untouched.
+- Hook status, strict doctor, install, and uninstall now agree on the same structural boundary: each target is healthy only with exactly one canonical start command. Duplicate and leading-whitespace direct Benjamin commands are repaired, while unknown Cursor schema versions and non-object executable-array entries are preserved unchanged as incompatible.
+- Hook paths reject symlinked ancestors, and existing hook files are replaced through a flushed same-directory temporary file with POSIX mode/owner preservation and atomic rename. Failed writes or renames keep the original file; cleanup failures no longer hide the primary error. Raw bytes are checked immediately before mutation as a best-effort stale-read guard without claiming cross-process compare-and-swap.
 - Added explicit numeric context contracts: session start is capped at 400 characters / 100 estimated tokens; task `memory_context` at 2,400 / 600; search snippets at 300 characters with 5 default and 8 maximum results; and the optional completion note at 120 characters. Both `benchmark:agent` and the descriptive `benchmark:agent-overhead` run the same assertion-capable release gate.
 - Split the core Benjamin Docs skill into a compact router capped at 1,200 words plus capture, export, and integration references loaded only when relevant.
 - Added a structured readiness report with stable dimensions for structure, content heuristics, committed freshness, working-tree impact, and agent guidance. `bd ready --json` emits the versioned report for agents and CI.

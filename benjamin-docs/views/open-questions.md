@@ -15,7 +15,7 @@ What unresolved questions and open risks are captured across managed Benjamin do
 
 ## [launch-readiness-audit Handoff](../features/launch-readiness-audit/handoff.md)
 
-Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-11)
+Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-12)
 
 ### Risks / Open Questions
 

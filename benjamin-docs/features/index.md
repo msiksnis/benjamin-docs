@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, agent, business]
 status: review
 visibility: private
-updated: 2026-07-11
+updated: 2026-07-12
 source: session-capture
 ---
 
@@ -17,7 +17,7 @@ Because this repository is public, do not create feature scopes for private comm
 
 ## Active
 
-- [Launch Readiness Audit / Dependable Standard Program](./launch-readiness-audit/brief.md): trust-foundation Tasks 1-10 and Release Train A are complete on the dependable-standard branch. The unpublished 0.12.0 release candidate now has one post-package-update migration path: plain `bd upgrade` refreshes metadata, guidance, skills, views, and all supported session-start hooks while preserving user configuration; `--no-hooks` is the opt-out. Release Train B, Impact Evidence, is next.
+- [Launch Readiness Audit / Dependable Standard Program](./launch-readiness-audit/brief.md): trust-foundation Tasks 1-10 and Release Train A are complete on the dependable-standard branch. The unpublished 0.12.0 release candidate now has one post-package-update migration path: plain `bd upgrade` refreshes metadata, guidance, skills, views, and all supported session-start hooks while preserving user configuration; `--no-hooks` is the opt-out. Final review also closes rendered-export bypasses and makes hook health exact, path-safe, structurally fail-closed, and failure-safe under atomic replacement. Release Train B, Impact Evidence, is next.
 
 ## Shipped (archived)
 

@@ -15,7 +15,7 @@ Derived from next-action and near-term work sections across managed Benjamin doc
 
 ## [Roadmap](../project/roadmap.md)
 
-Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-11)
+Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-12)
 
 ### Immediate Next Work
 
@@ -28,6 +28,9 @@ Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-11)
 - Final automatic-upgrade hardening preflights every skill bundle destination before I/O and anchors hook ownership to actual command-start Benjamin start/stop forms. Symlinked external targets fail without partial writes or version advancement; wrapped user commands survive upgrade and uninstall across all three hook schemas.
 - Final schema-health hardening enumerates only direct executable hook locations for Claude Code, Codex, and Cursor. Nested custom command metadata and unrelated custom events remain user-owned, while exact direct Benjamin hooks still repair, diagnose, and uninstall idempotently.
 - Final cross-event hardening rejects either direct Benjamin session command under Stop/stop, removes misplaced direct stop commands from SessionStart/sessionStart, preserves nested and prefixed user content exactly, and leaves one healthy exact start entry after an idempotent upgrade.
+- Final hook currentness hardening requires exactly one canonical start across all targets, repairs leading-whitespace duplicates, rejects unsupported Cursor versions and primitive executable-array entries, and makes status/doctor/install/uninstall share the same fail-closed structural preflight.
+- Hook-file I/O rejects symlinked ancestors and uses flushed same-directory temporary files with atomic rename and POSIX mode/owner preservation. Write/rename failures preserve the original file, and a newer edit visible at the final stale-read check aborts replacement or deletion.
+- Final customer-export hardening scans the complete rendered artifact before writes, requires typed verification evidence with a meaningful outcome, parses local `file:` home URLs, enforces single-line scope titles, and safely quotes generated frontmatter.
 - Next, write the Impact Evidence Plan for durable doc-updated/no-impact/deferred/blocker acknowledgements keyed to commit and content identity.
 - After impact evidence is proven, write the Canonical State Plan covering typed views, bounded continuation, and mode-specific minimal schemas; then write the Agent Interface Plan; then the Protocol and Conformance Plan.
 - Keep the human command surface stable and preserve the public-repo privacy guardrail.

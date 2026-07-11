@@ -5,7 +5,7 @@ scope_id: launch-readiness-audit
 audience: [developer, designer, agent]
 status: approved
 visibility: public
-updated: 2026-07-11
+updated: 2026-07-12
 source: manual
 freshness: status
 ---
@@ -31,6 +31,10 @@ Final migration-safety review also makes skill refresh path-safe and hook owners
 Final schema-health review makes ownership location-specific as well as command-specific. Only direct Claude/Codex group or `group.hooks[]` commands in `SessionStart`/`Stop`, and direct Cursor entries in `sessionStart`/`stop`, affect health, repair, upgrade, or uninstall. Nested custom command metadata and unrelated event names remain user-owned.
 
 Final cross-event review makes those direct locations symmetric: any Benjamin session command under Stop/stop is unsafe, and `session-stop` under SessionStart/sessionStart is misplaced. Repair removes both while retaining exactly one healthy target start command and preserving nested or prefixed user content.
+
+The final automatic-upgrade closure makes “exactly one” literal. Duplicate and leading-whitespace direct commands are unhealthy and canonicalized; unsupported Cursor schema versions, primitive relevant-event or nested hook entries, incompatible group shapes, and symlinked path ancestors are preserved unchanged. Status, strict doctor, install, and uninstall use the same structural boundary. Existing hook files are flushed to a same-directory temporary file and atomically renamed with POSIX mode/owner preservation; write/rename failure keeps the original file, and a changed file visible at the final stale-read check aborts mutation.
+
+The final publication closure scans the complete rendered artifact before any write, not only selected source sections. Evidence must name a typed checked target and meaningful result; local `file:` home URLs, multiline scope titles, and unsafe dynamic frontmatter are blocked or safely encoded. Generated metadata records evidence without claiming implementation truth.
 
 Audit date: 2026-07-10
 Audited version: 0.11.1 at commit 3705444

@@ -15,7 +15,7 @@ Derived from continuation-proof, read-first, current-state, check, risk, and nex
 
 ## [launch-readiness-audit Handoff](../features/launch-readiness-audit/handoff.md)
 
-Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-11)
+Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-12)
 
 ### Risks / Open Questions
 
@@ -53,7 +53,7 @@ Before every implementation handoff:
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-11)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-12)
 
 ### Current State
 

@@ -15,7 +15,7 @@ Derived from risk, hazard, assumption, and open-question sections across managed
 
 ## [launch-readiness-audit Handoff](../features/launch-readiness-audit/handoff.md)
 
-Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-11)
+Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-12)
 
 ### Risks / Open Questions
 

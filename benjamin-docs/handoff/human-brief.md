@@ -5,7 +5,7 @@ scope_id: human-brief
 audience: [developer, designer, business, advisor]
 status: review
 visibility: private
-updated: 2026-07-11
+updated: 2026-07-12
 source: session-capture
 freshness: status
 ---
@@ -33,6 +33,10 @@ The final migration safety pass rejects symlinked skill files or folders before 
 Hook cleanup now follows each tool's executable schema exactly. Nested custom objects that happen to contain Benjamin command text do not count as installed or legacy hooks, are preserved during upgrade/uninstall, and cannot keep strict doctor unhealthy after the real executable hook is installed.
 
 Hook events are also repaired symmetrically: Stop/stop cannot directly run either Benjamin session command, and SessionStart/sessionStart cannot directly run `session-stop`. Upgrade removes those misplaced commands while keeping one correct start hook and leaving wrapped or nested user content alone.
+
+The last hook review tightened “one correct” to exactly one canonical start. Duplicate and leading-whitespace direct Benjamin commands are repaired; unknown Cursor versions, malformed executable-array entries, incompatible groups, and symlinked path ancestors are preserved unchanged. Hook-file replacement is flushed and atomically renamed while retaining POSIX permissions/ownership; a newer edit visible at the final check aborts replacement or deletion.
+
+The customer export boundary now scans the final rendered artifact before writing anything. Evidence must identify a concrete typed check and meaningful result, `file:` home paths are blocked, scope titles cannot inject multiline frontmatter, and generated metadata no longer overstates implementation verification.
 
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
 

@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-11
+updated: 2026-07-12
 source: session-capture
 freshness: status
 ---
@@ -33,6 +33,10 @@ Legacy stop migration is equally narrow: a top-level Benjamin stop command is re
 That property-level rule is limited to shared Claude/Codex groups; flat Cursor Benjamin entries are removed whole so repair cannot leave invalid commandless objects.
 
 Skill refresh is fail-closed at the filesystem boundary: every selected bundle destination is preflighted before bundle I/O, and symlinked, non-directory, or escaping paths abort the all-target migration without external or partial target writes. Hook ownership is likewise conservative: only command-start Benjamin session commands in each target's direct start/stop schema locations are repaired or removed; wrapper, prefix, logging, nested custom metadata, and unrelated event names stay user-owned. Within those direct locations, Stop/stop permits no Benjamin session command, while SessionStart/sessionStart permits only the exact healthy target start command.
+
+Final hook review requires exactly one canonical start command and applies one structural preflight to health, install, and uninstall. Leading whitespace remains directly executable ownership; wrappers do not. Unsupported Cursor versions, primitive relevant-event entries, incompatible shared groups, and symlinked hook ancestors are skipped unchanged. Existing hook files use flushed same-directory temporary files, atomic rename, POSIX mode/owner preservation, and a best-effort final stale-read guard.
+
+Final export review also moved publication scanning to the fully rendered in-memory artifact before any write. Typed `Checked:`/`Result:` evidence, parsed local `file:` URLs, single-line scope titles, and safely quoted generated frontmatter close the remaining customer-export bypasses without claiming semantic verification.
 
 `benjamin-docs` is a persistent repo-local project memory system for AI coding agents and humans. It turns a repo into living project knowledge that agents read, follow, and update while they work, so a new coding session starts with context: what the project is, where work stopped, what decisions and conventions matter, what is risky, and what should happen next.
 

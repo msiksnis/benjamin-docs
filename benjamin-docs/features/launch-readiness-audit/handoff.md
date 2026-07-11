@@ -5,7 +5,7 @@ scope_id: launch-readiness-audit
 audience: [developer, agent]
 status: approved
 visibility: public
-updated: 2026-07-11
+updated: 2026-07-12
 source: manual
 freshness: status
 ---
@@ -33,6 +33,10 @@ Final schema-health review narrowed that ownership boundary to executable locati
 Final cross-event review completed the symmetry: either direct Benjamin session command under Stop/stop now makes status and strict doctor unhealthy, and a direct `session-stop` under SessionStart/sessionStart is removed as misplaced. Upgrade leaves exactly one healthy start entry, preserves nested/prefixed user content, and is current on its second run for all three targets.
 
 The final cross-schema pass keeps that rule limited to shared Claude/Codex groups. Cursor uses flat entries, so stale Benjamin entries are removed whole; exact-array regression coverage prevents commandless remnants.
+
+The final hook closure requires exactly one canonical start for every target and recognizes leading-whitespace commands as directly executable Benjamin ownership. Unknown Cursor versions, primitive relevant-event or nested hook entries, incompatible shared groups, and symlinked hook ancestors are preserved unchanged. Status, strict doctor, install, and uninstall now agree. Existing files are written through a flushed same-directory temporary and atomically renamed with POSIX mode/owner preservation; failures keep the original, and a changed file visible at the final stale-read check aborts mutation.
+
+The final export closure evaluates the complete rendered customer artifact before creating directories or files. Verification evidence must name a typed target and meaningful result; local `file:` home URLs and multiline scope titles fail preflight, generated frontmatter is safely quoted, and metadata records evidence without claiming semantic implementation verification.
 
 Executable plan:
 

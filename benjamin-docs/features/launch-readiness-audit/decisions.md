@@ -5,7 +5,7 @@ scope_id: launch-readiness-audit
 audience: [developer, agent]
 status: approved
 visibility: public
-updated: 2026-07-11
+updated: 2026-07-12
 source: manual
 freshness: status
 ---
@@ -77,6 +77,9 @@ Reason: archived scopes, superseded plans, and generated duplicates can currentl
 - Final migration review: incomplete required skill/hook work never advances `bdVersion`, so version-skew repair remains visible. Parseable hook files with incompatible user-owned container/event shapes are skipped unchanged and fail upgrade rather than being destructively normalized.
 - Final migration re-review: legacy top-level Benjamin stop commands are removed property-by-property, preserving unrelated fields and nested user hooks in the same group exactly.
 - Hook removal is schema-aware: property-level preservation applies to Claude/Codex shared groups; Benjamin-owned flat Cursor entries are removed whole to avoid malformed commandless remnants.
+- Hook currentness is exact: one canonical start command, no additional direct Benjamin command in the start event, and one shared incompatible-structure preflight for status, strict doctor, install, and uninstall. Leading whitespace is directly executable ownership; unsupported Cursor versions and primitive schema entries are preserved unchanged.
+- Hook paths reject symlinked ancestors. Existing files use flushed same-directory temporary files, atomic rename, POSIX mode/owner preservation, primary-error-preserving cleanup, and a best-effort final stale-read check before replacement or deletion.
+- Customer publication scans the complete rendered artifact before writes. Verification evidence must contain a typed checked target and meaningful result; parsed local `file:` home URLs and multiline scope titles are rejected, while generated frontmatter values are safely quoted.
 
 ## Accepted Product Direction
 
@@ -123,3 +126,6 @@ Rejected because a single unsafe customer export or false-ready handoff attacks 
 - 2026-07-11: Preflight every selected skill bundle destination before bundle I/O and treat only command-start `benjamin-docs session-start|session-stop` forms as hook ownership. Reject symlinked or escaping skill targets as a whole migration; preserve wrappers, prefixes, and logging commands during repair and uninstall.
 - 2026-07-11: Enumerate hook ownership only at direct executable schema locations. Claude/Codex use direct group commands and direct `group.hooks[]` entries under `SessionStart`/`Stop`; Cursor uses direct entries under `sessionStart`/`stop`. Never infer ownership or health from nested custom objects or unrelated event names.
 - 2026-07-11: Make hook health and repair event-symmetric. Any schema-local direct Benjamin start or stop command under Stop/stop is unsafe; SessionStart/sessionStart may retain only the exact target start command. Preserve the narrower legacy-stop diagnostic for compatibility, but expose the broader unsafe-Stop health flag for truthful status and strict doctor output.
+- 2026-07-12: Require exactly one canonical target start, treat leading whitespace as direct Benjamin ownership, and fail closed on unknown Cursor versions or non-object executable-schema entries. Apply the same preflight to health and mutation, and preserve unsafe/incompatible hook paths unchanged.
+- 2026-07-12: Replace existing hook files through a flushed same-directory temporary plus atomic rename, retaining POSIX mode/owner metadata and the primary error on cleanup failure. Use the raw text read by the hook layer as a best-effort final stale-read guard without claiming cross-process compare-and-swap.
+- 2026-07-12: Run publication policy against the final rendered artifact before any write and require typed, meaningful verification evidence without claiming semantic proof.

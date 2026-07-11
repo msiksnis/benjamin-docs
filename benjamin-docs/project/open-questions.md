@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-11
+updated: 2026-07-12
 source: session-capture
 ---
 
@@ -20,6 +20,8 @@ source: session-capture
 - Decision: preserve the accepted latency, token, skill-size, and one-sentence completion-note budgets in tests and release gates.
 - Decision: public copy describes bounded start context, deterministic readiness limits, publication metadata, and response-safe final answers exactly; generated skill bundles are verified artifacts rather than tracked sources.
 - Decision for 0.12.0: after updating the package, run one plain `bd upgrade` in each initialized repository. It refreshes metadata, guidance, skills, existing views, and all supported session-start hooks; removes legacy Benjamin stop hooks; preserves user configuration; and requires no separate hook command. `--no-hooks` is the explicit environment opt-out.
+- Decision for 0.12.0 hook currentness: exactly one canonical target start is healthy. Leading-whitespace duplicates are Benjamin-owned; unknown Cursor versions, primitive executable-array entries, incompatible shared structures, and symlinked hook ancestors are preserved unchanged. Hook writes are failure-safe atomic replacements with POSIX mode/owner retention and a best-effort final stale-read check.
+- Decision for 0.12.0 publication: scan the final rendered artifact before writes, require typed checked targets and meaningful results, reject local `file:` home URLs and multiline scope titles, and quote generated frontmatter without elevating recorded evidence into semantic proof.
 - Current status: the 0.12.0 trust foundation and all ten audit reproductions are complete; publication remains a separate maintainer action.
 - Next plan: impact-evidence ledger and no-doc-impact acknowledgement keyed to commit/content identity.
 - Then, in order: canonical state, typed views, bounded continuation, and mode-specific minimal schemas; agent/MCP resources, prompts, and structured output; public protocol and conformance.

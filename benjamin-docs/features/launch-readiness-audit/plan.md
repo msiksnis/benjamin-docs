@@ -5,7 +5,7 @@ scope_id: launch-readiness-audit
 audience: [developer, agent]
 status: approved
 visibility: public
-updated: 2026-07-11
+updated: 2026-07-12
 source: manual
 freshness: status
 ---
@@ -39,6 +39,10 @@ The final automatic-upgrade review regressions cover two additional trust bounda
 The final schema-health regressions cover all three target formats with nested custom start/stop command metadata. Custom-only files remain not installed until an exact executable hook is added; valid executable hooks beside that metadata remain healthy; strict doctor passes after upgrade; second upgrade is current; and uninstall ignores both nested metadata and unrelated custom events while removing real direct Benjamin entries.
 
 The final cross-event regressions make that executable boundary symmetric across Claude Code, Codex, and Cursor. A direct Benjamin `session-start` or `session-stop` under Stop/stop is unsafe and makes status and strict doctor unhealthy; a direct `session-stop` under SessionStart/sessionStart is misplaced. Upgrade removes those schema-local commands, retains or adds exactly one healthy start entry, preserves nested metadata and prefixed user mentions exactly, and is current on the second run.
+
+The closing hook matrix requires exactly one canonical start, repairs duplicate and leading-whitespace direct Benjamin commands, and fails closed on unknown Cursor versions, primitive executable-array entries, incompatible shared groups, and symlinked ancestors. Status, strict doctor, install, and uninstall share that classification. Existing hook files use flushed same-directory temporary writes, atomic rename, POSIX mode/owner preservation, primary-error-preserving cleanup, and a best-effort final stale-read guard.
+
+The closing publication matrix scans the final rendered artifact before any write. It requires typed checked targets plus meaningful results, parses and blocks local `file:` home URLs, rejects multiline scope titles, safely quotes generated frontmatter, and records evidence without claiming semantic verification.
 
 ## Product Invariants
 
