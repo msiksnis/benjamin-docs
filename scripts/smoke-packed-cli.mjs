@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, realpath, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { delimiter, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const limits = {
@@ -12,7 +12,6 @@ const limits = {
 };
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const env = {
   ...process.env,
   BENJAMIN_DOCS_NO_UPDATE_CHECK: "1",
@@ -22,12 +21,56 @@ const env = {
 let packDirectory;
 let projectDirectory;
 
+function isNpmCliPath(path) {
+  return /[/\\]npm[/\\]bin[/\\]npm-cli\.js$/i.test(path);
+}
+
+async function resolveNpmCli() {
+  const executableDirectory = dirname(process.execPath);
+  const candidates = [];
+
+  if (process.env.npm_execpath && isNpmCliPath(process.env.npm_execpath)) {
+    candidates.push(resolve(process.env.npm_execpath));
+  }
+
+  const pathValue = process.env.PATH ?? process.env.Path ?? "";
+  if (process.platform !== "win32") {
+    for (const directory of pathValue.split(delimiter).filter(Boolean)) {
+      try {
+        const resolvedNpm = await realpath(join(directory, "npm"));
+        if (isNpmCliPath(resolvedNpm)) candidates.push(resolvedNpm);
+      } catch {
+        // This PATH entry does not contain npm.
+      }
+    }
+  }
+
+  candidates.push(
+    resolve(executableDirectory, "..", "lib", "node_modules", "npm", "bin", "npm-cli.js"),
+    resolve(executableDirectory, "node_modules", "npm", "bin", "npm-cli.js"),
+    resolve(executableDirectory, "..", "node_modules", "npm", "bin", "npm-cli.js"),
+  );
+
+  const uniqueCandidates = [...new Set(candidates)];
+  for (const candidate of uniqueCandidates) {
+    try {
+      if ((await stat(candidate)).isFile()) return candidate;
+    } catch {
+      // Try the next standard Node/npm layout.
+    }
+  }
+
+  throw new Error(
+    `Unable to locate npm's JavaScript CLI (npm-cli.js). Checked:\n${uniqueCandidates.map((candidate) => `- ${candidate}`).join("\n")}`,
+  );
+}
+
 function run(command, args, cwd) {
   const result = spawnSync(command, args, {
     cwd,
     encoding: "utf8",
     env,
-    shell: process.platform === "win32",
+    shell: false,
   });
 
   if (result.error) throw result.error;
@@ -41,11 +84,16 @@ function run(command, args, cwd) {
 }
 
 try {
-  packDirectory = await mkdtemp(join(tmpdir(), "benjamin-docs-pack-"));
-  projectDirectory = await mkdtemp(join(tmpdir(), "benjamin-docs-smoke-"));
+  packDirectory = await mkdtemp(join(tmpdir(), "benjamin docs pack -"));
+  projectDirectory = await mkdtemp(join(tmpdir(), "benjamin docs smoke -"));
+  const npmCliPath = await resolveNpmCli();
+  const runNpm = (args, cwd) => run(process.execPath, [npmCliPath, ...args], cwd);
 
-  const packOutput = run(
-    npmCommand,
+  if (!packDirectory.includes(" ") || !projectDirectory.includes(" ")) {
+    throw new Error("packed CLI smoke paths must contain spaces for cross-platform coverage");
+  }
+
+  const packOutput = runNpm(
     ["pack", "--json", "--pack-destination", packDirectory],
     repositoryRoot,
   );
@@ -54,8 +102,10 @@ try {
   if (!filename) throw new Error("npm pack did not report a tarball filename");
 
   const tarballPath = join(packDirectory, filename);
-  run(
-    npmCommand,
+  if (!tarballPath.includes(" ")) {
+    throw new Error("packed tarball path must contain spaces for cross-platform coverage");
+  }
+  runNpm(
     ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--no-save", tarballPath],
     projectDirectory,
   );
