@@ -108,6 +108,16 @@ function committedFreshnessDimension(driftAnalysis: DriftAnalysis, planningMode:
 
   const drift = driftAnalysis.result;
   if (!drift) throw new Error("Internal error: drift analysis has neither a result nor an error.");
+  if (drift.analysisFailure) {
+    return {
+      id: "committed_freshness",
+      status: "fail",
+      blocking: true,
+      summary: "Committed freshness analysis failed.",
+      evidence: [`Git ${drift.analysisFailure.operation} analysis failed: ${drift.analysisFailure.message}`],
+      repair: "benjamin-docs drift",
+    };
+  }
   if (!drift.gitAvailable) {
     return {
       id: "committed_freshness",
@@ -127,7 +137,7 @@ function committedFreshnessDimension(driftAnalysis: DriftAnalysis, planningMode:
       status: "fail",
       blocking: true,
       summary: `${drift.drifted.length} managed ${drift.drifted.length === 1 ? "doc is" : "docs are"} behind committed watched source.`,
-      evidence: drift.drifted.map((entry) => `${entry.doc}: ${summarizeDrift(entry)}; files: ${entry.changedFiles.join(", ")}`),
+      evidence: drift.drifted.map((entry) => `${entry.doc}: ${summarizeDrift(entry)}; files: ${samplePaths(entry.changedFiles)}`),
       repair: "benjamin-docs drift",
     };
   }
@@ -237,4 +247,11 @@ function formatReviewIssue(issue: ReviewIssue): string {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function samplePaths(paths: string[]): string {
+  const limit = 5;
+  const sample = paths.slice(0, limit).join(", ");
+  const remaining = paths.length - limit;
+  return remaining > 0 ? `${sample} (+${remaining} more)` : sample;
 }

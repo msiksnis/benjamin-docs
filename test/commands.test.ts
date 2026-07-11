@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { allCommands } from "../src/commands.js";
+import { advancedCommands, allCommands, mainCommands } from "../src/commands.js";
 import { runCli, withTempDir } from "./helpers.js";
 
 describe("commands", () => {
@@ -43,7 +43,8 @@ describe("commands", () => {
     assert.deepEqual(commands[0]?.args, ["init"]);
     assert.deepEqual(commands[1]?.args, ["ready"]);
     assert.deepEqual(commands[2]?.args, ["export"]);
-    assert.deepEqual(commands[3]?.args, ["upgrade"]);
+    assert.deepEqual(commands[3]?.args, ["help"]);
+    assert.deepEqual(commands[4]?.args, ["upgrade"]);
     assert.deepEqual(commands[7]?.args, ["validate"]);
     assert.deepEqual(commands[9]?.args, ["review", "--changed"]);
     assert.deepEqual(commands[10]?.args, ["drift"]);
@@ -70,5 +71,10 @@ describe("commands", () => {
     assert.match(descriptions, /compact session-start pointer\/context packet/i);
     assert.doesNotMatch(descriptions, /handoff-ready/i);
     assert.doesNotMatch(descriptions, /load(?:s|ed)? (?:project )?memory automatically/i);
+  });
+
+  it("keeps the primary human surface exactly init, ready, export, and help", () => {
+    assert.deepEqual(mainCommands.map((entry) => entry.args), [["init"], ["ready"], ["export"], ["help"]]);
+    assert.ok(advancedCommands.some((entry) => entry.args.length === 1 && entry.args[0] === "upgrade"));
   });
 });

@@ -97,10 +97,13 @@ export function installSkill(options: InstallSkillOptions = {}): InstallSkillRes
   return { skillSourcePath, homeDir, dryRun: options.dryRun === true, targets };
 }
 
-export function checkInstalledSkills(homeDirOption?: string): SkillCheckResult {
+export function checkInstalledSkills(
+  homeDirOption?: string,
+  targetIds?: Array<Exclude<SkillTargetId, "all">>,
+): SkillCheckResult {
   const homeDir = resolve(homeDirOption ?? process.env.BENJAMIN_DOCS_HOME ?? homedir());
   const bundle = readBundledSkillBundle();
-  const targets = TARGETS.map((entry) => {
+  const targets = TARGETS.filter((entry) => !targetIds || targetIds.includes(entry.id)).map((entry) => {
     const path = resolveSkillPath(homeDir, entry.relativePath);
     const existing = readExistingSkill(path);
     const bundleCurrent = bundle.every((file) => readExistingSkill(resolve(dirname(path), file.path)) === file.content);

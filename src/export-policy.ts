@@ -29,10 +29,9 @@ export interface ExportPreflightResult {
   requiredRepairs: string[];
 }
 
-const ABSOLUTE_PATH_PATTERNS = [
-  /(?:^|[\s(])\/Users\/[^\s)]+/m,
-  /(?:^|[\s(])\/home\/[^\s)]+/m,
-  /(?:^|[\s(])[A-Za-z]:\\Users\\[^\s)]+/m,
+const ABSOLUTE_USER_HOME_PATHS = [
+  /(?:^|[^\w.:/\\-])\/(?:Users|home)\/[^\s"'`<>()[\]{};,!?]+/m,
+  /(?:^|[^\w./\\-])[A-Za-z]:[\\/]Users[\\/][^\s"'`<>()[\]{};,!?]+/m,
 ];
 
 const STARTER_PHRASES = [
@@ -141,7 +140,7 @@ function addPublicationSourceFailures(sources: ExportPolicySource[], blockedPhra
     repairs.push(...privateSources.map((source) => `Review and change visibility only if publication is intended: ${source.path}`));
   }
 
-  const pathSources = sources.filter((source) => ABSOLUTE_PATH_PATTERNS.some((pattern) => pattern.test(source.content)));
+  const pathSources = sources.filter((source) => ABSOLUTE_USER_HOME_PATHS.some((pattern) => pattern.test(source.content)));
   if (pathSources.length > 0) {
     reasons.push("Customer or public export source contains an absolute user path.");
     repairs.push(...pathSources.map((source) => `Remove or replace absolute user paths in ${source.path}`));

@@ -1,10 +1,11 @@
 import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { CONFIG_DIR, CONFIG_FILE, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { readJson, rootPath } from "./fsx.js";
 import { checkHooks } from "./hooks.js";
 import { getPackageVersion } from "./info.js";
-import { checkInstalledSkills, formatHomePath, SKILL_NAME } from "./install-skill.js";
+import { checkInstalledSkills, formatHomePath, SKILL_NAME, type SkillTargetId } from "./install-skill.js";
 import { getDefaultSkillZipPath, skillZipExists } from "./package-skill.js";
 import { normalizeConfig } from "./project-config.js";
 import type { BenjaminDocsConfig } from "./types.js";
@@ -28,11 +29,20 @@ export interface DoctorOptions {
 export function runDoctor(options: DoctorOptions = {}): DoctorResult {
   const cwd = resolve(options.cwd ?? process.cwd());
   const commandPath = options.commandPath ?? process.argv[1] ?? "unknown";
-  const skills = checkInstalledSkills(options.homeDir);
-  const skillZipPath = getDefaultSkillZipPath(skills.homeDir);
   const project = inspectProject(cwd);
-  const hasSkillZip = skillZipExists(skills.homeDir);
-  const strictErrors = options.strict ? strictDoctorErrors(cwd, project, skills.targets, hasSkillZip, options.target) : [];
+  const skillTarget = doctorSkillTarget(options.target);
+  const skills = !options.strict || skillTarget
+    ? checkInstalledSkills(options.homeDir, skillTarget ? [skillTarget] : undefined)
+    : undefined;
+  const inspectDesktop = !options.strict || options.target === "claude-desktop";
+  const desktopHomeDir = inspectDesktop
+    ? resolve(options.homeDir ?? process.env.BENJAMIN_DOCS_HOME ?? homedir())
+    : undefined;
+  const skillZipPath = inspectDesktop ? getDefaultSkillZipPath(desktopHomeDir) : undefined;
+  const hasSkillZip = inspectDesktop ? skillZipExists(desktopHomeDir) : undefined;
+  const strictErrors = options.strict
+    ? strictDoctorErrors(cwd, project, skills?.targets ?? [], hasSkillZip, options.target)
+    : [];
   const command = ["benjamin-docs doctor", options.strict ? "--strict" : undefined, options.target ? `--target ${options.target}` : undefined]
     .filter((part): part is string => part !== undefined)
     .join(" ");
@@ -44,7 +54,7 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
     `  command: ${commandPath}`,
   ];
 
-  if (!options.strict) {
+  if (!options.strict && skills) {
     lines.push("");
     lines.push("Skills");
     for (const target of skills.targets) {
@@ -77,16 +87,15 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
   if (options.strict && options.target === "claude-desktop") {
     lines.push("");
     lines.push("Claude Desktop");
-    lines.push(`  upload zip: ${hasSkillZip ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath)}`);
+    lines.push(`  upload zip: ${hasSkillZip ? "ok" : "missing"} ${formatHomePath(desktopHomeDir!, skillZipPath!)}`);
   }
 
   if (options.strict && options.target && options.target !== "claude-desktop") {
-    const skillTargetId = options.target === "shared" ? "agents" : options.target;
-    const skill = skills.targets.find((candidate) => candidate.id === skillTargetId);
+    const skill = skills?.targets[0];
     if (skill) {
       lines.push("");
       lines.push(skill.label);
-      lines.push(`  skill: ${skill.status} ${formatHomePath(skills.homeDir, skill.path)}`);
+      lines.push(`  skill: ${skill.status} ${formatHomePath(skills!.homeDir, skill.path)}`);
     }
 
     if (options.target !== "shared") {
@@ -101,11 +110,11 @@ export function runDoctor(options: DoctorOptions = {}): DoctorResult {
     for (const error of strictErrors) lines.push(`  - ${error}`);
   }
 
-  if (!options.strict) {
+  if (!options.strict && skills) {
     lines.push("");
     lines.push("Claude Desktop");
     lines.push(`  upload folder: ${formatHomePath(skills.homeDir, join(skills.homeDir, ".claude", "skills", SKILL_NAME))}`);
-    lines.push(`  upload zip: ${hasSkillZip ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath)}`);
+    lines.push(`  upload zip: ${hasSkillZip ? "ok" : "missing"} ${formatHomePath(skills.homeDir, skillZipPath!)}`);
 
     if (skills.targets.some((target) => target.status !== "ok")) {
       lines.push("");
@@ -130,7 +139,7 @@ function strictDoctorErrors(
   root: string,
   project: ProjectInspection,
   targets: ReturnType<typeof checkInstalledSkills>["targets"],
-  hasSkillZip: boolean,
+  hasSkillZip: boolean | undefined,
   target?: DoctorTarget,
 ): string[] {
   const errors: string[] = [];
@@ -163,10 +172,18 @@ function strictDoctorErrors(
       if (hook && hook.status !== "installed") {
         errors.push(`${hook.label} session hook is ${hook.status}. Run: benjamin-docs hooks install --target ${target}`);
       }
+      if (hook?.legacyStop) {
+        errors.push(`${hook.label} legacy Benjamin stop hook detected. Run: benjamin-docs hooks install --target ${target}`);
+      }
     }
   }
 
   return errors;
+}
+
+function doctorSkillTarget(target: DoctorTarget | undefined): Exclude<SkillTargetId, "all"> | undefined {
+  if (!target || target === "claude-desktop") return undefined;
+  return target === "shared" ? "agents" : target;
 }
 
 interface ProjectInspection {

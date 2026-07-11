@@ -27,6 +27,11 @@ describe("init", () => {
     assert.equal(cli.shouldOfferAgentGuidance("codebase"), true);
     assert.equal(cli.shouldOfferAgentGuidance("feature"), true);
     assert.equal(cli.agentGuidancePromptLabel(), "Add AI agent guidance for this project? Recommended.");
+    assert.equal(
+      cli.hooksPromptLabel(),
+      "Install optional session-start context hooks (Claude Code, Codex, Cursor)? They supply a compact pointer/context packet; agents still read and maintain memory during normal work. Recommended.",
+    );
+    assert.doesNotMatch(cli.hooksPromptLabel(), /load|maintain project memory automatically/i);
   });
 
   it("creates docs and metadata in an empty planning repo", () => {

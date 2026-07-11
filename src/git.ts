@@ -4,6 +4,12 @@ import { CONFIG_DIR } from "./constants.js";
 export interface ChangedFilesResult {
   files: string[];
   ok: boolean;
+  failure?: GitAnalysisFailure;
+}
+
+export interface GitAnalysisFailure {
+  operation: "working-tree changes" | "committed changes" | "untracked files";
+  message: string;
 }
 
 export interface LastCommitsResult {
@@ -11,25 +17,29 @@ export interface LastCommitsResult {
   ok: boolean;
 }
 
+const GIT_FILENAME_BUFFER_BYTES = 64 * 1024 * 1024;
+
 export function getChangedFiles(root: string, since: string): ChangedFilesResult {
   try {
     const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRTD", since, "--"], {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: GIT_FILENAME_BUFFER_BYTES,
     });
     const untracked = execFileSync("git", ["ls-files", "--others", "--exclude-standard"], {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: GIT_FILENAME_BUFFER_BYTES,
     });
 
     return {
       files: uniqueStrings([...changed.split(/\r?\n/), ...untracked.split(/\r?\n/)].map((line) => line.trim()).filter(Boolean)),
       ok: true,
     };
-  } catch {
-    return { files: [], ok: false };
+  } catch (error) {
+    return failedChangedFiles("working-tree changes", error);
   }
 }
 
@@ -39,11 +49,12 @@ export function getCommittedChanges(root: string, since: string): ChangedFilesRe
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: GIT_FILENAME_BUFFER_BYTES,
     });
 
     return { files: uniqueStrings(changed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)), ok: true };
-  } catch {
-    return { files: [], ok: false };
+  } catch (error) {
+    return failedChangedFiles("committed changes", error);
   }
 }
 
@@ -53,11 +64,12 @@ export function getUntrackedFiles(root: string): ChangedFilesResult {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: GIT_FILENAME_BUFFER_BYTES,
     });
 
     return { files: untracked.split(/\r?\n/).map((line) => line.trim()).filter(Boolean), ok: true };
-  } catch {
-    return { files: [], ok: false };
+  } catch (error) {
+    return failedChangedFiles("untracked files", error);
   }
 }
 
@@ -137,4 +149,15 @@ export function isReviewableSourceChange(file: string, docsRoot: string): boolea
 
 export function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)];
+}
+
+function failedChangedFiles(operation: GitAnalysisFailure["operation"], error: unknown): ChangedFilesResult {
+  return {
+    files: [],
+    ok: false,
+    failure: {
+      operation,
+      message: error instanceof Error ? error.message : String(error),
+    },
+  };
 }

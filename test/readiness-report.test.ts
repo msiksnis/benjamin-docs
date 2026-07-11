@@ -110,6 +110,31 @@ describe("structured readiness", () => {
     });
   });
 
+  it("fails committed freshness closed when a committed watched diff exceeds the child-process default buffer", () => {
+    withTempDir((dir) => {
+      setUpCapturedRepository(dir);
+      const suffix = "x".repeat(110);
+      for (let index = 0; index < 8_200; index += 1) {
+        writeFileSync(
+          join(dir, "src", `large-${String(index).padStart(5, "0")}-${suffix}.ts`),
+          `export const value${index} = ${index};\n`,
+          "utf8",
+        );
+      }
+      git(dir, "add", "src");
+      git(dir, "commit", "-q", "-m", "large watched source change without memory");
+
+      const report = analyzeReadiness({ cwd: dir });
+      const freshness = dimension(report, "committed_freshness");
+
+      assert.equal(report.status, "not_ready");
+      assert.equal(freshness.status, "fail");
+      assert.equal(freshness.blocking, true);
+      assert.match(freshness.evidence.join("\n"), /8,?200|large-00000|analysis failed/i);
+      assert.equal(runCliResult(["ready", "--json"], dir).status, 1);
+    });
+  });
+
   it("keeps a non-Git planning folder usable when freshness is unavailable", () => {
     withTempDir((dir) => {
       runCliResult(["init", "--mode", "planning", "--no-agent-contract", "--no-hooks"], dir);

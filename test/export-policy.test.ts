@@ -252,6 +252,41 @@ describe("export publication policy", () => {
     });
   }
 
+  for (const [label, pathText] of [
+    ["backticked macOS path", "Local checkout: `/Users/alice/project`"],
+    ["quoted Linux path", 'Local checkout: "/home/alice/project"'],
+    ["Markdown link target", "[local checkout](/Users/alice/project)"],
+    ["punctuation-delimited path", "Local checkout (/home/alice/project), do not publish."],
+    ["quoted Windows backslash path", "Local checkout: 'C:\\Users\\alice\\project'"],
+    ["Windows forward-slash path", "Local checkout: C:/Users/alice/project."],
+  ] as const) {
+    it(`blocks customer output containing a ${label}`, () => {
+      const sources = customerFeatureSources.map((source, index) =>
+        index === 0 ? { ...source, content: `${source.content}\n\n${pathText}` } : source,
+      );
+
+      const result = preflight(customerFeatureOperation, sources);
+
+      assert.equal(result.allowed, false);
+      assert.ok(result.reasons.some((reason) => reason.includes("absolute user path")));
+    });
+  }
+
+  it("does not treat ordinary URLs, relative paths, or empty home roots as absolute user-home paths", () => {
+    for (const text of [
+      "Reference: https://example.com/Users/alice/project",
+      "Reference: docs/C:/Users/alice/project",
+      "Reference: Users/alice/project",
+      "Reference roots: /Users/ and /home/",
+    ]) {
+      const sources = customerFeatureSources.map((source, index) =>
+        index === 0 ? { ...source, content: `${source.content}\n\n${text}` } : source,
+      );
+
+      assert.equal(preflight(customerFeatureOperation, sources).allowed, true, text);
+    }
+  });
+
   it("blocks untouched starter content", () => {
     const sources = customerFeatureSources.map((source, index) =>
       index === 0 ? { ...source, content: `${source.content}\n\nCapture what this feature is meant to accomplish.` } : source,

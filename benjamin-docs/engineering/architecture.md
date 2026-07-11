@@ -25,7 +25,7 @@ The TypeScript source lives in `src/` and is compiled to `dist/src/` before publ
 
 `src/context-budget.ts` is the single numeric context contract: session start is capped at 400 characters / 100 estimated tokens; task `memory_context` at 2,400 / 600; search snippets at 300 characters with 5 default and 8 maximum results; and an optional agent completion note at 120 characters. `test/context-budget.test.ts` locks these values, while `scripts/benchmark-agent-overhead.mjs` enforces session-start and silent-stop p95 at 400 ms on the maintainer reference machine.
 
-Public first-contact surfaces are part of the architecture because this package is discovered through GitHub, npm, and CLI help before any agent workflow runs. `README.md`, `package.json`, `src/info.ts`, `src/commands.ts`, and `skills/benjamin-docs/` describe the same product and exact limits: start hooks supply bounded pointers, readiness is deterministic rather than semantic proof, publication metadata is not Git confidentiality, and BD never needs to alter the substantive final answer.
+Public first-contact surfaces are part of the architecture because this package is discovered through GitHub, npm, and CLI help before any agent workflow runs. `README.md`, `package.json`, `src/info.ts`, `src/commands.ts`, and `skills/benjamin-docs/` describe the same product and exact limits: start hooks supply bounded pointers, readiness is deterministic rather than semantic proof, publication metadata is not Git confidentiality, and BD never needs to alter the substantive final answer. The primary human command catalog is exactly `init`, `ready`, `export`, and `help`; `upgrade` is an advanced repair surfaced when version skew exists.
 
 The 0.9.3 publish is a public-surface patch, not a runtime architecture change. It packages the README/npm positioning work so npmjs and GitHub both present the same agent-memory model.
 
@@ -49,15 +49,15 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Metadata and path-safety helpers live in `src/fsx.ts`, `src/project-config.ts`, and `src/types.ts`.
 - Validation lives in `src/validate.ts`.
 - Docs quality and changed-work freshness review live in `src/review.ts`.
-- Shared git history helpers live in `src/git.ts`; committed-history drift detection lives in `src/drift.ts`. Session-start drift reads last-doc commits in one batched Git query and caches identical diff/count queries so the hook stays within its latency budget without changing per-doc drift semantics.
-- Agent session hook installation lives in `src/hooks.ts`; bounded session-start context, the silent legacy stop adapter, and explicit stop-diagnostic wording live in `src/session.ts`; local per-session dirty-tree baselines live in `src/session-state.ts`.
+- Shared git history helpers live in `src/git.ts`; committed-history drift detection lives in `src/drift.ts`. Filename enumeration uses an explicit 64 MiB child-process bound rather than Node's default buffer. Enumeration failures carry a typed Git-analysis failure through drift into `committed_freshness`, which fails closed; successful large analyses keep complete internal file accounting while readiness output samples paths. Session-start drift reads last-doc commits in one batched Git query and caches identical diff/count queries so the hook stays within its latency budget without changing per-doc drift semantics.
+- Agent session hook installation lives in `src/hooks.ts`; hook health is target-aware and requires the expected session-start event with the exact target format command. Legacy Benjamin stop hooks are reported separately and make strict target diagnosis fail until migration. Bounded session-start context, the silent legacy stop adapter, and explicit stop-diagnostic wording live in `src/session.ts`; local per-session dirty-tree baselines live in `src/session-state.ts`.
 - MCP memory tools live in `src/memory-tools.ts` (logic) and `src/mcp-server.ts` (stdio protocol); client registration lives in `src/mcp-install.ts`.
 - Watch-rule globs and stack-agnostic changed-file mapping live in `src/watch.ts`.
 - Memory Views rendering and lifecycle filtering live in `src/views.ts`.
 - Setup diagnostics live in `src/doctor.ts`.
 - Recorded local prerequisite detection lives in `src/environment.ts`.
 - Structured repository readiness lives in `src/readiness.ts`; `src/ready.ts` formats the same versioned report for human output or `bd ready --json`. Validation runs once and `reviewProject(..., { includeValidation: false })` supplies only review-specific findings. `ReviewResult.changedWorkStatus` records whether `getChangedFiles` succeeded, so working-tree impact is independent from the injectable drift detector used by committed freshness. Optional doctor setup is outside this boundary.
-- Publication policy lives only in `src/export-policy.ts`. `src/export.ts` must call its side-effect-free preflight before preparing, cleaning, or writing an export directory. Customer features can pass only with repository readiness, non-private sources, required customer sections, and exact evidence-backed implementation verification; unsupported customer/public operations fail without writes.
+- Publication policy lives only in `src/export-policy.ts`. `src/export.ts` must call its side-effect-free preflight before preparing, cleaning, or writing an export directory. Customer features can pass only with repository readiness, non-private sources, required customer sections, and exact evidence-backed implementation verification; unsupported customer/public operations fail without writes. The path scanner recognizes macOS, Linux, Windows-backslash, and Windows-forward-slash user homes across Markdown links, quotes, backticks, and punctuation while avoiding ordinary URLs and relative paths.
 - Skill installation and Claude zip packaging live in `src/install-skill.ts` and `src/package-skill.ts`.
 - Agent-facing behavior lives in `skills/benjamin-docs/SKILL.md`.
 
@@ -98,7 +98,7 @@ Guided export keeps the same local-first boundary. `bd export` is the human-faci
 
 Ready output now has a small environment/tooling lens. `src/environment.ts` scans Benjamin-managed source docs for concrete recorded blockers such as command-not-found, not-installed tools, connection-refused services, or not-listening databases. `src/ready.ts` prints those findings as "Recorded Environment / Tooling Blockers" without failing readiness when validation, review, doctor, and agent guidance are otherwise clean. This keeps local prerequisite problems visible while preserving the distinction between project-memory readiness and unavailable local services.
 
-`bd doctor --strict` checks repository setup and validation only. `bd doctor --strict --target shared|claude-code|codex|cursor|claude-desktop` adds only the selected integration's requirements and remediation; optional machine artifacts never determine repository readiness.
+`bd doctor --strict` checks repository setup and validation first and never reads skill, ZIP, hook, or other global integration paths. `bd doctor --strict --target shared|claude-code|codex|cursor|claude-desktop` lazily reads only the selected integration's requirements and remediation; optional machine artifacts never determine repository readiness.
 
 ## Release Shape
 

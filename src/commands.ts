@@ -8,11 +8,11 @@ export const mainCommands: CommandEntry[] = [
   { command: "benjamin-docs init", args: ["init"], description: "Set up local project memory and optional agent guidance." },
   { command: "benjamin-docs ready", args: ["ready"], description: "Run deterministic project-memory readiness dimensions." },
   { command: "benjamin-docs export", args: ["export"], description: "Open guided export for feature docs, app docs, and handoffs." },
-  { command: "benjamin-docs upgrade", args: ["upgrade"], description: "Refresh this repo's Benjamin-owned surfaces after a CLI update." },
   { command: "benjamin-docs help", args: ["help"], description: "Show the short getting-started guide." },
 ];
 
 export const advancedCommands: CommandEntry[] = [
+  { command: "benjamin-docs upgrade", args: ["upgrade"], description: "Refresh this repo's Benjamin-owned surfaces after a CLI update." },
   { command: "benjamin-docs status", args: ["status"], description: "Show current Benjamin Docs setup." },
   { command: "benjamin-docs next", args: ["next"], description: "Print the next recommended agent prompt." },
   { command: "benjamin-docs validate", args: ["validate"], description: "Check structure, frontmatter, links, scopes, and anchors." },

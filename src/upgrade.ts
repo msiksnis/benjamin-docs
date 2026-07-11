@@ -52,7 +52,7 @@ export async function runUpgrade(root: string, options: UpgradeOptions = {}): Pr
   lines.push("");
   lines.push("Next");
   lines.push("  benjamin-docs drift    see docs whose watched code moved on");
-  lines.push("  benjamin-docs ready    confirm the project memory is handoff-ready");
+  lines.push("  benjamin-docs ready    run the repository readiness dimensions");
 
   return { ok: true, output: lines.join("\n") };
 }
@@ -125,7 +125,10 @@ function resolveHooks(root: string, hooksOption: boolean | undefined): string[] 
     return ["Hooks: skipped (--no-hooks)."];
   }
 
-  return ["Hooks: not installed. Agents load project memory automatically once you run: benjamin-docs hooks install"];
+  return [
+    "Hooks: not installed. Optional session-start context: benjamin-docs hooks install",
+    "  Hooks supply a compact pointer/context packet; agents still read and maintain memory during normal work.",
+  ];
 }
 
 function reportMcpRegistration(root: string): string {

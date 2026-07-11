@@ -41,6 +41,9 @@ describe("upgrade", () => {
         assert.match(result.stdout, /Project metadata: recorded before 0\.10\.0 -> /);
         assert.match(result.stdout, /Agent guidance: refreshed the Benjamin-owned AGENTS\.md section/);
         assert.match(result.stdout, /Hooks: not installed/);
+        assert.match(result.stdout, /compact pointer\/context packet/);
+        assert.match(result.stdout, /agents still read and maintain memory during normal work/i);
+        assert.doesNotMatch(result.stdout, /load|maintain project memory automatically/i);
         assert.doesNotMatch(result.stdout, /Update check/);
 
         const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { bdVersion?: string };

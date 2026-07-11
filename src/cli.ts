@@ -53,7 +53,7 @@ export function agentGuidancePromptLabel(): string {
 }
 
 export function hooksPromptLabel(): string {
-  return "Install agent session hooks (Claude Code, Codex, Cursor)? Agents then load and maintain project memory automatically. Recommended.";
+  return "Install optional session-start context hooks (Claude Code, Codex, Cursor)? They supply a compact pointer/context packet; agents still read and maintain memory during normal work. Recommended.";
 }
 
 export async function main(argv: string[] = process.argv.slice(2), cwd: string = process.cwd()): Promise<number> {
@@ -172,7 +172,7 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
     const options = parseDriftArgs(argv.slice(1));
     const result = detectDrift(cwd);
     console.log(options.json ? JSON.stringify(result, null, 2) : formatDrift(result));
-    if (!result.initialized) return 1;
+    if (!result.initialized || result.analysisFailure) return 1;
     return options.strict && result.drifted.length > 0 ? 1 : 0;
   }
 

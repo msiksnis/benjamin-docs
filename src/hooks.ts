@@ -18,6 +18,7 @@ export interface HookTargetResult {
   path: string;
   status: "installed" | "already installed" | "removed" | "not installed" | "skipped";
   note?: string;
+  legacyStop?: boolean;
 }
 
 export interface HooksResult {
@@ -125,7 +126,15 @@ function checkHooksForTarget(root: string, target: HookTarget): HookTargetResult
     return { ...target, status: "not installed" };
   }
 
-  return { ...target, status: hasBenjaminHooks(existing.value) ? "installed" : "not installed" };
+  const health = inspectHookHealth(existing.value, target.id);
+  return {
+    ...target,
+    status: health.expectedStart ? "installed" : "not installed",
+    ...(health.legacyStop && {
+      legacyStop: true,
+      note: "Legacy Benjamin stop hook detected; reinstall this target to remove it.",
+    }),
+  };
 }
 
 interface ReadHookFileResult {
@@ -303,13 +312,30 @@ function entryHasCommandMarker(entry: unknown, marker: string): boolean {
   return typeof command === "string" && command.includes(marker);
 }
 
-function hasBenjaminHooks(content: JsonObject): boolean {
+function inspectHookHealth(content: JsonObject, targetId: HookTargetId): { expectedStart: boolean; legacyStop: boolean } {
   const hooks = content.hooks;
-  if (typeof hooks !== "object" || hooks === null || Array.isArray(hooks)) return false;
+  if (typeof hooks !== "object" || hooks === null || Array.isArray(hooks)) {
+    return { expectedStart: false, legacyStop: false };
+  }
 
-  return Object.values(hooks as JsonObject).some(
-    (groups) => Array.isArray(groups) && groups.some((group) => sharedSchemaGroupHasMarker(group) || entryHasMarker(group)),
-  );
+  const hookMap = hooks as JsonObject;
+  const format = targetId === "codex" ? "codex" : targetId === "cursor" ? "cursor" : "claude";
+  const startEvent = targetId === "cursor" ? "sessionStart" : "SessionStart";
+  const stopEvent = targetId === "cursor" ? "stop" : "Stop";
+  const expectedCommand = sessionStartCommand(format);
+
+  return {
+    expectedStart: eventContainsCommand(hookMap[startEvent], (command) => command === expectedCommand),
+    legacyStop: eventContainsCommand(hookMap[stopEvent], (command) => command.includes("benjamin-docs session-stop")),
+  };
+}
+
+function eventContainsCommand(value: unknown, predicate: (command: string) => boolean): boolean {
+  if (Array.isArray(value)) return value.some((entry) => eventContainsCommand(entry, predicate));
+  if (typeof value !== "object" || value === null) return false;
+  const object = value as JsonObject;
+  return (typeof object.command === "string" && predicate(object.command))
+    || Object.values(object).some((entry) => eventContainsCommand(entry, predicate));
 }
 
 function isEmptyHookFile(content: JsonObject, targetId: HookTargetId): boolean {

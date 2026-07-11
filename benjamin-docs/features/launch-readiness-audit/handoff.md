@@ -18,6 +18,8 @@ The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first dire
 
 The branch has locked context and latency budgets, response-safe session-start-only hooks, bounded task retrieval, a split core skill, truthful structured readiness, target-specific doctor checks, complete Git change accounting, one fail-closed publication preflight, exact public claims, cross-platform CI, installed-tarball smoke, and enforced performance gates. This prepares but does not publish, tag, or create the 0.12.0 release.
 
+Final whole-branch review fixes are implemented: an 8,200-file committed diff no longer disappears behind Node's default child-process buffer; Git analysis failures fail `committed_freshness` closed; quoted, backticked, linked, and punctuation-delimited user-home paths are blocked across macOS, Linux, and both Windows separators; repository-only strict doctor does not touch unreadable global integration state; strict target hook health rejects stop-only and wrong-format registrations; consent/upgrade copy is exact; and `upgrade` is outside the four-command primary surface.
+
 Executable plan:
 
 - docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md

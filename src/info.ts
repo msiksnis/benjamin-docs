@@ -23,7 +23,6 @@ export function getHelpText(): string {
     "  benjamin-docs init    Set up repo-local project memory.",
     "  benjamin-docs ready   Run deterministic project-memory readiness checks.",
     "  benjamin-docs export  Create guided handoff and summary exports.",
-    "  benjamin-docs upgrade Refresh Benjamin-owned files after a CLI update.",
     "  benjamin-docs help    Show this guide.",
     "",
     "If you are starting from a chat, ask your agent:",

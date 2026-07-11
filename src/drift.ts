@@ -11,6 +11,7 @@ import {
   isReviewableSourceChange,
   uniqueStrings,
   type ChangedFilesResult,
+  type GitAnalysisFailure,
 } from "./git.js";
 import { rootPath } from "./fsx.js";
 import { readConfig } from "./project-config.js";
@@ -38,6 +39,7 @@ export interface DriftResult {
   docsChecked: number;
   drifted: DriftedDoc[];
   skipped: SkippedDoc[];
+  analysisFailure?: GitAnalysisFailure;
 }
 
 export interface DriftOptions {
@@ -115,7 +117,20 @@ export function detectDrift(root: string): DriftResult {
       changedSinceDoc = getCommittedChanges(root, lastCommit);
       committedChangesByRef.set(lastCommit, changedSinceDoc);
     }
-    if (!changedSinceDoc.ok) continue;
+    if (!changedSinceDoc.ok) {
+      return {
+        ok: false,
+        gitAvailable: true,
+        initialized: true,
+        docsChecked,
+        drifted: [],
+        skipped,
+        analysisFailure: changedSinceDoc.failure ?? {
+          operation: "committed changes",
+          message: `Could not enumerate committed changes since ${lastCommit}.`,
+        },
+      };
+    }
 
     const watchedChanges = uniqueStrings(
       changedSinceDoc.files
@@ -164,6 +179,17 @@ export function formatDrift(result: DriftResult): string {
       "status: unavailable",
       "",
       "Drift detection needs git history. Run it inside a git repository with at least one commit.",
+    ].join("\n");
+  }
+
+  if (result.analysisFailure) {
+    return [
+      "benjamin-docs drift",
+      "",
+      "status: failed",
+      "",
+      `Git ${result.analysisFailure.operation} analysis failed: ${result.analysisFailure.message}`,
+      "Rerun: benjamin-docs drift",
     ].join("\n");
   }
 

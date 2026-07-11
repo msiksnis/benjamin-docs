@@ -54,6 +54,7 @@
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm build && pnpm test",
     "smoke:pack": "node scripts/smoke-packed-cli.mjs",
+    "benchmark:agent": "node scripts/benchmark-agent-overhead.mjs",
     "benchmark:agent-overhead": "node scripts/benchmark-agent-overhead.mjs",
     "release:check": "pnpm check && node dist/src/cli.js validate && npm pack --dry-run",
     "release:github": "node scripts/release-github.mjs release",

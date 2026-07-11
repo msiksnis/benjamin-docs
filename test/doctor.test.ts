@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { runCliResult, withTempDir } from "./helpers.js";
 
@@ -99,6 +99,24 @@ describe("doctor", () => {
     });
   });
 
+  it("repository-only strict mode never reads unreadable integration state", { skip: process.platform === "win32" }, () => {
+    withTempDir((dir) => {
+      withTempDir((unreadableHome) => {
+        runCliResult(["init", "--mode", "codebase"], dir);
+        chmodSync(unreadableHome, 0o000);
+        try {
+          const result = runCliResult(["doctor", "--strict"], dir, { BENJAMIN_DOCS_HOME: unreadableHome });
+
+          assert.equal(result.status, 0, result.stderr);
+          assert.match(result.stdout, /validation: passed/);
+          assert.doesNotMatch(result.stdout, /Skills|Claude Desktop|upload zip|session hook/);
+        } finally {
+          chmodSync(unreadableHome, 0o700);
+        }
+      });
+    });
+  });
+
   it("strict mode isolates Codex requirements from other targets", () => {
     withTempDir((dir) => {
       runCliResult(["init", "--mode", "codebase"], dir);
@@ -114,6 +132,43 @@ describe("doctor", () => {
       assert.match(result.stdout, /hooks install --target codex/);
       assert.doesNotMatch(result.stdout, /\nSkills\n|Shared Agent Skills|Claude Code|Cursor|Claude Desktop|upload zip:/);
       assert.doesNotMatch(result.stdout, /\nFix\n|\nClaude Desktop fix\n|package-skill/);
+    });
+  });
+
+  it("strict target mode rejects a legacy stop-only hook and reports it separately", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      runCliResult(["install-skill", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
+      mkdirSync(join(dir, ".codex"), { recursive: true });
+      writeFileSync(
+        join(dir, ".codex/hooks.json"),
+        `${JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "benjamin-docs session-stop --format codex" }] }] } }, null, 2)}\n`,
+      );
+
+      const result = runCliResult(["doctor", "--strict", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /session hook: not installed/);
+      assert.match(result.stdout, /legacy Benjamin stop hook detected/i);
+      assert.match(result.stdout, /benjamin-docs hooks install --target codex/);
+    });
+  });
+
+  it("strict target mode requires the exact session-start format command", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase"], dir);
+      runCliResult(["install-skill", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
+      mkdirSync(join(dir, ".codex"), { recursive: true });
+      writeFileSync(
+        join(dir, ".codex/hooks.json"),
+        `${JSON.stringify({ hooks: { SessionStart: [{ hooks: [{ type: "command", command: "benjamin-docs session-start --format claude" }] }] } }, null, 2)}\n`,
+      );
+
+      const result = runCliResult(["doctor", "--strict", "--target", "codex"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /session hook: not installed/);
+      assert.doesNotMatch(result.stdout, /legacy Benjamin stop hook detected/i);
     });
   });
 

@@ -14,7 +14,7 @@ source: manual
 ## Unreleased (0.12.0)
 
 - Agent integrations now install session-start only. Upgrade removes legacy Benjamin-owned stop/follow-up hooks while preserving user hooks, and the legacy `session-stop` compatibility command is silent for every supported format.
-- Added explicit numeric context contracts: session start is capped at 400 characters / 100 estimated tokens; task `memory_context` at 2,400 / 600; search snippets at 300 characters with 5 default and 8 maximum results; and the optional completion note at 120 characters.
+- Added explicit numeric context contracts: session start is capped at 400 characters / 100 estimated tokens; task `memory_context` at 2,400 / 600; search snippets at 300 characters with 5 default and 8 maximum results; and the optional completion note at 120 characters. Both `benchmark:agent` and the descriptive `benchmark:agent-overhead` run the same assertion-capable release gate.
 - Split the core Benjamin Docs skill into a compact router capped at 1,200 words plus capture, export, and integration references loaded only when relevant.
 - Added a structured readiness report with stable dimensions for structure, content heuristics, committed freshness, working-tree impact, and agent guidance. `bd ready --json` emits the versioned report for agents and CI.
 - `bd ready` now blocks known committed drift and unresolved changed-work findings in their own dimensions. Changed-work warnings no longer masquerade as baseline content warnings, and non-Git planning folders remain usable with non-blocking unavailable freshness dimensions.
@@ -27,6 +27,10 @@ source: manual
 - Removed the stale tracked Claude skill ZIP. GitHub release automation now generates a temporary skill bundle and verifies `SKILL.md` plus all three references against package sources before creating a release; it does not publish npm.
 - Added Linux, macOS, and Windows CI on Node 22 and 24, plus installed-tarball smoke, structured repository readiness, and benchmark gates that enforce session-start and silent-stop p95 at 400 ms on the maintainer reference machine and 750 ms in CI.
 - Reproduced all ten launch-audit scenarios against temporary repositories. False-ready, cross-stack, deletion, empty-home, target-doctor, hook, silence, context-budget, starter-export, and verified-export contracts all passed before preparing the release candidate.
+- Final review hardening: Git filename enumeration now has an explicit 64 MiB bound, typed failures fail committed freshness closed, and readiness samples evidence so an 8,200-file diff remains accurate without oversized output.
+- Publication path scanning now blocks quoted, backticked, linked, and punctuation-delimited macOS/Linux/Windows home paths, including `C:/Users`, while avoiding ordinary URLs and relative paths.
+- Repository-only `doctor --strict` loads project state before and independently from integrations, so unreadable global state cannot break the repository gate. Target hook health requires the exact session-start event/format and reports legacy stop registrations separately.
+- Init consent and upgrade output now describe the bounded pointer/context packet and agent-led maintenance exactly. `upgrade` moved from the primary catalog to the advanced drawer, leaving `init`, `ready`, `export`, and `help` as the complete human surface.
 
 ## 0.11.1
 
