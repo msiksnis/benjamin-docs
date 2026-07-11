@@ -69,6 +69,8 @@ Reason: archived scopes, superseded plans, and generated duplicates can currentl
 - Doctor diagnostics are target-specific and outside repository readiness; changed-work accounting includes deletions and repositories without a recognized stack.
 - Every customer/public export uses one fail-closed preflight; temporarily unsupported publication paths write nothing.
 - Public surfaces state the exact bounded-context, deterministic-readiness, visibility, and final-answer guarantees. The Claude upload ZIP is generated and verified from package sources rather than tracked.
+- Release gates now exercise Linux, macOS, and Windows on Node 22 and 24; a separate trust job runs the packed-CLI smoke, repository readiness, and agent-overhead assertion.
+- The 0.12.0 audit reproductions passed against temporary repositories: starter publication is blocked; committed drift, untracked cross-stack work, and deletions fail the correct dimensions; empty-home readiness stays healthy; target doctor output stays isolated; upgraded hooks are start-only; stop is silent; both context paths stay bounded; and verified customer feature export still succeeds.
 
 ## Accepted Product Direction
 
@@ -109,3 +111,4 @@ Rejected because a single unsafe customer export or false-ready handoff attacks 
 - 2026-07-10: Treat agent overhead as a release contract: session-start stays at or below 400 characters and 100 estimated tokens; task-scoped memory_context stays at or below 2,400 characters and 600 estimated tokens; the core skill stays at or below 1,200 words; session-start and no-op session-stop p95 stay at or below 400 ms on the maintainer reference machine and 750 ms in CI.
 - 2026-07-10: Benjamin Docs must never suppress, replace, delay, or materially rewrite the user's substantive final answer. Installed stop hooks will not block or auto-submit follow-ups. Reading memory needs no mention; after a durable update, an agent may append one sentence of at most 120 characters.
 - 2026-07-10: Execute the dependable-standard work as staged plans. Start with docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md; follow with separate impact-evidence, canonical-state, agent-interface, and protocol/conformance plans after the preceding interfaces are proven.
+- 2026-07-11: Prepare 0.12.0 as the implemented trust foundation, not as proof that Benjamin Docs is already a dependable standard. Sequence follow-on work strictly as impact evidence, canonical state and typed views, agent interfaces and mode-specific schemas, then public protocol and conformance.

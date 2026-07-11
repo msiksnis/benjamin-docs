@@ -19,7 +19,9 @@ source: session-capture
 - Decision: default installed hooks must not block completion or auto-submit follow-ups; memory maintenance happens before the final answer.
 - Decision: preserve the accepted latency, token, skill-size, and one-sentence completion-note budgets in tests and release gates.
 - Decision: public copy describes bounded start context, deterministic readiness limits, publication metadata, and response-safe final answers exactly; generated skill bundles are verified artifacts rather than tracked sources.
-- Current status: trust-foundation Tasks 1-8 are complete; cross-platform/package/performance gates are next.
+- Current status: the 0.12.0 trust foundation and all ten audit reproductions are complete; publication remains a separate maintainer action.
+- Next plan: impact-evidence ledger and no-doc-impact acknowledgement keyed to commit/content identity.
+- Then: canonical state and typed views; MCP resources/prompts/structured output plus mode-specific minimal schemas; public protocol and conformance.
 - Should the open specification use a vendor-neutral name such as Project Memory Protocol, with Benjamin Docs as the reference implementation?
 - Which five repositories, three stack families, and three agent products should form the first conformance benchmark?
 - What false-positive rate is acceptable for strict changed-work readiness after the impact-evidence ledger exists?

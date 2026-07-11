@@ -14,11 +14,11 @@ freshness: status
 
 ## Dependable Standard Program — Approved
 
-The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction. Version 0.11.1 should not be positioned as a dependable standard. Unrelated feature expansion is frozen until the trust gates are implemented.
+The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction. Version 0.11.1 should not be positioned as a dependable standard. The 0.12.0 trust foundation is implemented and reproduced, but the product still must not be called a dependable standard until later evidence, canonical-state, agent-interface, and protocol/conformance gates pass.
 
 The first executable release train is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`, targeting 0.12.0. It makes agent integrations response-safe, locks latency/token budgets, makes readiness truthful, separates repository health from optional global setup, covers every changed file type and deletion, fails public/customer exports closed, corrects public claims, and adds cross-platform/package gates.
 
-Later release trains add impact evidence, canonical structured state and typed views, improved MCP/agent interfaces, and finally a vendor-neutral protocol plus conformance suite. The program sequence and numerical budgets live in `benjamin-docs/features/launch-readiness-audit/plan.md`.
+Later release trains are strictly sequenced: impact evidence; canonical structured state and typed views; MCP/agent interfaces plus mode-specific minimal schemas; then a vendor-neutral protocol and conformance suite. The program sequence and numerical budgets live in `benjamin-docs/features/launch-readiness-audit/plan.md`.
 
 ## Done In MVP
 
@@ -45,7 +45,7 @@ Later release trains add impact evidence, canonical structured state and typed v
 
 - `benjamin-docs` is published on npm.
 - Current published release: `0.11.1` (session-hook turn safety), published 2026-07-09 with npm, git tag, and GitHub Release verified in sync.
-- Working package version: `0.11.1`; no unreleased runtime work in the tree.
+- Working package version: `0.12.0` release candidate; not published, tagged, or released.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
@@ -62,9 +62,9 @@ Later release trains add impact evidence, canonical structured state and typed v
 
 ## Immediate Next Work
 
-- Tasks 1-8 of the trust-foundation plan are complete on the dependable-standard branch.
-- Run Task 9: add cross-platform CI, installed-tarball smoke, and enforced performance gates.
-- Then dogfood every audit reproduction before preparing 0.12.0.
+- The 0.12.0 trust foundation and all ten audit reproductions are complete on the dependable-standard branch.
+- Next, write the Impact Evidence Plan for durable doc-updated/no-impact/deferred/blocker acknowledgements keyed to commit and content identity.
+- After impact evidence is proven, write the Canonical State Plan, then the Agent Interface Plan, then the Protocol and Conformance Plan.
 - Keep the human command surface stable and preserve the public-repo privacy guardrail.
 
 ## 0.11.0 Goal

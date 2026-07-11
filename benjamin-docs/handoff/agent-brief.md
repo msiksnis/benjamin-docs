@@ -18,7 +18,7 @@ An exhaustive pre-public-launch product, architecture, documentation, AI-agent, 
 
 Audit verdict: version 0.11.1 has a strong project-memory concept and a safety-conscious CLI foundation, but it is not ready to be presented as a dependable developer standard. Reproduced blockers include false-ready behavior when watched docs are behind committed code, working-tree freshness gaps, unsafe customer export paths, optional global artifacts blocking repository readiness, confidentiality ambiguity around `visibility: private`, pointer-only session loading, and contradictory self-documentation passing current checks.
 
-The maintainer accepted the trust-first direction. The program plan is `benjamin-docs/features/launch-readiness-audit/plan.md`; the executable plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`. Tasks 1-8 are complete: budgets, response-safe start-only hooks, bounded retrieval, structured readiness, target-specific doctor, complete Git accounting, fail-closed publication policy, and exact public/distribution claims. Continue with Task 9: cross-platform CI, installed-tarball smoke, and performance gates.
+The maintainer accepted the trust-first direction. The program plan is `benjamin-docs/features/launch-readiness-audit/plan.md`; the executable plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`. The 0.12.0 trust foundation is implemented and all ten audit reproductions pass. Do not publish, tag, push, or create a release unless explicitly asked.
 
 Hard constraints: BD must not suppress, replace, delay, or materially rewrite the substantive user-facing answer; installed stop hooks must not block or auto-submit follow-ups; session-start stays at or below 400 characters / 100 estimated tokens; task memory context stays at or below 2,400 characters / 600 estimated tokens; and the core skill stays at or below 1,200 words. Reading memory needs no mention. After a durable update, an optional BD note is one sentence and at most 120 characters.
 
@@ -33,7 +33,7 @@ The source repo is:
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
 - Package status: `0.11.1` (session-hook turn safety) published on npm, released 2026-07-09.
-- Working package version: `0.11.1`; no unreleased runtime work in the tree.
+- Working package version: `0.12.0` release candidate; unpublished.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -75,7 +75,7 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo. Keep MCP tool access manifest-scoped; never widen it to arbitrary repo files.
 
-Next action: execute Task 1 of `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md` in an isolated worktree, using test-first steps and the benchmark baseline recorded in the plan.
+Next action: write the Impact Evidence Plan. It must add durable doc-updated/no-doc-impact/deferred/blocker acknowledgements keyed to commit and content identity without weakening strict readiness or exceeding the response, latency, token, and human-surface budgets. Only after that interface is proven should work proceed to canonical state and typed views, then agent interfaces and mode-specific schemas, then protocol/conformance.
 
 ## Implemented So Far
 

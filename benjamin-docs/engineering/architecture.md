@@ -23,6 +23,8 @@ benjamin-docs -> dist/src/cli.js
 
 The TypeScript source lives in `src/` and is compiled to `dist/src/` before publishing. Most filesystem, path-safety, process, and test-fixture work uses Node built-ins. Since 0.11.0, the MCP server adds the official `@modelcontextprotocol/sdk` and `zod` as the package's two runtime dependencies.
 
+`src/context-budget.ts` is the single numeric context contract: session start is capped at 400 characters / 100 estimated tokens; task `memory_context` at 2,400 / 600; search snippets at 300 characters with 5 default and 8 maximum results; and an optional agent completion note at 120 characters. `test/context-budget.test.ts` locks these values, while `scripts/benchmark-agent-overhead.mjs` enforces session-start and silent-stop p95 at 400 ms on the maintainer reference machine.
+
 Public first-contact surfaces are part of the architecture because this package is discovered through GitHub, npm, and CLI help before any agent workflow runs. `README.md`, `package.json`, `src/info.ts`, `src/commands.ts`, and `skills/benjamin-docs/` describe the same product and exact limits: start hooks supply bounded pointers, readiness is deterministic rather than semantic proof, publication metadata is not Git confidentiality, and BD never needs to alter the substantive final answer.
 
 The 0.9.3 publish is a public-surface patch, not a runtime architecture change. It packages the README/npm positioning work so npmjs and GitHub both present the same agent-memory model.
@@ -55,12 +57,15 @@ The default docs root is `benjamin-docs/` so existing project docs under `docs/`
 - Setup diagnostics live in `src/doctor.ts`.
 - Recorded local prerequisite detection lives in `src/environment.ts`.
 - Structured repository readiness lives in `src/readiness.ts`; `src/ready.ts` formats the same versioned report for human output or `bd ready --json`. Validation runs once and `reviewProject(..., { includeValidation: false })` supplies only review-specific findings. `ReviewResult.changedWorkStatus` records whether `getChangedFiles` succeeded, so working-tree impact is independent from the injectable drift detector used by committed freshness. Optional doctor setup is outside this boundary.
+- Publication policy lives only in `src/export-policy.ts`. `src/export.ts` must call its side-effect-free preflight before preparing, cleaning, or writing an export directory. Customer features can pass only with repository readiness, non-private sources, required customer sections, and exact evidence-backed implementation verification; unsupported customer/public operations fail without writes.
 - Skill installation and Claude zip packaging live in `src/install-skill.ts` and `src/package-skill.ts`.
 - Agent-facing behavior lives in `skills/benjamin-docs/SKILL.md`.
 
 ## Changed-Work Freshness
 
 `bd review --changed` is an advanced, deterministic git-diff pass layered onto the existing review command. It compares changed tracked and untracked files against `HEAD` by default, or a caller-provided `--since <git-ref>`.
+
+Git classification includes added, copied, modified, renamed, type-changed, and deleted tracked paths plus untracked paths. Reviewable changes are conservative: everything outside the configured docs root, `.benjamin-docs/`, `.git/`, `node_modules/`, `dist/`, `coverage/`, and `exports/` participates regardless of language or extension. Session baselines preserve deleted-file fingerprints instead of dropping missing paths.
 
 Since 0.7.0 the changed-file-to-doc mapping is stack-agnostic and configurable. `.benjamin-docs/config.json` holds `watch` rules, each with glob `paths` and target `docs`; `init` seeds generic defaults covering database/schema files, application code, tests, configuration/workflow files, and project memory/status docs. Projects without `watch` in config fall back to the same generic defaults at runtime. The old Supabase- and Next.js-specific hardcoded paths are gone.
 
@@ -92,6 +97,8 @@ Chat-to-project is intentionally gated by the skill rather than by magic backgro
 Guided export keeps the same local-first boundary. `bd export` is the human-facing UX, while direct export flags are treated as an agent/script API. The CLI can deterministically assemble Markdown feature exports, record agent-provided implementation evidence with `bd export --verify <feature> --evidence "<what was checked>"`, and block customer-facing output when source docs are private, thin, or not implementation-verified. It does not perform deep semantic code verification. Agents own the implementation-vs-docs comparison before customer exports.
 
 Ready output now has a small environment/tooling lens. `src/environment.ts` scans Benjamin-managed source docs for concrete recorded blockers such as command-not-found, not-installed tools, connection-refused services, or not-listening databases. `src/ready.ts` prints those findings as "Recorded Environment / Tooling Blockers" without failing readiness when validation, review, doctor, and agent guidance are otherwise clean. This keeps local prerequisite problems visible while preserving the distinction between project-memory readiness and unavailable local services.
+
+`bd doctor --strict` checks repository setup and validation only. `bd doctor --strict --target shared|claude-code|codex|cursor|claude-desktop` adds only the selected integration's requirements and remediation; optional machine artifacts never determine repository readiness.
 
 ## Release Shape
 

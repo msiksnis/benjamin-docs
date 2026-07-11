@@ -22,6 +22,8 @@ source: manual
 - Customer and public exports now share a fail-closed publication preflight. Verified customer feature exports remain available while unsafe app, handoff, summary, and public/user audience paths are disabled.
 - Public README, npm metadata, CLI help/introduction, command descriptions, contributor guidance, and security boundaries now describe the exact readiness, response-safe hook, visibility, external-write, and network guarantees.
 - Removed the stale tracked Claude skill ZIP. GitHub release automation now generates a temporary skill bundle and verifies `SKILL.md` plus all three references against package sources before creating a release; it does not publish npm.
+- Added Linux, macOS, and Windows CI on Node 22 and 24, plus installed-tarball smoke, structured repository readiness, and agent-overhead trust gates.
+- Reproduced all ten launch-audit scenarios against temporary repositories. False-ready, cross-stack, deletion, empty-home, target-doctor, hook, silence, context-budget, starter-export, and verified-export contracts all passed before preparing the release candidate.
 
 ## 0.11.1
 

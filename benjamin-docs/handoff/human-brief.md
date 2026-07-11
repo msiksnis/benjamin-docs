@@ -12,11 +12,11 @@ freshness: status
 
 # Human Brief
 
-The maintainer accepted a trust-first program on 2026-07-10. Benjamin Docs 0.11.1 has a strong project-memory core but should not yet be described as a dependable standard. The first implementation plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`, targeting 0.12.0.
+The maintainer accepted a trust-first program on 2026-07-10. Benjamin Docs 0.11.1 is still the published release; the working branch now contains the implemented, audited 0.12.0 trust-foundation release candidate. It should not yet be described as a dependable standard.
 
 The program adds an explicit experience guarantee: BD should remain lightweight while agents use it in the background. Session context, task retrieval, skill size, and hook latency receive numerical release budgets. BD must never replace or materially change the answer an agent gives the user. Reading memory needs no mention; after a meaningful update, the agent may add one very short sentence saying what BD memory changed.
 
-The first eight trust-foundation tasks are implemented on the release branch. Readiness reports independent deterministic dimensions; optional setup is target-specific; deletions and every repository stack are covered; customer/public exports fail closed; and public claims now match the actual guarantees. Session hooks supply bounded pointers and cannot replace the substantive answer. The stale tracked skill ZIP is gone, and release automation generates and verifies all four skill source files before creating a GitHub Release without publishing npm.
+The trust foundation is implemented on the release branch. Readiness reports independent deterministic dimensions; optional setup is target-specific; deletions and every repository stack are covered; customer/public exports fail closed through one preflight; and public claims match the actual guarantees. Session hooks supply bounded pointers and cannot replace the substantive answer. Cross-platform CI, packed-package smoke, and performance gates are enforced. All ten audit reproductions passed; no publish, tag, push, or GitHub Release was performed.
 
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
 
@@ -28,7 +28,7 @@ The product promise is simple: every new AI coding session should start with usa
 
 Recent work made the first-run story stronger: `ready` is the primary handoff gate, `export` is the guided local deliverable path, `commands` is an interactive advanced drawer, `bd` is the short alias, agent guidance can be installed into `AGENTS.md` without overwriting existing user-owned instructions, and `install-skill` / `package-skill` distribute the bundled skill.
 
-Version 0.11.0 introduced the MCP server that turns memory into native agent tools; 0.11.1 is the current published release. Agents can search and read selected sections and write through structurally validated, rollback-safe updates. Register per project with `bd mcp install`. The trust program will bound retrieval size, distinguish structural checks from semantic evidence, and fail unsafe customer/public exports closed.
+Version 0.11.0 introduced the MCP server that turns memory into native agent tools; 0.11.1 remains the current published release. Agents can search and read selected sections and write through structurally validated, rollback-safe updates. Register per project with `bd mcp install`. The 0.12.0 candidate bounds retrieval size, distinguishes structural checks from semantic evidence, and fails unsafe customer/public exports closed.
 
 The published 0.11.1 hotfix makes the hook behavior match that safety promise: old dirty files no longer trigger repeated warnings on read-only turns, real new changes still get one maintenance pass, and the maintenance continuation must return the complete answer the user asked for.
 
@@ -38,4 +38,4 @@ Important product direction: BD should feel like a safety system for agent-led w
 
 Public repo guardrail: private commercial strategy, pricing, and future paid SaaS planning should stay out of tracked Benjamin docs unless the user explicitly says the content is public-safe. Use ignored local folders for private notes.
 
-Main open product question: how strict should deterministic freshness review become before it feels like documentation busywork? The tool should catch stale project memory without requiring docs churn for tiny implementation edits.
+Next work is deliberately sequenced: impact evidence to avoid meaningless docs churn; canonical state and typed views; improved agent/MCP interfaces and minimal mode schemas; then the public protocol and conformance suite. The main open product question remains how strict deterministic freshness should become without turning into documentation busywork.

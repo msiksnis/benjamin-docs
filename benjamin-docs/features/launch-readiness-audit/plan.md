@@ -24,7 +24,7 @@ The first executable implementation plan is:
 
 That plan is the source of truth for the first release train. This document owns program sequence and release gates.
 
-Implementation status on the dependable-standard branch: Tasks 1-8 are complete through exact public claims and generated distribution artifacts. The next executable step is Task 9, adding cross-platform CI, installed-tarball smoke, and performance gates.
+Implementation status on the dependable-standard branch: Release Train A is implemented and its ten audit reproductions pass against the built CLI. The working package is the 0.12.0 release candidate; publication, tagging, and release creation remain separate maintainer actions.
 
 ## Product Invariants
 
@@ -107,7 +107,7 @@ Exit gates:
 - Linux, macOS, Windows, Node 22, and Node 24 checks pass.
 - Public copy describes exact deterministic guarantees.
 
-## Release Train B — Impact Evidence
+## Release Train B — Impact Evidence (Next)
 
 Write the detailed implementation plan after Release Train A interfaces are proven.
 
@@ -128,9 +128,9 @@ Exit gates:
 - Agents receive one bounded repair instruction.
 - Analysis stays inside the Release Train A budgets.
 
-## Release Train C — Canonical State and Agent Interface
+## Release Train C — Canonical State and Typed Views
 
-Write separate canonical-state and agent-interface implementation plans after Release Train B.
+Write the canonical-state implementation plan after Release Train B. The agent-interface plan follows only after the canonical records and typed views are stable.
 
 Deliverables:
 
@@ -138,10 +138,7 @@ Deliverables:
 - One lifecycle status source instead of frontmatter/scopes duplication.
 - Typed views with stable IDs, provenance, deduplication, and archive/supersession filtering.
 - One bounded continuation packet.
-- Mode-specific minimal schemas for planning, codebase, chat, and small features.
-- MCP resources for memory/status, prompts for capture/handoff, and tools for search/mutation.
-- Structured MCP output, schemas, annotations, canonical/status filters, and pagination.
-- Equivalent stable CLI JSON.
+- Mode-specific minimal schemas for planning, codebase, chat, and small-feature projects.
 
 Exit gates:
 
@@ -151,9 +148,25 @@ Exit gates:
 - Every supported init mode can follow next and reach ready without invented architecture.
 - Context stays within the Release Train A budgets.
 
-## Release Train D — Protocol and Conformance
+## Release Train D — Agent Interface
 
-Write the protocol/conformance plan after canonical-state behavior is stable.
+Write this plan after canonical state and typed views are stable.
+
+Deliverables:
+
+- MCP resources for memory and status.
+- Prompts for capture and handoff.
+- Structured tool output, schemas, annotations, canonical/status-aware search, and pagination.
+- Equivalent stable CLI JSON.
+
+Exit gates:
+
+- Agent reads and writes use canonical identifiers rather than heading inference.
+- Every response stays within the Release Train A latency, token, and completion-note budgets.
+
+## Release Train E — Protocol and Conformance
+
+Write the protocol/conformance plan after canonical-state and agent-interface behavior are stable.
 
 Deliverables:
 
@@ -174,7 +187,7 @@ Exit gates:
 - External projects demonstrate continued use, not only installation.
 - Only after these gates may public copy call Benjamin Docs a dependable standard.
 
-## Deferred Until Trust Gates Pass
+## Deferred Beyond The Trust Foundation
 
 - Hosted publishing.
 - Dashboards.

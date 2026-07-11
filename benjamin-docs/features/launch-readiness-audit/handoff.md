@@ -14,9 +14,9 @@ freshness: status
 
 ## Status
 
-The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction. Trust-foundation Tasks 1-8 are implemented on the dependable-standard branch.
+The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction. All trust-foundation implementation tasks are complete on the dependable-standard branch, and the working package is the 0.12.0 release candidate.
 
-The current branch now has locked context and latency budgets, response-safe session-start-only hooks, bounded task retrieval, a split core skill, truthful structured readiness, target-specific doctor checks, complete Git change accounting, and fail-closed customer/public export policy. Task 8 aligns every public surface with those guarantees, removes the stale tracked skill ZIP, and makes GitHub release automation generate and verify the complete skill bundle without publishing npm. Continue with Task 9 for cross-platform CI, installed-tarball smoke, and performance gates.
+The branch has locked context and latency budgets, response-safe session-start-only hooks, bounded task retrieval, a split core skill, truthful structured readiness, target-specific doctor checks, complete Git change accounting, one fail-closed publication preflight, exact public claims, cross-platform CI, installed-tarball smoke, and enforced performance gates. This prepares but does not publish, tag, or create the 0.12.0 release.
 
 Executable plan:
 
@@ -51,38 +51,43 @@ Release budgets:
 - core skill at or below 1,200 words;
 - at most one automatic start process and one silent end process.
 
+## Audit Reproduction Evidence
+
+All ten reproductions passed against the built CLI in temporary repositories on 2026-07-11:
+
+1. Customer app/handoff/summary paths and untouched starter customer feature content were blocked before export directories were written.
+2. A committed watched source change made `committed_freshness` fail and `ready` exit 1.
+3. Untracked Swift, Kotlin, C#, Dart, Vue, Svelte, shell, and TOML paths made `working_tree_impact` fail.
+4. A committed watched source deletion made `committed_freshness` fail.
+5. Repository readiness and project-level strict doctor passed with an empty Benjamin home.
+6. Missing Codex integration failed only the Codex target check and omitted unrelated integration output.
+7. Upgrade-installed Claude Code, Codex, and Cursor hooks contained only `session-start`; no Benjamin stop or follow-up command remained.
+8. Legacy `session-stop` returned no output for every supported format.
+9. The release-gate benchmark passed: session-start p95 236.515 ms at 283 characters / 71 estimated tokens; session-stop p95 171.218 ms with zero output. MCP `memory_context` stayed within 2,400 characters / 600 estimated tokens.
+10. Evidence recording followed by verified customer feature export succeeded and preserved the evidence in output.
+
+These results prove the deterministic contracts exercised; they do not prove semantic truth or protocol-level conformance.
+
 ## Release Train Sequence
 
 A. Trust foundation: response-safe hooks, budgets, truthful structured readiness, project-local doctor, complete file-change coverage, export preflight, accurate public claims, cross-platform/package gates.
 
 B. Impact evidence: durable update/no-impact/defer/block evidence tied to source identity so strict readiness stays useful without busywork.
 
-C. Canonical state and agent interface: typed current state, lifecycle, decisions, questions, risks, views, bounded continuation, mode-specific schemas, MCP resources/prompts/structured output.
+C. Canonical state and typed views: typed current state, lifecycle, decisions, questions, risks, actions, verification, publication policy, bounded continuation, and mode-specific minimal schemas.
 
-D. Protocol and conformance: vendor-neutral schema, Markdown mapping, migrations, fixtures, third-party runner, fresh-agent benchmarks, governance, and validated adoption.
+D. Agent interface: MCP resources for memory/status, capture/handoff prompts, structured output and annotations, canonical/status-aware search, pagination, and stable CLI JSON.
+
+E. Protocol and conformance: vendor-neutral schema, Markdown mapping, migrations, fixtures, third-party runner, fresh-agent benchmarks, governance, and validated adoption.
 
 Each later train receives a separate executable plan after the preceding interfaces are proven.
-
-## First Implementation Task
-
-Task 1 in the executable plan:
-
-- create src/context-budget.ts;
-- add deterministic token/character tests;
-- create scripts/benchmark-agent-overhead.mjs;
-- add pnpm benchmark:agent-overhead;
-- record the current performance baseline before behavior changes.
-
-Implementation should begin in an isolated worktree using the execution skill selected by the maintainer.
 
 ## Risks / Open Questions
 
 - The vendor-neutral protocol name remains open; Project Memory Protocol is the working description, not a final brand decision.
 - Release Train B must solve false positives before strict readiness is considered low-friction at scale.
-- The current 4,264-word skill is a material token cost when activated; the first release train must split it.
-- Current task-scoped memory_context measured about 776 estimated tokens in this repo, above the accepted 600-token target.
 - Target-specific hook capabilities differ. The safe common denominator is session-start context plus no blocking/follow-up at stop.
-- Customer app/handoff/summary and public/user audience exports will be temporarily disabled rather than left unsafe.
+- Customer app/handoff/summary and public/user audience exports remain intentionally disabled until the publication schema exists.
 - Semantic contradiction detection remains limited until canonical state is implemented; public wording must stay exact meanwhile.
 
 ## Continuation Proof
@@ -95,11 +100,11 @@ Read first:
 - docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md
 - benjamin-docs/features/launch-readiness-audit/handoff.md
 
-Before implementation:
+Before follow-on implementation:
 
 - git status --short --branch
 - pnpm check
-- pnpm benchmark:agent-overhead after Task 1 creates it
+- pnpm benchmark:agent-overhead -- --assert
 - node dist/src/cli.js ready
 
 Before every implementation handoff:

@@ -17,7 +17,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 - `src/cli.ts` routes all commands and parses command-specific flags.
 - `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. `src/commands.ts` owns command-drawer descriptions. Keep both aligned with `README.md`, `package.json`, and the bundled skill's exact project-memory guarantees.
-- `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.11.1` is published and is the current release.
+- `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.11.1` remains published; the working package is the unpublished `0.12.0` release candidate.
 - `src/chat-project.ts` formats the confirmation prompt for creating a project from an existing chat.
 - `src/next.ts` formats the next prompt after init/status workflows.
 
@@ -26,7 +26,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/init.ts` creates `.benjamin-docs/`, `benjamin-docs/`, starter docs, manifest, scopes, and anchors. It also seeds default `watch` rules into config and preserves custom rules on re-init.
 - `src/templates.ts` contains starter Markdown docs and frontmatter defaults.
 - `src/scopes.ts` creates feature scopes and updates scope lifecycle status. Scope creation writes the four feature docs, adds them to the manifest, and appends a feature-specific watch rule. `setScopeStatus` cascades a new status and updated date into the scope's managed docs.
-- `src/export.ts` exports audience-specific bundles and task-based feature documentation. It owns feature matching, customer/developer profile rendering, customer export readiness checks, implementation-verification prompts, the agent-facing export verification writer, and generated Markdown under `exports/`.
+- `src/export.ts` owns feature matching, customer/developer rendering, implementation-verification recording, and generated Markdown under `exports/`. `src/export-policy.ts` is the only publication boundary and runs before any directory preparation or write.
 - `src/status.ts` summarizes the current initialized project.
 
 ## Validation And Review
@@ -34,6 +34,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/validate.ts` validates config (including `watch` rules), manifest, scopes, anchors, managed Markdown, links, and symlink/root safety.
 - `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, empty open-question docs, weak continuation proof, freshness blind spots for status-bearing docs, git churn since engineering docs last changed, missing inline-code path references, stale Memory Views, and changed source work that likely needs project-memory updates. Archived and stale docs are skipped for quality checks and changed-work watch warnings.
 - `src/git.ts` holds shared git helpers (`getChangedFiles`, `getCommittedChanges`, scalar and batched last-commit lookup, `gitCommitCountTouching`, `isReviewableSourceChange`) used by review, drift, and session commands.
+- `src/context-budget.ts` owns the public character, token-estimate, search-result, and completion-note limits shared by session and MCP retrieval paths.
 - `src/drift.ts` implements `bd drift`: per-doc committed-history comparison against watch rules, with advisory formatting, `--json`, and `--strict` handled in the CLI. It skips archived/stale docs, uncommitted-doc updates, and never-committed docs. Last-doc commits are fetched in one Git process; identical committed-change and commit-count queries are cached while retaining each doc's own last-update boundary.
 - `src/session.ts` implements budgeted `bd session-start` context, typed hook-payload parsing, per-tool output, the always-silent legacy `formatSessionStop()` adapter, and `getSessionStopNudge()` for an explicit diagnostic path.
 - `src/session-state.ts` owns local per-session working-tree fingerprints, new-content comparison, pending-nudge acknowledgement, fail-open recovery, and seven-day state pruning.
@@ -43,7 +44,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/mcp-install.ts` registers/reports/removes the `benjamin-docs` MCP server entry in the project's Claude Code, Cursor, and Codex client configs (JSON key ownership; marker-comment block in Codex TOML).
 - `src/watch.ts` holds the `WatchRule` defaults, including broad baseline coverage for project, handoff, feature-index, engineering, and release docs, plus the zero-dependency glob matcher and `resolveWatchRules` for config-or-default resolution.
 - `src/views.ts` renders Memory Views: it filters out archived/stale docs and scopes, orders sources by updated date, groups sections per source doc, and only rewrites view files whose body changed. `renderMemoryViews` is also used by review for the freshness check.
-- `src/doctor.ts` checks CLI version, installed skills, Claude Desktop upload zip, project initialization, and validation. `--strict` turns setup gaps and validation warnings into failures.
+- `src/doctor.ts` separates project health from optional integrations. Plain `--strict` checks repository setup/validation; `--strict --target <target>` reports and fails only the selected integration plus its remediation.
 - `src/environment.ts` scans Benjamin-managed source docs for recorded local environment/tooling blockers such as missing commands or unavailable services.
 - `src/readiness.ts` owns the structured readiness report used by `bd ready` and future preflight consumers. It separates structure, review-only baseline content heuristics, committed freshness, working-tree impact, and agent guidance. `src/review.ts` exposes `changedWorkStatus` from its own Git diff, preventing drift-detector failures from hiding changed-work warnings. The readiness dependency seam allows deterministic drift-error tests without monkeypatching.
 - `src/ready.ts` formats that report for humans or emits it unchanged through `bd ready --json`. Repository readiness no longer runs `doctor --strict`; recorded environment/tooling blockers remain visible but non-blocking, and the human closeout explicitly limits the result to deterministic checks rather than semantic truth.
@@ -78,6 +79,8 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `test/scopes-anchors.test.ts` covers feature-scope watch registration, `scope status` cascade, and rejection of unknown scopes and statuses.
 - `test/ready.test.ts` covers the combined handoff gate, including failure when status docs have no freshness coverage and non-failing surfacing of recorded environment/tooling blockers.
 - `test/drift-hooks.test.ts` covers committed-history drift semantics, session-start-only install/migration/uninstall behavior, silent stop compatibility, and the explicit stop diagnostic. `test/context-budget.test.ts` locks public context limits; `scripts/benchmark-agent-overhead.mjs` asserts session-boundary p95 and output budgets.
+- `test/readiness-report.test.ts` reproduces false-ready, cross-stack, deletion, planning-mode, and guidance failures. `test/export-policy.test.ts` and `test/validate-export.test.ts` cover the shared preflight and verified customer success path. `test/doctor.test.ts` covers target isolation; `test/mcp.test.ts` enforces task-context bounds.
+- `scripts/smoke-packed-cli.mjs` packs and installs the actual tarball before exercising both binaries and core workflows. `.github/workflows/ci.yml` runs `pnpm check` on Linux, macOS, and Windows with Node 22 and 24, plus a Linux trust-gates job for packed smoke, JSON readiness, and overhead budgets.
 - `test/fsx.test.ts` and `test/frontmatter.test.ts` cover low-level path and Markdown parsing behavior.
 
 ## Change Guide
