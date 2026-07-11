@@ -41,8 +41,15 @@ const customerFeatureSources: ExportPolicySource[] = [
   },
 ];
 
+const customerFeatureOperation: ExportOperation = {
+  kind: "feature",
+  profile: "customer",
+};
+
+const customerFeature = { slug: "owner-delete", scopePath: "benjamin-docs/features/owner-delete" };
+
 function preflight(operation: ExportOperation, sources: ExportPolicySource[] = []) {
-  return preflightExport({ operation, readiness: ready, sources });
+  return preflightExport({ operation, readiness: ready, sources, feature: operation.kind === "feature" ? customerFeature : undefined });
 }
 
 describe("export publication policy", () => {
@@ -66,7 +73,7 @@ describe("export publication policy", () => {
   }
 
   it("allows a verified customer feature when the project and sources are publication-ready", () => {
-    const result = preflight({ kind: "feature", profile: "customer" }, customerFeatureSources);
+    const result = preflight(customerFeatureOperation, customerFeatureSources);
 
     assert.deepEqual(result, { allowed: true, reasons: [], requiredRepairs: [] });
   });
@@ -82,7 +89,7 @@ describe("export publication policy", () => {
       ),
     };
 
-    const result = preflightExport({ operation: { kind: "feature", profile: "customer" }, readiness: report, sources: customerFeatureSources });
+    const result = preflightExport({ operation: customerFeatureOperation, readiness: report, sources: customerFeatureSources, feature: customerFeature });
 
     assert.equal(result.allowed, false);
     assert.ok(result.reasons.includes("Project readiness is not ready: Managed docs are behind committed source."));
@@ -103,15 +110,51 @@ describe("export publication policy", () => {
       },
     ];
 
-    const result = preflight({ kind: "feature", profile: "customer" }, sources);
+    const result = preflight(customerFeatureOperation, sources);
 
     assert.equal(result.allowed, false);
     assert.ok(result.reasons.includes("Customer export source docs must not be private-only."));
     assert.ok(result.reasons.includes("Missing customer-facing 'What It Is' section."));
     assert.ok(result.reasons.includes("Missing customer-facing 'How To Use It' section."));
-    assert.ok(result.reasons.includes("Customer-facing feature export should be verified against implementation first."));
-    assert.ok(result.requiredRepairs.some((repair) => repair.includes("brief.md")));
-    assert.ok(result.requiredRepairs.some((repair) => repair.includes("handoff.md")));
+    assert.ok(result.reasons.includes("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry."));
+    assert.ok(result.requiredRepairs.includes("Add a 'What It Is' section to benjamin-docs/features/owner-delete/brief.md"));
+    assert.ok(result.requiredRepairs.includes("Add a 'How To Use It' section to benjamin-docs/features/owner-delete/brief.md"));
+    assert.ok(result.requiredRepairs.includes('Run: benjamin-docs export --verify owner-delete --evidence "Checked the implemented customer workflow against the current code."'));
+  });
+
+  it("rejects an implementation marker without evidence", () => {
+    const sources = customerFeatureSources.map((source) =>
+      source.path.endsWith("/handoff.md")
+        ? { ...source, content: "# Owner Delete Handoff\n\n## Implementation Verification\n\nImplementation verified: yes" }
+        : source,
+    );
+
+    const result = preflight(customerFeatureOperation, sources);
+
+    assert.equal(result.allowed, false);
+    assert.ok(result.reasons.includes("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry."));
+    assert.ok(result.requiredRepairs.includes('Run: benjamin-docs export --verify owner-delete --evidence "Checked the implemented customer workflow against the current code."'));
+  });
+
+  it("rejects an empty implementation evidence entry", () => {
+    const sources = customerFeatureSources.map((source) =>
+      source.path.endsWith("/handoff.md")
+        ? { ...source, content: "# Owner Delete Handoff\n\n## Implementation Verification\n\nImplementation verified: yes\n\nEvidence:\n-" }
+        : source,
+    );
+
+    const result = preflight(customerFeatureOperation, sources);
+
+    assert.equal(result.allowed, false);
+    assert.ok(result.reasons.includes("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry."));
+  });
+
+  it("uses exact scope paths when required feature sources are missing", () => {
+    const result = preflight(customerFeatureOperation, []);
+
+    assert.equal(result.allowed, false);
+    assert.ok(result.requiredRepairs.includes("Create or repair benjamin-docs/features/owner-delete/brief.md"));
+    assert.ok(result.requiredRepairs.includes("Create or repair benjamin-docs/features/owner-delete/handoff.md"));
   });
 
   it("allows developer and agent exports when structural validation passes", () => {
@@ -149,7 +192,12 @@ describe("export publication policy", () => {
       ),
     };
 
-    const result = preflightExport({ operation: { kind: "feature", profile: "developer" }, readiness: invalidReport, sources: [] });
+    const result = preflightExport({
+      operation: { kind: "feature", profile: "developer" },
+      readiness: invalidReport,
+      sources: [],
+      feature: customerFeature,
+    });
 
     assert.equal(result.allowed, false);
     assert.ok(result.reasons.includes("Structural validation failed: Repository memory structure has validation findings."));
@@ -162,7 +210,7 @@ describe("export publication policy", () => {
         index === 0 ? { ...source, content: `${source.content}\n\nLocal checkout: ${path}` } : source,
       );
 
-      const result = preflight({ kind: "feature", profile: "customer" }, sources);
+      const result = preflight(customerFeatureOperation, sources);
 
       assert.equal(result.allowed, false);
       assert.ok(result.reasons.some((reason) => reason.includes("absolute user path")));
@@ -175,7 +223,7 @@ describe("export publication policy", () => {
       index === 0 ? { ...source, content: `${source.content}\n\nCapture what this feature is meant to accomplish.` } : source,
     );
 
-    const result = preflight({ kind: "feature", profile: "customer" }, sources);
+    const result = preflight(customerFeatureOperation, sources);
 
     assert.equal(result.allowed, false);
     assert.ok(result.reasons.includes("Customer export source still contains untouched starter content."));

@@ -63,6 +63,9 @@ function customerFeatureHandoff(slug: string, title: string): string {
     "",
     "Implementation verified: yes",
     "",
+    "Evidence:",
+    "- Checked the owner page, deletion action, retention guard, and visible blocked state against the current implementation.",
+    "",
     "## Known Limits",
     "",
     "Deletion may be unavailable when historical records must be preserved.",
@@ -691,9 +694,10 @@ describe("status and export", () => {
   it("prints feature export readiness", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
+      captureProjectBaseline(dir);
       runCli(["scope", "create", "feature", "owner-delete"], dir);
-      runCli(["scope", "create", "feature", "staff-payroll"], dir);
       runCli(["scope", "create", "feature", "legacy-flow"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
       writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
       writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
       runCli(["scope", "status", "legacy-flow", "archived"], dir);
@@ -702,8 +706,68 @@ describe("status and export", () => {
 
       assert.match(output, /Feature export readiness/);
       assert.match(output, /Owner Delete \(owner-delete\) - ready/);
-      assert.match(output, /Staff Payroll \(staff-payroll\) - blocked:/);
       assert.match(output, /Legacy Flow \(legacy-flow\) - archived/);
+    });
+  });
+
+  it("keeps list readiness blocked when starter content blocks the actual export", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      captureProjectBaseline(dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
+      writeFileSync(
+        join(dir, "benjamin-docs/features/owner-delete/brief.md"),
+        `${customerFeatureBrief("owner-delete", "Owner Delete")}\n\nCapture what this feature is meant to accomplish.\n`,
+        "utf8",
+      );
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      const list = runCli(["export", "--list"], dir);
+      const exported = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      assert.match(list, /Owner Delete \(owner-delete\) - blocked: Customer export source still contains untouched starter content/);
+      assert.equal(exported.status, 1);
+      assert.match(exported.stderr, /Customer export source still contains untouched starter content/);
+    });
+  });
+
+  it("keeps list readiness blocked when an absolute path blocks the actual export", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      captureProjectBaseline(dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
+      writeFileSync(
+        join(dir, "benjamin-docs/features/owner-delete/brief.md"),
+        `${customerFeatureBrief("owner-delete", "Owner Delete")}\n\nLocal checkout: /Users/alice/project\n`,
+        "utf8",
+      );
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      const list = runCli(["export", "--list"], dir);
+      const exported = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      assert.match(list, /Owner Delete \(owner-delete\) - blocked: Customer or public export source contains an absolute user path/);
+      assert.equal(exported.status, 1);
+      assert.match(exported.stderr, /Customer or public export source contains an absolute user path/);
+    });
+  });
+
+  it("keeps list readiness blocked when project readiness blocks the actual export", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      const list = runCli(["export", "--list"], dir);
+      const exported = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      assert.match(list, /Owner Delete \(owner-delete\) - blocked: Project readiness is not ready/);
+      assert.equal(exported.status, 1);
+      assert.match(exported.stderr, /Project readiness is not ready/);
     });
   });
 
@@ -818,8 +882,8 @@ describe("status and export", () => {
 
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Export preflight blocked/);
-      assert.match(result.stderr, /Customer-facing feature export should be verified against implementation first/);
-      assert.match(result.stderr, /benjamin-docs export --verify <feature> --evidence/);
+      assert.match(result.stderr, /Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry/);
+      assert.match(result.stderr, /benjamin-docs export --verify owner-delete --evidence "Checked the implemented customer workflow against the current code\."/);
       assert.equal(existsSync(join(dir, "exports/features/owner-delete-customer.md")), false);
     });
   });
@@ -862,7 +926,7 @@ describe("status and export", () => {
 
       const blocked = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
       assert.equal(blocked.status, 1);
-      assert.match(blocked.stderr, /Customer-facing feature export should be verified against implementation first/);
+      assert.match(blocked.stderr, /Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry/);
 
       const verified = runCliResult([
         "export",

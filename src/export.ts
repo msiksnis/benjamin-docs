@@ -60,20 +60,6 @@ interface GitState {
   dirty: boolean | "unknown";
 }
 
-const DEFAULT_BLOCKED_PHRASES = [
-  "AGENTS.md",
-  "agent-only",
-  "api key",
-  "internal only",
-  "password",
-  "private key",
-  "process.env",
-  "secret",
-  "stack trace",
-  "token",
-  ".env",
-];
-
 export function exportAudience(root: string, audience: string): string[] {
   const selectedAudience = parseAudience(audience);
   const config = readConfig(root);
@@ -110,10 +96,11 @@ export function exportAudience(root: string, audience: string): string[] {
 
 export function listFeatureExportChoices(root: string): FeatureExportChoice[] {
   const config = readConfig(root);
+  const readinessReport = analyzeReadiness({ cwd: root });
   return readFeatureScopes(root)
     .sort((a, b) => a.title.localeCompare(b.title))
     .map((scope) => {
-      const readiness = getFeatureExportReadiness(root, scope, config);
+      const readiness = getFeatureExportReadiness(root, scope, config, readinessReport);
       return { scope, readiness, label: formatFeatureChoiceLabel(scope, readiness) };
     });
 }
@@ -168,7 +155,14 @@ export function exportFeature(root: string, query: string, options: ExportFeatur
   const config = readConfig(root);
   const allSources = readFeatureSourceDocs(root, config.docsRoot, match.scope);
   const sources = profile === "customer" ? allSources.filter((source) => isCustomerFeatureSource(source.relativePath)) : allSources;
-  assertExportPreflight(root, { kind: "feature", profile }, sources.map(toPolicySource), config);
+  assertExportPreflight(
+    root,
+    { kind: "feature", profile },
+    sources.map(toPolicySource),
+    config,
+    undefined,
+    { slug: match.scope.id, scopePath: match.scope.path },
+  );
 
   const content =
     profile === "customer"
@@ -325,12 +319,14 @@ function assertExportPreflight(
   sources: ExportPolicySource[],
   config: BenjaminDocsConfig,
   readiness: ReadinessReport = analyzeReadiness({ cwd: root }),
+  feature?: { slug: string; scopePath: string },
 ): void {
   const result = preflightExport({
     operation,
     readiness,
     sources,
     blockedPhrases: config.export?.blockedPhrases,
+    feature,
   });
   if (result.allowed) return;
 
@@ -479,42 +475,29 @@ function isCustomerFeatureSource(relativePath: string): boolean {
   return relativePath.endsWith("/brief.md") || relativePath.endsWith("/handoff.md");
 }
 
-function getFeatureExportReadiness(root: string, scope: ScopeRecord, config: BenjaminDocsConfig): FeatureExportReadiness {
+function getFeatureExportReadiness(
+  root: string,
+  scope: ScopeRecord,
+  config: BenjaminDocsConfig,
+  readinessReport: ReadinessReport = analyzeReadiness({ cwd: root }),
+): FeatureExportReadiness {
   if (scope.status === "archived") return { status: "archived", messages: ["archived"] };
 
   const sources = readFeatureSourceDocs(root, config.docsRoot, scope).filter((source) => isCustomerFeatureSource(source.relativePath));
-  const messages = customerFeatureReadinessMessages(scope, sources, config);
-  return messages.length > 0 ? { status: "blocked", messages } : { status: "ready", messages: [] };
+  const preflight = preflightExport({
+    operation: { kind: "feature", profile: "customer" },
+    readiness: readinessReport,
+    sources: sources.map(toPolicySource),
+    blockedPhrases: config.export?.blockedPhrases,
+    feature: { slug: scope.id, scopePath: scope.path },
+  });
+  return preflight.allowed ? { status: "ready", messages: [] } : { status: "blocked", messages: preflight.reasons };
 }
 
 function formatFeatureChoiceLabel(scope: ScopeRecord, readiness: FeatureExportReadiness): string {
   if (readiness.status === "ready") return `${scope.title} (${scope.id}) - ready`;
   if (readiness.status === "archived") return `${scope.title} (${scope.id}) - archived`;
   return `${scope.title} (${scope.id}) - blocked: ${readiness.messages[0] ?? "not export-ready"}`;
-}
-
-function customerFeatureReadinessMessages(scope: ScopeRecord, sources: SourceDoc[], config: BenjaminDocsConfig): string[] {
-  const messages: string[] = [];
-  const sourcePaths = new Set(sources.map((source) => source.relativePath));
-  const combined = sources.map((source) => source.parsed.body).join("\n\n");
-  const normalized = normalizeContent(combined);
-
-  if (!sourcePaths.has(`${scope.path}/brief.md`)) messages.push("Missing feature brief.");
-  if (!sourcePaths.has(`${scope.path}/handoff.md`)) messages.push("Missing feature handoff.");
-  if (sources.some((source) => source.parsed.frontmatter.visibility === "private")) {
-    messages.push("Customer export source docs must not be private-only.");
-  }
-  if (!normalized.includes("what it is")) messages.push("Missing customer-facing 'What It Is' section.");
-  if (!normalized.includes("how to use")) messages.push("Missing customer-facing 'How To Use It' section.");
-  if (!/implementation verified:\s*yes/i.test(combined)) {
-    messages.push("Customer-facing feature export should be verified against implementation first.");
-  }
-
-  for (const leak of findLeakRisks(combined, config)) {
-    messages.push(`Possible customer-facing leak risk: ${leak}.`);
-  }
-
-  return messages;
 }
 
 function renderCustomerFeatureExport(root: string, scope: ScopeRecord, sources: SourceDoc[], detail: ExportDetail): string {
@@ -749,10 +732,11 @@ function formatSectionBody(body: string, detail: ExportDetail): string {
 function featureSummary(root: string, config: BenjaminDocsConfig, options: { includeReasons: boolean }): string {
   const features = readFeatureScopes(root).sort((a, b) => a.title.localeCompare(b.title));
   if (features.length === 0) return "";
+  const readinessReport = analyzeReadiness({ cwd: root });
 
   return features
     .map((scope) => {
-      const readiness = getFeatureExportReadiness(root, scope, config);
+      const readiness = getFeatureExportReadiness(root, scope, config, readinessReport);
       const status =
         readiness.status === "blocked" && options.includeReasons
           ? `blocked: ${readiness.messages[0] ?? "not export-ready"}`
@@ -805,18 +789,6 @@ function firstParagraph(markdown: string): string {
     .find((part) => part && !part.startsWith("#")) ?? "";
 }
 
-function findLeakRisks(markdown: string, config: BenjaminDocsConfig): string[] {
-  const normalized = markdown.toLowerCase();
-  const phrases = [...DEFAULT_BLOCKED_PHRASES, ...(config.export?.blockedPhrases ?? [])];
-  const found = new Set<string>();
-
-  for (const phrase of phrases) {
-    if (phrase && normalized.includes(phrase.toLowerCase())) found.add(phrase);
-  }
-
-  return [...found];
-}
-
 function latestSourceUpdate(sources: SourceDoc[]): string {
   return sources.map((source) => source.parsed.frontmatter.updated).sort().at(-1) ?? "unknown";
 }
@@ -833,10 +805,6 @@ function getGitState(root: string): GitState {
 
 function detailSuffix(detail: ExportDetail): string {
   return detail === "standard" ? "" : `-${detail}`;
-}
-
-function normalizeContent(value: string): string {
-  return value.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 function normalizeFeatureKey(value: string): string {

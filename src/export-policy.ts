@@ -17,6 +17,10 @@ export interface ExportPreflightRequest {
   readiness: ReadinessReport;
   sources: ExportPolicySource[];
   blockedPhrases?: string[];
+  feature?: {
+    slug: string;
+    scopePath: string;
+  };
 }
 
 export interface ExportPreflightResult {
@@ -69,14 +73,14 @@ export function preflightExport(request: ExportPreflightRequest): ExportPrefligh
   addTemporaryPublicationBlock(request.operation, reasons, requiredRepairs);
 
   if (publicationOutput) {
-    addReadinessFailures(request.readiness, reasons, requiredRepairs);
     addPublicationSourceFailures(request.sources, request.blockedPhrases ?? [], reasons, requiredRepairs);
+    addReadinessFailures(request.readiness, reasons, requiredRepairs);
   } else {
     addStructuralFailure(request.readiness, reasons, requiredRepairs);
   }
 
   if (request.operation.kind === "feature" && request.operation.profile === "customer") {
-    addCustomerFeatureFailures(request.sources, reasons, requiredRepairs);
+    addCustomerFeatureFailures(request.feature, request.sources, reasons, requiredRepairs);
   }
 
   return {
@@ -160,36 +164,60 @@ function addPublicationSourceFailures(sources: ExportPolicySource[], blockedPhra
   }
 }
 
-function addCustomerFeatureFailures(sources: ExportPolicySource[], reasons: string[], repairs: string[]): void {
+function addCustomerFeatureFailures(
+  feature: ExportPreflightRequest["feature"],
+  sources: ExportPolicySource[],
+  reasons: string[],
+  repairs: string[],
+): void {
   const brief = sources.find((source) => source.path.endsWith("/brief.md"));
   const handoff = sources.find((source) => source.path.endsWith("/handoff.md"));
   const combined = sources.map((source) => source.content).join("\n\n");
+  const inferredScopePath = brief?.path.replace(/\/brief\.md$/, "") ?? handoff?.path.replace(/\/handoff\.md$/, "");
+  const scopePath = feature?.scopePath ?? inferredScopePath ?? "the feature source directory";
+  const briefPath = `${scopePath}/brief.md`;
+  const handoffPath = `${scopePath}/handoff.md`;
 
   if (!brief) {
     reasons.push("Missing feature brief.");
-    repairs.push("Create or repair the feature brief.md source document.");
+    repairs.push(`Create or repair ${briefPath}`);
   }
   if (!handoff) {
     reasons.push("Missing feature handoff.");
-    repairs.push("Create or repair the feature handoff.md source document.");
+    repairs.push(`Create or repair ${handoffPath}`);
   }
   if (!hasHeading(combined, "What It Is")) {
     reasons.push("Missing customer-facing 'What It Is' section.");
-    repairs.push(`Add a 'What It Is' section to ${brief?.path ?? "the feature brief.md source document"}`);
+    repairs.push(`Add a 'What It Is' section to ${briefPath}`);
   }
   if (!hasHeading(combined, "How To Use It")) {
     reasons.push("Missing customer-facing 'How To Use It' section.");
-    repairs.push(`Add a 'How To Use It' section to ${brief?.path ?? "the feature brief.md source document"}`);
+    repairs.push(`Add a 'How To Use It' section to ${briefPath}`);
   }
-  if (!/implementation verified:\s*yes/i.test(combined)) {
-    reasons.push("Customer-facing feature export should be verified against implementation first.");
-    repairs.push(`Run: benjamin-docs export --verify <feature> --evidence "<what was checked>"${handoff ? ` (records evidence in ${handoff.path})` : ""}`);
+  const verification = handoff ? extractSection(handoff.content, "Implementation Verification") : "";
+  if (!/implementation verified:\s*yes/i.test(verification) || !hasEvidenceEntry(verification)) {
+    reasons.push("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry.");
+    repairs.push(
+      feature
+        ? `Run: benjamin-docs export --verify ${feature.slug} --evidence "Checked the implemented customer workflow against the current code."`
+        : `Add a verified marker and non-empty evidence entry to ${handoffPath}`,
+    );
   }
 }
 
 function hasHeading(content: string, heading: string): boolean {
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`(?:^|\\n)#{1,6}\\s+${escaped}\\s*(?:\\n|$)`, "i").test(content);
+}
+
+function extractSection(content: string, heading: string): string {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = content.match(new RegExp(`(?:^|\\n)#{1,6}\\s+${escaped}\\s*\\n([\\s\\S]*?)(?=\\n#{1,6}\\s+|$)`, "i"));
+  return match?.[1]?.trim() ?? "";
+}
+
+function hasEvidenceEntry(verification: string): boolean {
+  return /(?:^|\n)Evidence:\s*\n(?:[ \t]*\n)*[ \t]*[-*]\s+\S[^\n]*/i.test(verification);
 }
 
 function unique(values: string[]): string[] {
