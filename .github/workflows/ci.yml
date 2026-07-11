@@ -11,7 +11,37 @@ permissions:
 
 jobs:
   check:
-    name: Check
+    name: Check (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [22, 24]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run checks
+        run: pnpm check
+
+  trust-gates:
+    name: Trust gates (Ubuntu, Node 22)
     runs-on: ubuntu-latest
 
     steps:
@@ -32,11 +62,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run checks
-        run: pnpm check
+      - name: Build package
+        run: pnpm build
 
-      - name: Validate project docs
-        run: node dist/src/cli.js validate
+      - name: Smoke test packed CLI
+        run: pnpm smoke:pack
 
-      - name: Verify package contents
-        run: npm pack --dry-run
+      - name: Verify project readiness
+        run: node dist/src/cli.js ready --json
+
+      - name: Enforce agent overhead budgets
+        run: pnpm benchmark:agent-overhead -- --assert
