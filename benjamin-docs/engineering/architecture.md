@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: session-capture
 ---
 
@@ -23,7 +23,7 @@ benjamin-docs -> dist/src/cli.js
 
 The TypeScript source lives in `src/` and is compiled to `dist/src/` before publishing. Most filesystem, path-safety, process, and test-fixture work uses Node built-ins. Since 0.11.0, the MCP server adds the official `@modelcontextprotocol/sdk` and `zod` as the package's two runtime dependencies.
 
-Public first-contact surfaces are part of the architecture because this package is discovered through GitHub, npm, and CLI help before any agent workflow runs. `README.md`, `package.json` description/keywords, `src/info.ts`, and `skills/benjamin-docs/SKILL.md` must all describe the same product: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Avoid implying a background daemon; the update loop comes from repo-local agent guidance and the installed skill.
+Public first-contact surfaces are part of the architecture because this package is discovered through GitHub, npm, and CLI help before any agent workflow runs. `README.md`, `package.json`, `src/info.ts`, `src/commands.ts`, and `skills/benjamin-docs/` describe the same product and exact limits: start hooks supply bounded pointers, readiness is deterministic rather than semantic proof, publication metadata is not Git confidentiality, and BD never needs to alter the substantive final answer.
 
 The 0.9.3 publish is a public-surface patch, not a runtime architecture change. It packages the README/npm positioning work so npmjs and GitHub both present the same agent-memory model.
 
@@ -105,7 +105,7 @@ pnpm run release:github
 pnpm run release:verify-public
 ```
 
-`release:check` builds, tests, validates the BD repo, and dry-runs npm packing. After npm publish, `release:github` verifies that npm reports the package version, creates or reuses the matching `vX.Y.Z` tag, pushes it, and creates a GitHub Release marked latest. `.github/workflows/release.yml` is a backup path: if a maintainer pushes a version tag manually, GitHub Actions verifies the tag against `package.json` and npm before creating the GitHub Release.
+`release:check` builds, tests, validates the BD repo, and dry-runs npm packing. After npm publish, `release:github` verifies npm, generates a temporary skill ZIP, byte-checks `SKILL.md` and all three references against package sources, then creates or reuses the tag and GitHub Release. The script never publishes npm, and the ZIP is not tracked source. `.github/workflows/release.yml` remains the tag-push backup path.
 
 ## Current Architectural Bias
 

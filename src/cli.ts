@@ -812,9 +812,9 @@ function parsePackageSkillArgs(args: string[]): PackageSkillOptions {
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
 
-    if (arg === "--out") {
+    if (arg === "--out" || arg === "--output") {
       const value = args[index + 1];
-      if (!value) throw new Error("Usage: benjamin-docs package-skill --out <file-or-folder>");
+      if (!value) throw new Error("Usage: benjamin-docs package-skill --output <file-or-folder>");
       options.out = value;
       index += 1;
       continue;

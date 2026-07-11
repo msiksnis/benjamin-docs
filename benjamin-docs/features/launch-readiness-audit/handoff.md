@@ -5,7 +5,7 @@ scope_id: launch-readiness-audit
 audience: [developer, agent]
 status: approved
 visibility: public
-updated: 2026-07-10
+updated: 2026-07-11
 source: manual
 freshness: status
 ---
@@ -14,9 +14,9 @@ freshness: status
 
 ## Status
 
-The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction. Trust-foundation Tasks 1-4 are implemented on the dependable-standard branch.
+The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first direction. Trust-foundation Tasks 1-8 are implemented on the dependable-standard branch.
 
-The current branch now has locked context and latency budgets, response-safe session-start-only hooks, bounded task retrieval, a split core skill, batched drift history lookup, and truthful structured readiness. Task 4 adds `src/readiness.ts`, `bd ready --json`, separate baseline and changed-work warnings, blocking committed drift and working-tree impact, non-blocking non-Git planning behavior, and repository readiness without doctor setup. Review follow-up adds validation-only, thrown-drift, and combined drift/changed-work regressions. `ReviewResult.changedWorkStatus` now keeps working-tree evidence independent. Continue with Task 5 after the Task 4 follow-up commit.
+The current branch now has locked context and latency budgets, response-safe session-start-only hooks, bounded task retrieval, a split core skill, truthful structured readiness, target-specific doctor checks, complete Git change accounting, and fail-closed customer/public export policy. Task 8 aligns every public surface with those guarantees, removes the stale tracked skill ZIP, and makes GitHub release automation generate and verify the complete skill bundle without publishing npm. Continue with Task 9 for cross-platform CI, installed-tarball smoke, and performance gates.
 
 Executable plan:
 

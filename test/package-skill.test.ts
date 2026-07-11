@@ -47,6 +47,15 @@ describe("package-skill", () => {
     });
   });
 
+  it("supports the release automation output option", () => {
+    withTempDir((dir) => {
+      const output = runCli(["package-skill", "--output", "release-artifacts"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.match(output, /release-artifacts\/benjamin-docs-skill\.zip/);
+      assert.equal(existsSync(join(dir, "release-artifacts", SKILL_ZIP_NAME)), true);
+    });
+  });
+
   it("supports an explicit output file", () => {
     withTempDir((dir) => {
       const output = runCli(["package-skill", "--out", "skill.zip"], dir, { BENJAMIN_DOCS_HOME: dir });

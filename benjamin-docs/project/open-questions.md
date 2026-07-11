@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: session-capture
 ---
 
@@ -18,6 +18,8 @@ source: session-capture
 - Decision: temporarily disable unsafe customer app/handoff/summary and public/user audience exports instead of preserving unsafe behavior.
 - Decision: default installed hooks must not block completion or auto-submit follow-ups; memory maintenance happens before the final answer.
 - Decision: preserve the accepted latency, token, skill-size, and one-sentence completion-note budgets in tests and release gates.
+- Decision: public copy describes bounded start context, deterministic readiness limits, publication metadata, and response-safe final answers exactly; generated skill bundles are verified artifacts rather than tracked sources.
+- Current status: trust-foundation Tasks 1-8 are complete; cross-platform/package/performance gates are next.
 - Should the open specification use a vendor-neutral name such as Project Memory Protocol, with Benjamin Docs as the reference implementation?
 - Which five repositories, three stack families, and three agent products should form the first conformance benchmark?
 - What false-positive rate is acceptable for strict changed-work readiness after the impact-evidence ledger exists?

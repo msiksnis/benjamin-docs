@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: draft
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: manual
 ---
 
@@ -15,7 +15,7 @@ Derived from risk, hazard, assumption, and open-question sections across managed
 
 ## [launch-readiness-audit Handoff](../features/launch-readiness-audit/handoff.md)
 
-Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-10)
+Source: `benjamin-docs/features/launch-readiness-audit/handoff.md` (updated 2026-07-11)
 
 ### Risks / Open Questions
 

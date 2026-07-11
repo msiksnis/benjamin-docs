@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, agent, business]
 status: review
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: session-capture
 ---
 
@@ -17,7 +17,7 @@ Because this repository is public, do not create feature scopes for private comm
 
 ## Active
 
-- [Launch Readiness Audit / Dependable Standard Program](./launch-readiness-audit/brief.md): the maintainer accepted the audit verdict and trust-first direction on 2026-07-10. The approved program plan sequences response-safe hooks, numerical latency/token budgets, truthful readiness, export safety, impact evidence, canonical state, agent interfaces, and finally a vendor-neutral protocol plus conformance suite. The first executable plan targets 0.12.0.
+- [Launch Readiness Audit / Dependable Standard Program](./launch-readiness-audit/brief.md): trust-foundation Tasks 1-8 are complete on the dependable-standard branch. Cross-platform CI, installed-tarball smoke, and performance gates are next before 0.12.0 dogfood.
 
 ## Shipped (archived)
 

@@ -1,12 +1,21 @@
 #!/usr/bin/env node
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { inflateRawSync } from "node:zlib";
 
 const command = process.argv[2] ?? "help";
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 const version = pkg.version;
 const tag = `v${version}`;
 const repo = repoSlug(pkg.repository?.url);
+const skillBundleFiles = [
+  "SKILL.md",
+  "references/capture.md",
+  "references/export.md",
+  "references/integrations.md",
+];
 
 function repoSlug(url) {
   const match = String(url ?? "").match(/github\.com[:/](.+?\/.+?)(?:\.git)?$/);
@@ -67,6 +76,52 @@ function ensureNpmVersionExists() {
     );
   }
   console.log(`ok npm ${pkg.name}@${version}`);
+}
+
+function generateAndVerifySkillBundle() {
+  const releaseTempDir = mkdtempSync(join(tmpdir(), "benjamin-docs-release-"));
+  const zipPath = join(releaseTempDir, "benjamin-docs-skill.zip");
+
+  try {
+    run("node", ["dist/src/cli.js", "package-skill", "--output", releaseTempDir]);
+    const archivedFiles = readZipEntries(zipPath);
+
+    for (const file of skillBundleFiles) {
+      const source = readFileSync(join("skills", "benjamin-docs", file));
+      const archived = archivedFiles.get(`benjamin-docs/${file}`);
+      if (!archived) throw new Error(`Generated skill bundle is missing benjamin-docs/${file}`);
+      if (!source.equals(archived)) {
+        throw new Error(`Generated skill bundle does not match package source: ${file}`);
+      }
+    }
+
+    console.log(`ok generated skill bundle (${skillBundleFiles.length} source files verified)`);
+  } finally {
+    rmSync(releaseTempDir, { recursive: true, force: true });
+  }
+}
+
+function readZipEntries(zipPath) {
+  const zip = readFileSync(zipPath);
+  const entries = new Map();
+  let offset = 0;
+
+  while (offset + 30 <= zip.length && zip.readUInt32LE(offset) === 0x04034b50) {
+    const method = zip.readUInt16LE(offset + 8);
+    const compressedSize = zip.readUInt32LE(offset + 18);
+    const fileNameLength = zip.readUInt16LE(offset + 26);
+    const extraLength = zip.readUInt16LE(offset + 28);
+    const fileNameStart = offset + 30;
+    const dataStart = fileNameStart + fileNameLength + extraLength;
+    const fileName = zip.subarray(fileNameStart, fileNameStart + fileNameLength).toString("utf8");
+    const compressed = zip.subarray(dataStart, dataStart + compressedSize);
+
+    if (method !== 0 && method !== 8) throw new Error(`Unsupported ZIP compression method ${method}: ${fileName}`);
+    entries.set(fileName, method === 8 ? inflateRawSync(compressed) : compressed);
+    offset = dataStart + compressedSize;
+  }
+
+  return entries;
 }
 
 function ensureCleanWorktreeForNewTag() {
@@ -216,7 +271,8 @@ function help() {
 
 release:
   Run after npm publish. Confirms ${pkg.name}@${version} exists on npm,
-  creates/pushes ${tag} when needed, and creates the GitHub Release.
+  generates and verifies the skill bundle, creates/pushes ${tag} when needed,
+  and creates the GitHub Release. It does not publish npm.
 
 verify:
   Read-only public release check for npm, local tag, origin tag,
@@ -226,6 +282,7 @@ verify:
 try {
   if (command === "release") {
     ensureNpmVersionExists();
+    generateAndVerifySkillBundle();
     ensureTag();
     ensureGithubRelease();
     ensureLatestRelease();

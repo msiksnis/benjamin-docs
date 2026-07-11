@@ -5,7 +5,7 @@ scope_id: launch-readiness-audit
 audience: [developer, agent]
 status: approved
 visibility: public
-updated: 2026-07-10
+updated: 2026-07-11
 source: manual
 freshness: status
 ---
@@ -66,6 +66,9 @@ Reason: archived scopes, superseded plans, and generated duplicates can currentl
 - Validation findings belong only to `structure`; `content_heuristics` consumes review-specific baseline findings.
 - Only a returned Git-unavailable result may be non-blocking for planning. A thrown drift-analysis error fails `committed_freshness` with evidence and a repair command.
 - `working_tree_impact` uses changed review's own `changedWorkStatus`, never the committed drift result, so both dimensions can fail with their own evidence in the same report.
+- Doctor diagnostics are target-specific and outside repository readiness; changed-work accounting includes deletions and repositories without a recognized stack.
+- Every customer/public export uses one fail-closed preflight; temporarily unsupported publication paths write nothing.
+- Public surfaces state the exact bounded-context, deterministic-readiness, visibility, and final-answer guarantees. The Claude upload ZIP is generated and verified from package sources rather than tracked.
 
 ## Accepted Product Direction
 

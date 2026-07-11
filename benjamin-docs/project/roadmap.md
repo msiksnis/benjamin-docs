@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: session-capture
 freshness: status
 ---
@@ -62,14 +62,10 @@ Later release trains add impact evidence, canonical structured state and typed v
 
 ## Immediate Next Work
 
-- Start Task 1 of the trust-foundation plan in an isolated worktree: lock character, token, and latency budgets before behavior changes.
-- Remove blocking/follow-up stop-hook behavior while preserving compact session-start context.
-- Bound MCP retrieval and split the 4,264-word skill into a compact router plus on-demand references.
-- Implement structured readiness dimensions and make known drift/working-tree impact block their dimensions.
-- Separate project health from selected optional integration health.
-- Fail unsafe customer/public exports closed before any file write.
-- Keep the human command surface stable; new diagnostic JSON and target flags are agent/CI interfaces.
-- Preserve the public-repo privacy guardrail and do not add hosted publishing, dashboards, or new export types during the trust milestone.
+- Tasks 1-8 of the trust-foundation plan are complete on the dependable-standard branch.
+- Run Task 9: add cross-platform CI, installed-tarball smoke, and enforced performance gates.
+- Then dogfood every audit reproduction before preparing 0.12.0.
+- Keep the human command surface stable and preserve the public-repo privacy guardrail.
 
 ## 0.11.0 Goal
 

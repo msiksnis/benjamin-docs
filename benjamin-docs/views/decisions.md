@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: manual
 ---
 
@@ -15,7 +15,7 @@ Derived from decision and rejected-option sections across managed Benjamin docs.
 
 ## [launch-readiness-audit Decisions](../features/launch-readiness-audit/decisions.md)
 
-Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 2026-07-10)
+Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 2026-07-11)
 
 ### Implemented Trust Decisions
 
@@ -27,6 +27,9 @@ Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 20
 - Validation findings belong only to `structure`; `content_heuristics` consumes review-specific baseline findings.
 - Only a returned Git-unavailable result may be non-blocking for planning. A thrown drift-analysis error fails `committed_freshness` with evidence and a repair command.
 - `working_tree_impact` uses changed review's own `changedWorkStatus`, never the committed drift result, so both dimensions can fail with their own evidence in the same report.
+- Doctor diagnostics are target-specific and outside repository readiness; changed-work accounting includes deletions and repositories without a recognized stack.
+- Every customer/public export uses one fail-closed preflight; temporarily unsupported publication paths write nothing.
+- Public surfaces state the exact bounded-context, deterministic-readiness, visibility, and final-answer guarantees. The Claude upload ZIP is generated and verified from package sources rather than tracked.
 
 ### Decisions
 
@@ -37,7 +40,7 @@ Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 20
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
-Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-10)
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-11)
 
 ### Recent Decisions
 

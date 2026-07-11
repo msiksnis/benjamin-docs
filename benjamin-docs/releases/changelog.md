@@ -5,7 +5,7 @@ scope_id: release
 audience: [developer, business, public]
 status: review
 visibility: private
-updated: 2026-07-09
+updated: 2026-07-11
 source: manual
 ---
 
@@ -18,6 +18,10 @@ source: manual
 - Removed global `doctor --strict` setup from repository readiness. Recorded environment/tooling blockers remain visible but non-blocking, and passing output now states that deterministic checks do not prove semantic truth.
 - Readiness no longer duplicates validation errors or warnings under content heuristics. Unexpected drift-analysis exceptions now fail committed freshness closed with actionable evidence; only a verified unavailable Git result can remain non-blocking in planning mode.
 - Working-tree availability now comes directly from changed-work review, so unresolved untracked or modified source warnings remain blocking even when committed drift analysis throws.
+- Repository readiness is independent from optional machine-wide integrations. `bd doctor --target` checks only the selected integration, and changed-work review now accounts for deletions and repositories without a recognized stack.
+- Customer and public exports now share a fail-closed publication preflight. Verified customer feature exports remain available while unsafe app, handoff, summary, and public/user audience paths are disabled.
+- Public README, npm metadata, CLI help/introduction, command descriptions, contributor guidance, and security boundaries now describe the exact readiness, response-safe hook, visibility, external-write, and network guarantees.
+- Removed the stale tracked Claude skill ZIP. GitHub release automation now generates a temporary skill bundle and verifies `SKILL.md` plus all three references against package sources before creating a release; it does not publish npm.
 
 ## 0.11.1
 

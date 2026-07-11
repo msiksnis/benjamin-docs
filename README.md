@@ -2,102 +2,46 @@
 
 **Persistent project memory for AI coding agents.**
 
-Benjamin Docs turns your repo into living project knowledge that AI agents read, follow, and update while they work.
+Benjamin Docs keeps the durable facts an agent needs beside the work: purpose, decisions, architecture, current state, risks, and next actions. Git records what changed; project memory records why and what should happen next.
 
-Every new Codex, Claude Code, Cursor, or other AI coding session can start with context: what the project is, where work stopped, what decisions were made, what not to touch, which UI and architecture rules matter, and what should happen next.
-
-Git remembers what changed. Benjamin Docs remembers why, where you stopped, and what your AI agent needs next.
-
-Markdown is the storage format. Continuity is the product.
-
-No cloud. No dashboard. No transcript dump. Just project memory that lives beside the work.
+The memory is ordinary Markdown under `benjamin-docs/`, with deterministic metadata under `.benjamin-docs/`. There is no hosted service, dashboard, or transcript store.
 
 [npm package](https://www.npmjs.com/package/benjamin-docs)
 
-## Why This Exists
+## Why Project Memory Exists
 
-AI coding agents are powerful, but every new session can start cold.
+AI coding sessions often start cold. Chat history is incomplete, root instruction files are too broad, and decisions disappear into old conversations. Benjamin Docs gives humans and agents a maintained, repo-local source of project context.
 
-| Without durable project memory | With Benjamin Docs |
-| --- | --- |
-| New AI sessions start from scratch. | New sessions start with project memory. |
-| You re-explain the same context again and again. | The agent reads the current project state first. |
-| Decisions get buried in chat history. | Decisions live in structured docs. |
-| `README.md`, `CLAUDE.md`, and `AGENTS.md` drift or stay too broad. | Project memory is split into purpose, architecture, features, risks, handoffs, and next actions. |
-| New sessions repeat old mistakes. | Agents see what was already tried, rejected, or marked risky. |
-| Docs rot silently as code moves on. | `bd drift` measures which docs fell behind, from real git history. |
-| You have to remind the agent to read and update the docs. | Session hooks load memory at session start and nudge updates automatically. |
-| Handoffs become messy summaries. | `bd export` creates focused knowledge packages for the audience. |
+Agents maintain the project memory during normal work. The CLI provides structure, retrieval, validation, freshness evidence, generated views, and safe exports; it is not a background author and does not decide whether prose is true.
 
-Benjamin Docs solves this by giving the repo a maintained memory layer. Agents are wired into it three ways: session hooks load the memory into Claude Code, Codex, and Cursor sessions automatically, the installed skill teaches agents how to maintain it, and repo guidance makes it the source of truth. Drift detection then measures — against real git history — whether the memory kept up with the code.
-
-There is still no cloud and no background daemon. The work happens inside your normal agent sessions; hooks just make sure every session starts with the memory loaded and ends with it updated.
-
-## How The Workflow Feels
-
-```text
-install Benjamin Docs
--> initialize project memory (init offers session hooks)
--> AI creates structured project knowledge
--> every session starts with that knowledge injected automatically
--> AI updates the docs as work changes; drift detection flags what it missed
--> next session starts with full context
--> export focused documentation for someone else
-```
-
-In practice:
+## One-Minute Start
 
 ```bash
 pnpm add -g benjamin-docs
 bd install-skill
 cd your-project
-bd init          # say yes to session hooks
+bd init
 ```
 
-Then start your normal coding session. With hooks installed, the agent receives the project memory at session start without being asked. For a first baseline, or in agents without hook support, prompt once:
+`bd init` creates the project-memory structure, preserves existing docs and agent instructions, and can offer optional integrations with your consent.
+
+Then ask your agent:
 
 ```text
 Read the Benjamin Docs project memory, capture the current project baseline, and keep it updated as you work.
 ```
 
-Before handoff:
+The normal human-facing flow stays small:
 
 ```bash
+bd init
 bd ready
-```
-
-When someone else needs context:
-
-```bash
 bd export
 ```
 
-## What It Remembers
-
-A future agent can open the project and know:
-
-- What the app or project is.
-- Where the important code, docs, routes, services, and workflows live.
-- What was done in previous sessions.
-- Where work stopped.
-- What to continue next.
-- Which architecture decisions and product goals matter.
-- Which UI rules, naming conventions, or code patterns to preserve.
-- What not to touch.
-- What is still open, risky, stale, or archived.
-- Which checks to run before handoff.
-
-That is the point: fewer cold starts, fewer repeated explanations, fewer stale handoffs.
+Use `bd commands` for the complete advanced command drawer.
 
 ## What It Creates
-
-Benjamin Docs is a local CLI plus an installable agent skill.
-
-- The CLI creates and checks the project-memory structure.
-- The skill teaches agents how to read, maintain, and improve that memory.
-- The docs stay in your repo as normal Markdown.
-- The metadata stays in `.benjamin-docs/`.
-- The human-facing command surface stays small.
 
 ```text
 benjamin-docs/
@@ -111,266 +55,97 @@ benjamin-docs/
 .benjamin-docs/
 ```
 
-`benjamin-docs/` is for humans and agents. `.benjamin-docs/` is for validation, scopes, anchors, freshness rules, and export metadata.
+`benjamin-docs/` contains managed project memory. `.benjamin-docs/` contains deterministic config, manifests, scopes, anchors, watch rules, and export metadata.
 
-## Main Commands
+## Exact Readiness Guarantees
 
-```bash
-bd init
-bd ready
-bd export
-bd upgrade
-bd help
-```
+`bd ready` reports independent dimensions instead of collapsing different kinds of evidence into one claim:
 
-What they do:
+- structure: managed files, metadata, links, anchors, and safe paths;
+- content heuristics: starter text, thin docs, and continuation-proof signals;
+- committed freshness: watched docs compared with complete committed Git changes;
+- working-tree impact: staged, unstaged, untracked, deleted, and renamed work that may require a memory update;
+- agent guidance: repository-local Benjamin-owned guidance health.
 
-| Command | Use it when |
-| --- | --- |
-| `bd init` | You want this repo to carry project memory. |
-| `bd ready` | You want to know whether the memory is valid, current, and handoff-ready. |
-| `bd export` | You need a clean knowledge package or handoff for someone else. |
-| `bd upgrade` | The CLI updated and this repo's Benjamin-owned files should catch up. |
-| `bd help` | You want the short getting-started guide. |
+When a blocking dimension fails, `bd ready` reports the evidence and a repair command. Optional machine-wide integrations are checked separately with `bd doctor --target <target>` and do not make repository memory fail readiness.
 
-Advanced commands stay available through:
+Deterministic checks do not prove semantic truth. They prove only the configured structural, heuristic, Git-freshness, changed-work, and guidance conditions. An agent or human must still verify that the memory accurately describes the implementation.
 
-```bash
-bd commands
-```
-
-Humans should only need the simple path. Agents and scripts can use deeper commands when they need them.
-
-## Session Hooks: Agents Load Memory Automatically
-
-With session hooks installed, you stop prompting agents to read the docs. Claude Code, Codex, and Cursor sessions start with compact Benjamin Docs context injected automatically, and agents get nudged to update project memory when they change source code without touching the docs.
+## Optional Session Hooks
 
 ```bash
 bd hooks install
 ```
 
-Interactive `bd init` offers this during setup, so most projects never need the explicit command. What it wires up:
+With consent, Benjamin Docs adds narrowly owned entries for Claude Code, Codex, and Cursor while preserving existing settings. `session-start` supplies a compact pointer/context packet: the memory root, read-first files, and bounded freshness hints. It does not load the whole memory tree or guarantee that the agent reads every document.
 
-- `.claude/settings.json`, `.codex/hooks.json`, and `.cursor/hooks.json` get Benjamin-owned hook entries. Your existing settings and hooks are preserved exactly.
-- At session start, the agent receives the memory location, read-first docs, and a drift summary.
-- At stop, the agent is nudged once if source changed without a memory update.
+Stop hooks are response-safe. They never block or auto-submit a follow-up. Benjamin Docs never needs to alter the substantive final answer; if durable facts changed, the agent can maintain memory during normal work and still answer the original request completely.
 
-Codex needs one-time enablement (`features.hooks = true` in `~/.codex/config.toml`) and hook trust via `/hooks`. Remove everything anytime with `bd hooks uninstall`.
+Remove Benjamin-owned hook entries with `bd hooks uninstall`.
 
-## Drift Detection: Memory That Knows When It Is Stale
-
-`bd drift` compares each doc against committed git history using the watch rules in `.benjamin-docs/config.json`. A doc is drifted when code it describes changed in commits after the doc last changed:
-
-```text
-Drifted
-  - benjamin-docs/engineering/code-map.md
-      behind: 6 watched files changed across 3 commits (application code)
-      files: src/drift.ts, src/git.ts, src/hooks.ts (+3 more)
-```
-
-Drift is advisory: it shows up in `bd ready` without blocking readiness, feeds the session-start context so agents repair docs as they work, and supports `--json` for automation and `--strict` for CI gates. Time-based staleness guesses; drift measures.
-
-## MCP: Memory As Native Agent Tools
-
-Session hooks push context in; the MCP server lets agents pull exactly what they need and write back safely. Register it once per project:
+## Optional MCP Memory Tools
 
 ```bash
 bd mcp install
 ```
 
-That registers a `benjamin-docs` MCP server for Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`), and Codex (`.codex/config.toml`). Clients spawn `bd mcp` locally over stdio — no port, no daemon, no remote service — and get six tools:
+MCP-capable agents can search, read, update, record decisions, and inspect status through a local stdio server. Access stays limited to manifest-managed project memory, and writes are validated transactionally. Remove registrations with `bd mcp uninstall`.
 
-| Tool | What the agent gets |
-| --- | --- |
-| `memory_context` | Compact orientation, optionally focused on the task at hand. |
-| `memory_search` | Scored doc sections instead of whole-file reads. |
-| `memory_read` | One managed doc in full. |
-| `memory_update` | Body updates with frontmatter preserved, the updated date stamped, validation on write, and automatic rollback if the write breaks the memory. |
-| `memory_record_decision` | Append a decision (with its why) to a feature's decisions doc. |
-| `memory_status` | Mode, doc/scope counts, and current drift. |
+## Freshness And Derived Views
 
-Reads become retrieval instead of directory ingestion, and writes are validated at the tool boundary instead of after the fact. Only manifest-managed memory docs are reachable; the rest of your repo is not exposed. Remove the registrations anytime with `bd mcp uninstall`.
-
-## Upgrading: Old Repos Catch Up With One Command
-
-When a new CLI version lands, existing repos do not need re-setup. Update the global package, then run one command per repo:
+`bd drift` compares watched docs with committed Git history. `bd review --changed` accounts for the full working tree. `bd views` regenerates derived lenses for decisions, open questions, risks, next actions, and continuation context.
 
 ```bash
-pnpm update -g benjamin-docs
-bd upgrade
-```
-
-`bd upgrade` refreshes only Benjamin-owned surfaces: it stamps the CLI version into `.benjamin-docs/config.json`, updates the Benjamin-owned `AGENTS.md` section (user-authored content untouched), refreshes local skill installs, regenerates existing Memory Views, and offers session hooks if they are not installed yet.
-
-You rarely have to remember any of this, because Benjamin Docs tells you:
-
-- `bd ready` and the session-start context show an advisory hint when a repo's setup is older than the installed CLI.
-- Benjamin Docs checks npm for newer versions in the background (cached for 24 hours, never blocking a command) and surfaces "a newer version is available" in the agent's session-start context, so the agent suggests the update to you.
-- Disable the npm check entirely with `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`. The check requests one version number from the npm registry and sends nothing about you or your project.
-
-## Exports Are Focused Knowledge Packages
-
-`bd export` is not just a Markdown dump.
-
-It creates focused knowledge packages for the audience or task you choose. Generated exports live under `exports/` and include source metadata, commit state, dirty state, and export time.
-
-Use it for:
-
-| Need | Command path |
-| --- | --- |
-| Full app documentation | `bd export`, then choose app documentation, or `bd export --type app --profile customer` |
-| Selected feature documentation | `bd export`, then choose a feature, or `bd export --feature <slug> --profile customer` |
-| Customer-friendly overview | `bd export --type summary --profile customer` |
-| Developer handoff | `bd export --type handoff --profile developer` |
-| Designer-focused source bundle | `bd export --audience designer` when docs are tagged for `designer` |
-| Advisor, friend, or partner review bundle | `bd export --audience advisor` or another tagged audience |
-
-Customer-facing feature exports can block private, thin, unverified, or risky docs before writing output. Agents can record implementation verification first:
-
-```bash
-bd export --verify checkout-redesign --evidence "Checked route, mutation, permissions, UI flow, and edge cases."
-bd export --feature checkout-redesign --profile customer
-```
-
-Exports are snapshots for sharing. They are not the source of truth. Keep `benjamin-docs/` current, then rerun `bd export` when the project changes.
-
-## Why Not Just README.md, CLAUDE.md, Or AGENTS.md?
-
-Those files are useful, but they are usually single static instruction files.
-
-Benjamin Docs is structured project memory:
-
-- `README.md` explains the project to the outside world.
-- `CLAUDE.md`, `AGENTS.md`, and similar files tell agents how to behave.
-- `benjamin-docs/` stores the memory agents need to keep working: architecture, progress, decisions, features, UI rules, risks, releases, next actions, and handoff context.
-
-The important difference is upkeep. Benjamin Docs is designed for agents to read and update continuously as part of the workflow. `bd ready` then checks whether that memory is useful enough for the next human or agent.
-
-## Existing Codebase
-
-For an existing app or repo:
-
-```bash
-bd init
-```
-
-In an obvious codebase, `init` sets up codebase memory and repo-local agent guidance automatically. Existing `AGENTS.md` files are preserved; Benjamin-owned sections are marked so they can be updated without rewriting the rest of the file.
-
-Then ask your agent:
-
-```text
-Capture the current project baseline with Benjamin Docs. Read the repo first, update the Benjamin Docs source files, then run bd ready.
-```
-
-Use explicit mode flags only when automation needs them:
-
-```bash
-bd init --mode planning
-bd init --mode codebase
-bd init --mode feature --feature <slug>
-bd init --no-agent-contract
-bd init --hooks
-bd init --no-hooks
-```
-
-## Chat-Only Project
-
-If you only have a chat and no project folder yet, ask your agent:
-
-```text
-Use the benjamin-docs skill to create a project from this chat.
-```
-
-The agent should suggest:
-
-```text
-~/Documents/Benjamin Docs/<Project Name>
-```
-
-It should ask before creating files. After you confirm, it creates:
-
-```text
-README.md
-benjamin-docs/
-.benjamin-docs/
-```
-
-For the exact agent prompt:
-
-```bash
-bd chat-project
-```
-
-## Refresh And Readiness
-
-When useful memory already exists, agents can refresh derived views before the readiness gate:
-
-```bash
+bd drift
+bd review --changed
 bd views
 bd ready
 ```
 
-`bd views` creates derived views for decisions, open questions, next actions, risks, and agent continuation. The source of truth stays in the project, feature, handoff, engineering, and release docs.
+Views are generated from managed source docs; they are not a second source of truth.
 
-`bd ready` checks:
+## Safe Exports And Visibility
 
-- Project setup.
-- Managed Markdown and metadata.
-- Links, anchors, and path safety.
-- Docs quality and continuation proof.
-- Freshness coverage for status-bearing docs.
-- Stale generated views.
-- Agent guidance health.
-- Recorded local environment or tooling blockers.
-- Advisory drift: docs whose watched code changed after the doc last changed.
+`bd export` creates a local snapshot for a feature, app, summary, or handoff. Customer exports fail closed when source material is private, unverified, risky, or contains unsafe output. Agents can record implementation evidence before retrying an export.
 
-## Skill Installation
-
-`bd install-skill` installs the bundled skill for local agents:
-
-```text
-~/.agents/skills/benjamin-docs/
-~/.codex/skills/benjamin-docs/
-~/.claude/skills/benjamin-docs/
-~/.cursor/skills/benjamin-docs/
+```bash
+bd export --verify checkout --evidence "Checked routes, permissions, UI flow, tests, and known limits."
+bd export --feature checkout --profile customer
 ```
 
-Codex, Cursor, and Claude Code can use the shared `~/.agents/skills` install.
+The `visibility` field is publication metadata for export policy. Publication metadata does not change Git repository visibility, filesystem permissions, or access control. A document marked `private` is not confidential if it is committed to a public repository. Review generated exports before sharing them.
 
-Claude Desktop / Claude.ai uses uploaded skills:
+## Skill Installation And Packaging
+
+`bd install-skill` installs the bundled skill for supported local agents. Claude Desktop and Claude.ai can use a generated upload bundle:
 
 ```bash
 bd package-skill
 ```
 
-Then upload `~/Downloads/benjamin-docs-skill.zip` in Claude.
+The ZIP is generated from the packaged `SKILL.md` and its three references. It is a release artifact, not tracked source.
 
-## Current Version
+## Updates And Network Boundary
 
-`0.11.1` fixes session-hook turn safety:
+Ordinary project-memory reads and writes make no network calls. Benjamin Docs can perform a cached, opt-out npm version check; disable it with `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`. Updating the package and running `bd upgrade` refreshes only Benjamin-owned repository surfaces and chosen skill installs.
 
-- Session start fingerprints the existing dirty working tree, so pre-existing source edits do not trigger false update nudges on later read-only turns.
-- Stop hooks compare content changes introduced after that baseline, stay isolated per agent session, and fail open when state is missing or unreadable.
-- A legitimate stop continuation now explicitly preserves the complete answer to the user's original request instead of allowing Benjamin Docs bookkeeping to replace it.
+## Chat-Only Projects
 
-`0.11.0` turns project memory into a native agent interface:
+From a chat with no project folder, ask:
 
-- `bd mcp` serves project memory as MCP tools over stdio: `memory_context`, `memory_search`, `memory_read`, `memory_update`, `memory_record_decision`, `memory_status`.
-- Writes through MCP are validated transactionally — updates that would break the memory are rolled back with a readable error, and Memory Views regenerate automatically.
-- `bd mcp install|status|uninstall` manages per-project registration for Claude Code, Cursor, and Codex, preserving existing client config exactly.
-- First runtime dependencies: the official `@modelcontextprotocol/sdk` and `zod`.
+```text
+Use the benjamin-docs skill to create a project from this chat.
+```
 
-`0.10.0` made project memory self-maintaining instead of voluntary:
+The agent should propose `~/Documents/Benjamin Docs/<Project Name>` and ask before creating files. Run `bd chat-project` for the exact workflow.
 
-- `bd drift` flags docs whose watched code changed in commits after the doc last changed, with `--json` and `--strict` for automation. `bd ready` shows drift as an advisory section.
-- `bd hooks install` wires agent session hooks for Claude Code, Codex, and Cursor: compact memory context injected at session start, a one-time nudge at stop when source changed without a memory update.
-- `bd session-start` and `bd session-stop` power the hooks and emit the right format per tool.
-- Interactive `bd init` offers hook installation as a consent prompt; automation uses `--hooks` / `--no-hooks`.
-- Hook files are merged conservatively: existing user hooks and settings are preserved exactly, and `bd hooks uninstall` removes only Benjamin-owned entries.
-- `bd upgrade` catches existing repos up after a CLI update: version stamp, agent guidance, skills, views, and a hooks offer in one command.
-- A cached, opt-out npm update check surfaces newer versions through the agent's session-start context and `bd upgrade`, so nobody has to remember to check for updates.
+## Reference
 
-Earlier guided export, verification recording, and readiness features remain included.
+- Run `bd help` for the short first-run guide.
+- Run `bd commands` for all commands and automation flags.
+- See [`benjamin-docs/releases/changelog.md`](benjamin-docs/releases/changelog.md) for release history.
+- See [`CONTRIBUTING.md`](CONTRIBUTING.md) for development rules.
+- See [`SECURITY.md`](SECURITY.md) for the exact write and network boundaries.
 
 ## Local Development
 
@@ -379,27 +154,7 @@ git clone https://github.com/msiksnis/benjamin-docs.git
 cd benjamin-docs
 pnpm install
 pnpm check
+npm pack --json --dry-run
 ```
 
-Before publishing:
-
-```bash
-pnpm run release:check
-tmpdir=$(mktemp -d)
-pnpm pack --pack-destination "$tmpdir"
-npm publish "$tmpdir"/benjamin-docs-*.tgz --access public
-pnpm run release:github
-pnpm run release:verify-public
-```
-
-`release:github` confirms the just-published npm version exists, creates or reuses the matching `vX.Y.Z` git tag, pushes it, and creates the GitHub Release. A tag-push GitHub Action also creates the release if a maintainer pushes the version tag manually.
-
-## Contributing
-
-Keep it local-first.
-
-Keep docs readable by non-programmers.
-
-Keep agent workflows explicit.
-
-Avoid magic that writes outside the project unless the user runs a clear command.
+Release automation generates and verifies the upload ZIP before creating a GitHub Release. It does not publish the npm package.

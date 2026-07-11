@@ -5,6 +5,32 @@ import { join } from "node:path";
 import { runCli, runCliResult, withTempDir } from "./helpers.js";
 
 describe("info commands", () => {
+  it("keeps public copy aligned with the project-memory guarantees", () => {
+    withTempDir((dir) => {
+      const readme = readFileSync(join(process.cwd(), "README.md"), "utf8");
+      const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8")) as { description: string };
+      const surfaces = [readme, pkg.description, runCli(["introduce"], dir), runCli(["help"], dir)];
+      const forbiddenClaims = [
+        "hooks load it automatically",
+        "ready means current",
+        "ready for handoff",
+        "private docs are confidential",
+        "self-updating documentation",
+      ];
+
+      for (const surface of surfaces) {
+        assert.match(surface, /project memory/i);
+        for (const claim of forbiddenClaims) assert.doesNotMatch(surface, new RegExp(claim, "i"));
+      }
+
+      assert.match(readme, /session-start`? supplies a compact pointer\/context packet/i);
+      assert.match(readme, /agents maintain (?:the )?project memory during normal work/i);
+      assert.match(readme, /deterministic checks do not prove semantic truth/i);
+      assert.match(readme, /publication metadata does not change (?:the )?Git repository visibility/i);
+      assert.match(readme, /Benjamin Docs never needs to alter the substantive final answer/i);
+    });
+  });
+
   it("prints the package version with --version and -v", () => {
     withTempDir((dir) => {
       const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf8"));
@@ -28,7 +54,7 @@ describe("info commands", () => {
       assert.match(output, /benjamin-docs/);
       assert.match(output, /Persistent project memory/);
       assert.match(output, /living project knowledge/);
-      assert.match(output, /Start a new session with context/);
+      assert.match(output, /Start a new session with pointers to context/);
       assert.match(output, /benjamin-docs init/);
       assert.match(output, /benjamin-docs ready/);
       assert.match(output, /benjamin-docs export/);
@@ -60,8 +86,9 @@ describe("info commands", () => {
       assert.match(output, /Continuity is the product/);
       assert.match(output, /Inside a project, run:/);
       assert.match(output, /auto-detects codebase memory, installs agent guidance, and offers agent session hooks/);
-      assert.match(output, /load project memory automatically at session start/);
-      assert.match(output, /benjamin-docs drift shows which docs fell behind/);
+      assert.match(output, /session-start supplies a compact pointer\/context packet/);
+      assert.match(output, /Agents maintain project memory during normal work/);
+      assert.match(output, /benjamin-docs drift reports watched docs behind committed code/);
       assert.match(output, /From any chat, ask your agent:/);
       assert.match(output, /No cloud\. No dashboard\. No transcript dump\./);
       assert.match(output, /benjamin-docs install-skill/);

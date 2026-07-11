@@ -6,7 +6,7 @@ export interface CommandEntry {
 
 export const mainCommands: CommandEntry[] = [
   { command: "benjamin-docs init", args: ["init"], description: "Set up local project memory and optional agent guidance." },
-  { command: "benjamin-docs ready", args: ["ready"], description: "Check whether project memory is handoff-ready." },
+  { command: "benjamin-docs ready", args: ["ready"], description: "Run deterministic project-memory readiness dimensions." },
   { command: "benjamin-docs export", args: ["export"], description: "Open guided export for feature docs, app docs, and handoffs." },
   { command: "benjamin-docs upgrade", args: ["upgrade"], description: "Refresh this repo's Benjamin-owned surfaces after a CLI update." },
   { command: "benjamin-docs help", args: ["help"], description: "Show the short getting-started guide." },
@@ -23,7 +23,7 @@ export const advancedCommands: CommandEntry[] = [
   { command: "benjamin-docs hooks status", args: ["hooks", "status"], description: "Show which agent session hooks are installed." },
   { command: "benjamin-docs mcp install", args: ["mcp", "install"], description: "Register the Benjamin Docs MCP memory server for Claude Code, Cursor, and Codex." },
   { command: "benjamin-docs mcp status", args: ["mcp", "status"], description: "Show which MCP client registrations are installed." },
-  { command: "benjamin-docs session-start", args: ["session-start"], description: "Print compact session-start context. Used by installed agent hooks." },
+  { command: "benjamin-docs session-start", args: ["session-start"], description: "Print a compact session-start pointer/context packet for installed hooks." },
   { command: "benjamin-docs doctor", args: ["doctor"], description: "Check local setup and skill packaging." },
   {
     command: "benjamin-docs doctor [--strict] [--target shared|claude-code|codex|cursor|claude-desktop]",

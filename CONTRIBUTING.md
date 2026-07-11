@@ -26,6 +26,7 @@ pnpm check
 
 - The CLI owns structure, validation, exports, scopes, and anchors.
 - Agent skills own synthesis, judgment, and constructive pushback.
-- Markdown in `docs/` should stay readable without special tooling.
+- Managed memory in `benjamin-docs/` should stay readable without special tooling.
+- Generated files under `benjamin-docs/views/` must come from `bd views`; edit the managed source docs, then regenerate views instead of editing generated output directly.
 - Metadata in `.benjamin-docs/` should stay boring, deterministic, and easy to validate.
 - Hosted publishing is a future layer, not the source of truth.

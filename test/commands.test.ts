@@ -61,4 +61,14 @@ describe("commands", () => {
     assert.deepEqual(commands[22]?.args, ["anchor", "add", "<id>", "<file>"]);
     assert.deepEqual(commands[23]?.args, ["anchor", "list"]);
   });
+
+  it("describes readiness and hooks without overstating their guarantees", () => {
+    const descriptions = allCommands().map((entry) => `${entry.command} ${entry.description}`).join("\n");
+
+    assert.match(descriptions, /project memory/i);
+    assert.match(descriptions, /deterministic/i);
+    assert.match(descriptions, /compact session-start pointer\/context packet/i);
+    assert.doesNotMatch(descriptions, /handoff-ready/i);
+    assert.doesNotMatch(descriptions, /load(?:s|ed)? (?:project )?memory automatically/i);
+  });
 });

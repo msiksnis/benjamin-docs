@@ -29,4 +29,15 @@ Security-sensitive areas include:
 - package installation and dependency behavior
 - future publishing and authentication flows
 
-The CLI should remain conservative: no network calls during ordinary local documentation commands, no runtime dependencies unless justified, and no writes outside the project root.
+The CLI should remain conservative. Avoid new runtime dependencies unless there is a strong, reviewed reason.
+
+## External Writes And Network Access
+
+Ordinary managed project-memory reads and writes stay inside the selected project. Explicit, optional workflows can also write:
+
+- skill installs under the selected home directory;
+- a Claude Desktop / Claude.ai skill ZIP under `Downloads`, or another path the user selects;
+- agent configuration files when the user consents to hooks or MCP registration;
+- cached update and session state under the Benjamin Docs home directory.
+
+Ordinary project-memory reads and writes make no network calls. The exception is the opt-out npm update check, which caches version state and can be disabled with `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`. Release and package-manager commands are separate maintainer actions and may use their documented network services.

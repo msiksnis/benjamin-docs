@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, designer, business, agent]
 status: review
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: session-capture
 freshness: status
 ---
@@ -20,7 +20,7 @@ The agent workflow now has explicit product budgets. Session-start context stays
 
 The program ships in stages: trust foundation, impact evidence, canonical state and agent interfaces, then a vendor-neutral protocol and conformance suite. Unrelated feature expansion, hosted publishing, dashboards, and additional export types remain deferred until the trust gates pass.
 
-Trust-foundation Tasks 1-4 are now implemented on the dependable-standard branch. The repository has explicit context and latency budgets, session-start-only integrations with a silent legacy stop path, bounded task retrieval, batched drift queries, and a versioned readiness report. `bd ready` now blocks known committed drift and unresolved working-tree memory impact in separate dimensions, keeps non-Git planning folders usable, excludes optional doctor setup, and states that deterministic checks do not prove semantic truth. Review follow-up makes validation findings exclusive to the structure dimension, fails committed freshness closed when drift analysis itself errors, and preserves working-tree findings through an independent changed-review status.
+Trust-foundation Tasks 1-8 are now implemented on the dependable-standard branch. The repository has explicit context and latency budgets, session-start-only integrations, bounded retrieval, truthful structured readiness, target-specific doctor checks, complete Git change accounting, and fail-closed customer/public export policy. Public copy now states those exact limits, and release automation generates and verifies the complete temporary skill bundle instead of tracking a stale ZIP. Task 9 is next.
 
 `benjamin-docs` is a persistent repo-local project memory system for AI coding agents and humans. It turns a repo into living project knowledge that agents read, follow, and update while they work, so a new coding session starts with context: what the project is, where work stopped, what decisions and conventions matter, what is risky, and what should happen next.
 
@@ -32,7 +32,7 @@ The human-facing command surface is intentionally small: `bd init`, `bd ready`, 
 
 The core product model is asymmetric: humans should see a calm, tiny surface and feel safe that project memory is being maintained, while agents carry the richer operating contract. After `bd init`, users should not need to remember refresh, freshness, verification, scope lifecycle, or export-preparation details; agents should know and use those workflows through repo-local guidance, deterministic checks, and advanced commands.
 
-Public entry points now need to work for both humans and agents. The GitHub README, npm description, package keywords, CLI `introduce` text, and bundled skill should all use the same framing: persistent project memory for AI coding agents, living project knowledge, and agent-maintained docs. Preserve the caveat that BD is not a background daemon; upkeep happens because the installed skill and repo-local guidance instruct agents to maintain the memory as part of normal work.
+Public entry points now work for both humans and agents. The GitHub README, npm description, CLI `introduce` and help text, command drawer, and bundled skill use the same project-memory framing without claiming that hooks load the whole memory or deterministic checks prove semantic truth. Preserve that exact boundary.
 
 The 0.9.3 release packaged that public positioning for npmjs. Version 0.10.0 added `bd drift` and consent-based session hooks. Drift measures watched docs against committed Git history. Session-start hooks provide compact orientation and pointers; they do not semantically verify or fully load every project fact. Version 0.12.0 will remove blocking/follow-up stop behavior so memory maintenance happens during normal agent work and cannot distort the final answer.
 

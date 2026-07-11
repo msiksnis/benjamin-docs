@@ -5,7 +5,7 @@ scope_id: launch-readiness-audit
 audience: [developer, agent]
 status: approved
 visibility: public
-updated: 2026-07-10
+updated: 2026-07-11
 source: manual
 freshness: status
 ---
@@ -24,7 +24,7 @@ The first executable implementation plan is:
 
 That plan is the source of truth for the first release train. This document owns program sequence and release gates.
 
-Implementation status on the dependable-standard branch: Tasks 1-4 are complete through structured readiness, including validation-dimension isolation, fail-closed drift errors, and independent changed-work availability. The next executable step is Task 5, separating repository health from optional integration diagnostics throughout the remaining surfaces.
+Implementation status on the dependable-standard branch: Tasks 1-8 are complete through exact public claims and generated distribution artifacts. The next executable step is Task 9, adding cross-platform CI, installed-tarball smoke, and performance gates.
 
 ## Product Invariants
 

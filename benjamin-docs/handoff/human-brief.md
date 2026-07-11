@@ -5,7 +5,7 @@ scope_id: human-brief
 audience: [developer, designer, business, advisor]
 status: review
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: session-capture
 freshness: status
 ---
@@ -16,7 +16,7 @@ The maintainer accepted a trust-first program on 2026-07-10. Benjamin Docs 0.11.
 
 The program adds an explicit experience guarantee: BD should remain lightweight while agents use it in the background. Session context, task retrieval, skill size, and hook latency receive numerical release budgets. BD must never replace or materially change the answer an agent gives the user. Reading memory needs no mention; after a meaningful update, the agent may add one very short sentence saying what BD memory changed.
 
-The first four trust-foundation tasks are implemented on the release branch. Readiness is now a structured repository-local report: validation, content heuristics, committed freshness, working-tree impact, and agent guidance are separate checks. Known drift and unresolved changed work block readiness; optional machine setup does not. Planning folders without Git still work, but unexpected drift-analysis failures block rather than masquerading as unavailable Git. Working-tree findings remain visible even if committed-freshness analysis fails. Validation findings appear only under structure. The CLI explicitly says these deterministic checks do not prove that the docs are semantically true.
+The first eight trust-foundation tasks are implemented on the release branch. Readiness reports independent deterministic dimensions; optional setup is target-specific; deletions and every repository stack are covered; customer/public exports fail closed; and public claims now match the actual guarantees. Session hooks supply bounded pointers and cannot replace the substantive answer. The stale tracked skill ZIP is gone, and release automation generates and verifies all four skill source files before creating a GitHub Release without publishing npm.
 
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
 

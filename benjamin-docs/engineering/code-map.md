@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: review
 visibility: private
-updated: 2026-07-10
+updated: 2026-07-11
 source: session-capture
 ---
 
@@ -16,7 +16,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 ## CLI Entry
 
 - `src/cli.ts` routes all commands and parses command-specific flags.
-- `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. Keep its first-contact language aligned with `README.md`, `package.json`, and the bundled skill, including the living-project-knowledge wording.
+- `src/info.ts` prints `help`, `introduce`, `chat-project` guidance, and package version text. `src/commands.ts` owns command-drawer descriptions. Keep both aligned with `README.md`, `package.json`, and the bundled skill's exact project-memory guarantees.
 - `package.json` owns the npm version, package description, keywords, published files, bin alias, and release scripts. Version `0.11.1` is published and is the current release.
 - `src/chat-project.ts` formats the confirmation prompt for creating a project from an existing chat.
 - `src/next.ts` formats the next prompt after init/status workflows.
@@ -61,7 +61,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `skills/benjamin-docs/SKILL.md` is the bundled agent skill. It is the source of truth for agent behavior across Codex, Cursor, Claude Code, and Claude Desktop upload.
 - `src/install-skill.ts` installs the skill into shared and app-specific local skill folders.
 - `src/package-skill.ts` creates `~/Downloads/benjamin-docs-skill.zip` for Claude Desktop / Claude.ai upload.
-- `scripts/release-github.mjs` owns the post-publish GitHub release guard: it verifies npm, creates or reuses the version tag, creates the GitHub Release, and checks the latest-release pointer.
+- `scripts/release-github.mjs` owns the post-publish GitHub release guard: it verifies npm, generates a temporary skill ZIP through the built CLI, byte-checks the four archived source files, creates or reuses the version tag and GitHub Release, and checks the latest-release pointer. It does not publish npm.
 - `.github/workflows/release.yml` is the tag-push backup path that creates a GitHub Release when a version tag is pushed manually after npm publish.
 
 ## Tests
@@ -69,7 +69,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `test/init.test.ts` covers starter project creation, mode flags, default watch coverage, and status freshness frontmatter.
 - `test/validate-export.test.ts` covers validation, export, export verification, and promote behavior.
 - `test/scopes-anchors.test.ts` covers feature scopes and anchors.
-- `test/info.test.ts` covers public help, introduce, chat-project text, and the persistent-project-memory positioning in CLI output.
+- `test/info.test.ts` covers public help, introduce, chat-project text, and parity between README, npm description, and CLI project-memory claims. `test/commands.test.ts` checks readiness and session-start drawer wording.
 - `test/install-skill.test.ts` and `test/package-skill.test.ts` cover skill installation and Claude zip packaging.
 - `test/doctor.test.ts` covers setup diagnostics and strict mode.
 - `test/review.test.ts` covers docs-quality review behavior, including freshness blind-spot warnings.
