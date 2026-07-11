@@ -195,7 +195,7 @@ function addCustomerFeatureFailures(
     repairs.push(`Add a 'How To Use It' section to ${briefPath}`);
   }
   const verification = handoff ? extractSection(handoff.content, "Implementation Verification") : "";
-  if (!/implementation verified:\s*yes/i.test(verification) || !hasEvidenceEntry(verification)) {
+  if (!hasVerifiedMarker(verification) || !hasEvidenceEntry(verification)) {
     reasons.push("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry.");
     repairs.push(
       feature
@@ -203,6 +203,10 @@ function addCustomerFeatureFailures(
         : `Add a verified marker and non-empty evidence entry to ${handoffPath}`,
     );
   }
+}
+
+function hasVerifiedMarker(verification: string): boolean {
+  return /^[ \t]*implementation verified:[ \t]*yes[ \t]*\r?$/im.test(verification);
 }
 
 function hasHeading(content: string, heading: string): boolean {

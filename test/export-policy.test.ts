@@ -149,6 +149,40 @@ describe("export publication policy", () => {
     assert.ok(result.reasons.includes("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry."));
   });
 
+  it("rejects prefixed, suffixed, and negated verification marker prose", () => {
+    for (const marker of [
+      "Status: Implementation verified: yes",
+      "Implementation verified: yes please",
+      "Not Implementation verified: yes",
+    ]) {
+      const sources = customerFeatureSources.map((source) =>
+        source.path.endsWith("/handoff.md")
+          ? { ...source, content: source.content.replace("Implementation verified: yes", marker) }
+          : source,
+      );
+
+      const result = preflight(customerFeatureOperation, sources);
+
+      assert.equal(result.allowed, false, marker);
+      assert.ok(
+        result.reasons.includes("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry."),
+        marker,
+      );
+    }
+  });
+
+  it("allows the standalone verification marker with surrounding whitespace and mixed case", () => {
+    const sources = customerFeatureSources.map((source) =>
+      source.path.endsWith("/handoff.md")
+        ? { ...source, content: source.content.replace("Implementation verified: yes", "  IMPLEMENTATION VERIFIED:\tYeS  \r") }
+        : source,
+    );
+
+    const result = preflight(customerFeatureOperation, sources);
+
+    assert.deepEqual(result, { allowed: true, reasons: [], requiredRepairs: [] });
+  });
+
   it("uses exact scope paths when required feature sources are missing", () => {
     const result = preflight(customerFeatureOperation, []);
 
