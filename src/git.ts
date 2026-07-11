@@ -20,6 +20,10 @@ export interface LastCommitsResult {
 
 const GIT_FILENAME_BUFFER_BYTES = 64 * 1024 * 1024;
 
+export function stableGitEnvironment(environment: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  return { ...environment, LC_ALL: "C", LANG: "C" };
+}
+
 export function getChangedFiles(root: string, since: string): ChangedFilesResult {
   const availability = gitHistoryAvailability(root);
   if (availability) return availability;
@@ -30,12 +34,14 @@ export function getChangedFiles(root: string, since: string): ChangedFilesResult
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       maxBuffer: GIT_FILENAME_BUFFER_BYTES,
+      env: stableGitEnvironment(),
     });
     const untracked = execFileSync("git", ["ls-files", "--others", "--exclude-standard"], {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       maxBuffer: GIT_FILENAME_BUFFER_BYTES,
+      env: stableGitEnvironment(),
     });
 
     return {
@@ -53,6 +59,7 @@ function gitHistoryAvailability(root: string): ChangedFilesResult | undefined {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
+      env: stableGitEnvironment(),
     });
   } catch (error) {
     if (gitErrorText(error).includes("not a git repository")) {
@@ -66,6 +73,7 @@ function gitHistoryAvailability(root: string): ChangedFilesResult | undefined {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
+      env: stableGitEnvironment(),
     });
   } catch (error) {
     const text = gitErrorText(error);
@@ -85,6 +93,7 @@ export function getCommittedChanges(root: string, since: string): ChangedFilesRe
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       maxBuffer: GIT_FILENAME_BUFFER_BYTES,
+      env: stableGitEnvironment(),
     });
 
     return { files: uniqueStrings(changed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)), ok: true };
@@ -100,6 +109,7 @@ export function getUntrackedFiles(root: string): ChangedFilesResult {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       maxBuffer: GIT_FILENAME_BUFFER_BYTES,
+      env: stableGitEnvironment(),
     });
 
     return { files: untracked.split(/\r?\n/).map((line) => line.trim()).filter(Boolean), ok: true };
@@ -114,6 +124,7 @@ export function gitLastCommit(root: string, file: string): string | undefined {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      env: stableGitEnvironment(),
     }).trim();
 
     return output || undefined;
@@ -133,6 +144,7 @@ export function gitLastCommits(root: string, files: string[]): LastCommitsResult
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
       maxBuffer: 10 * 1024 * 1024,
+      env: stableGitEnvironment(),
     });
     const commits = new Map<string, string>();
     let currentCommit: string | undefined;
@@ -166,6 +178,7 @@ export function gitCommitCountTouching(root: string, since: string, files: strin
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      env: stableGitEnvironment(),
     }).trim();
 
     const count = Number.parseInt(output, 10);

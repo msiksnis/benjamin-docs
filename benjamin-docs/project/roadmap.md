@@ -63,7 +63,7 @@ Later release trains are strictly sequenced: B, impact evidence; C, canonical st
 ## Immediate Next Work
 
 - Release Train A, the 0.12.0 trust foundation, and all ten audit reproductions are complete on the dependable-standard branch; the release candidate remains unpublished.
-- The final whole-branch review fix set is complete: large-diff and execution-failure fail-closed freshness, explicit non-Git/unborn-HEAD planning availability, case-insensitive Windows publication paths, lazy repository doctor, exact target hook repair, accurate session-context copy, current repo metadata, and the four-command human surface have focused regressions.
+- The final whole-branch review fix set is complete: large-diff and locale-stable execution-failure fail-closed freshness, explicit non-Git/unborn-HEAD planning availability, case-insensitive Windows publication paths, lazy repository doctor, structural target hook validation/repair, accurate session-context copy, current repo metadata, and the four-command human surface have focused regressions.
 - Next, write the Impact Evidence Plan for durable doc-updated/no-impact/deferred/blocker acknowledgements keyed to commit and content identity.
 - After impact evidence is proven, write the Canonical State Plan covering typed views, bounded continuation, and mode-specific minimal schemas; then write the Agent Interface Plan; then the Protocol and Conformance Plan.
 - Keep the human command surface stable and preserve the public-repo privacy guardrail.

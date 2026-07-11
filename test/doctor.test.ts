@@ -172,6 +172,99 @@ describe("doctor", () => {
     });
   });
 
+  for (const target of ["claude-code", "codex"] as const) {
+    const hookPath = target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+    const format = target === "codex" ? "codex" : "claude";
+
+    for (const malformedShape of ["wrong matcher", "command on group"] as const) {
+      it(`repairs ${malformedShape} ${target} session hooks without deleting user data`, () => {
+        withTempDir((dir) => {
+          runCliResult(["init", "--mode", "codebase"], dir);
+          runCliResult(["install-skill", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+          mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+
+          const expectedCommand = `benjamin-docs session-start --format ${format}`;
+          const userGroup = {
+            matcher: "user-event",
+            customField: "preserve-user-group",
+            hooks: [{ type: "command", command: "echo user-start", timeout: 7 }],
+          };
+          const staleBenjaminGroup = malformedShape === "wrong matcher"
+            ? {
+                matcher: "never-match",
+                customField: "preserve-mixed-group",
+                hooks: [
+                  { type: "command", command: "echo mixed-user-start", timeout: 9 },
+                  { type: "command", command: expectedCommand },
+                ],
+              }
+            : {
+                matcher: "startup|resume|clear",
+                command: expectedCommand,
+                customField: "malformed-direct-command",
+              };
+          writeFileSync(
+            join(dir, hookPath),
+            `${JSON.stringify({
+              permissions: { allow: ["Bash(git status:*)"] },
+              hooks: {
+                SessionStart: [
+                  userGroup,
+                  staleBenjaminGroup,
+                  ...(malformedShape === "wrong matcher"
+                    ? [{ matcher: "startup|resume|clear", hooks: [{ type: "command", command: expectedCommand }] }]
+                    : []),
+                ],
+              },
+            }, null, 2)}\n`,
+          );
+
+          const unhealthy = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+          assert.equal(unhealthy.status, 1);
+          assert.match(unhealthy.stdout, /session hook: not installed/);
+
+          const install = runCliResult(["hooks", "install", "--target", target], dir);
+          assert.equal(install.status, 0);
+          assert.match(install.stdout, /installed\s+(Claude Code|Codex CLI)/);
+          assert.doesNotMatch(install.stdout, /already installed/);
+
+          const repaired = JSON.parse(readFileSync(join(dir, hookPath), "utf8")) as {
+            permissions: { allow: string[] };
+            hooks: { SessionStart: Array<Record<string, unknown>> };
+          };
+          assert.deepEqual(repaired.permissions.allow, ["Bash(git status:*)"]);
+          assert.deepEqual(repaired.hooks.SessionStart[0], userGroup);
+          if (malformedShape === "wrong matcher") {
+            assert.deepEqual(repaired.hooks.SessionStart[1], {
+              matcher: "never-match",
+              customField: "preserve-mixed-group",
+              hooks: [{ type: "command", command: "echo mixed-user-start", timeout: 9 }],
+            });
+          } else {
+            assert.doesNotMatch(JSON.stringify(repaired), /malformed-direct-command/);
+          }
+          assert.ok(repaired.hooks.SessionStart.some((group) =>
+            group.matcher === "startup|resume|clear"
+            && Array.isArray(group.hooks)
+            && group.hooks.some((entry) =>
+              typeof entry === "object"
+              && entry !== null
+              && (entry as Record<string, unknown>).type === "command"
+              && (entry as Record<string, unknown>).command === expectedCommand),
+          ));
+
+          const healthy = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+          assert.equal(healthy.status, 0, healthy.stdout);
+          assert.match(healthy.stdout, /session hook: installed/);
+
+          const again = runCliResult(["hooks", "install", "--target", target], dir);
+          assert.equal(again.status, 0);
+          assert.match(again.stdout, /already installed\s+(Claude Code|Codex CLI)/);
+        });
+      });
+    }
+  }
+
   for (const target of ["claude-code", "codex", "cursor"] as const) {
     it(`repairs wrong-format and legacy-stop ${target} hooks through diagnose, install, diagnose`, () => {
       withTempDir((dir) => {

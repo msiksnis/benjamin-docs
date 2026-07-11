@@ -3,6 +3,7 @@ import { lstatIfExists, rootPath, writeGeneratedText } from "./fsx.js";
 
 const HOOK_COMMAND_MARKER = "benjamin-docs session-";
 const HOOK_FILE_LABEL = "Agent hook path";
+const SHARED_SESSION_START_MATCHER = "startup|resume|clear";
 
 export type HookTargetId = "claude-code" | "codex" | "cursor";
 
@@ -166,14 +167,14 @@ function addSharedSchemaHooks(content: JsonObject, targetId: HookTargetId): bool
   const hooks = ensureObject(content, "hooks");
   const expectedStartCommand = sessionStartCommand(format);
   const removedLegacyStop = removeBenjaminEntriesFromEvent(hooks, "Stop", "session-stop");
-  const removedStaleStart = removeBenjaminEntriesFromEvent(hooks, "SessionStart", "session-start", expectedStartCommand);
-  const addedStart = addSharedSchemaEntry(hooks, "SessionStart", "startup|resume|clear", expectedStartCommand);
+  const removedStaleStart = removeInvalidSharedSessionStartEntries(hooks, expectedStartCommand);
+  const addedStart = addSharedSchemaEntry(hooks, "SessionStart", SHARED_SESSION_START_MATCHER, expectedStartCommand);
   return removedLegacyStop || removedStaleStart || addedStart;
 }
 
 function addSharedSchemaEntry(hooks: JsonObject, event: string, matcher: string | undefined, command: string): boolean {
   const groups = ensureArray(hooks, event);
-  if (groups.some((group) => sharedSchemaGroupHasMarker(group))) return false;
+  if (groups.some((group) => isValidSharedSessionStartGroup(group, command))) return false;
 
   const entry: JsonObject = { type: "command", command };
   const group: JsonObject = matcher === undefined ? { hooks: [entry] } : { matcher, hooks: [entry] };
@@ -181,11 +182,83 @@ function addSharedSchemaEntry(hooks: JsonObject, event: string, matcher: string 
   return true;
 }
 
-function sharedSchemaGroupHasMarker(group: unknown): boolean {
-  if (typeof group !== "object" || group === null) return false;
-  const hooks = (group as JsonObject).hooks;
-  if (!Array.isArray(hooks)) return false;
-  return hooks.some((entry) => entryHasMarker(entry));
+function isValidSharedSessionStartGroup(group: unknown, expectedCommand: string): boolean {
+  if (typeof group !== "object" || group === null || Array.isArray(group)) return false;
+  const groupObject = group as JsonObject;
+  if (groupObject.matcher !== SHARED_SESSION_START_MATCHER || !Array.isArray(groupObject.hooks)) return false;
+  return groupObject.hooks.some((entry) => isExecutableCommandEntry(entry, expectedCommand));
+}
+
+function isExecutableCommandEntry(entry: unknown, expectedCommand: string): boolean {
+  if (typeof entry !== "object" || entry === null || Array.isArray(entry)) return false;
+  const object = entry as JsonObject;
+  return object.type === "command" && object.command === expectedCommand;
+}
+
+function hasInvalidSharedSessionStartEntry(group: unknown, expectedCommand: string): boolean {
+  const commandMarker = "benjamin-docs session-start";
+  if (!eventContainsCommand(group, (command) => command.includes(commandMarker))) return false;
+  if (typeof group !== "object" || group === null || Array.isArray(group)) return true;
+
+  const groupObject = group as JsonObject;
+  if (entryHasCommandMarker(group, commandMarker)) return true;
+  if (!Array.isArray(groupObject.hooks)) return true;
+
+  return groupObject.hooks.some((entry) => {
+    if (!eventContainsCommand(entry, (command) => command.includes(commandMarker))) return false;
+    return groupObject.matcher !== SHARED_SESSION_START_MATCHER
+      || !isExecutableCommandEntry(entry, expectedCommand);
+  });
+}
+
+function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedCommand: string): boolean {
+  const groups = hooks.SessionStart;
+  if (!Array.isArray(groups)) return false;
+
+  const commandMarker = "benjamin-docs session-start";
+  let changed = false;
+  const keptGroups: unknown[] = [];
+
+  for (const group of groups) {
+    if (entryHasCommandMarker(group, commandMarker)) {
+      changed = true;
+      continue;
+    }
+
+    if (typeof group !== "object" || group === null || Array.isArray(group)) {
+      keptGroups.push(group);
+      continue;
+    }
+
+    const groupObject = group as JsonObject;
+    const entries = groupObject.hooks;
+    if (!Array.isArray(entries)) {
+      keptGroups.push(group);
+      continue;
+    }
+
+    const supportedMatcher = groupObject.matcher === SHARED_SESSION_START_MATCHER;
+    const keptEntries = entries.filter((entry) => {
+      if (!entryHasCommandMarker(entry, commandMarker)) return true;
+      const valid = supportedMatcher && isExecutableCommandEntry(entry, expectedCommand);
+      if (!valid) changed = true;
+      return valid;
+    });
+
+    if (keptEntries.length > 0) {
+      if (keptEntries.length !== entries.length) groupObject.hooks = keptEntries;
+      keptGroups.push(groupObject);
+    } else if (entries.length > 0) {
+      changed = true;
+    } else {
+      keptGroups.push(groupObject);
+    }
+  }
+
+  if (!changed) return false;
+  if (keptGroups.length === 0) delete hooks.SessionStart;
+  else hooks.SessionStart = keptGroups;
+  return true;
 }
 
 function removeSharedSchemaHooks(content: JsonObject): boolean {
@@ -335,7 +408,11 @@ function inspectHookHealth(content: JsonObject, targetId: HookTargetId): { expec
   const expectedCommand = sessionStartCommand(format);
 
   return {
-    expectedStart: eventContainsCommand(hookMap[startEvent], (command) => command === expectedCommand),
+    expectedStart: targetId === "cursor"
+      ? eventContainsCommand(hookMap[startEvent], (command) => command === expectedCommand)
+      : Array.isArray(hookMap[startEvent])
+        && hookMap[startEvent].some((group) => isValidSharedSessionStartGroup(group, expectedCommand))
+        && !hookMap[startEvent].some((group) => hasInvalidSharedSessionStartEntry(group, expectedCommand)),
     legacyStop: eventContainsCommand(hookMap[stopEvent], (command) => command.includes("benjamin-docs session-stop")),
   };
 }
