@@ -241,7 +241,11 @@ describe("doctor", () => {
               hooks: [{ type: "command", command: "echo mixed-user-start", timeout: 9 }],
             });
           } else {
-            assert.doesNotMatch(JSON.stringify(repaired), /malformed-direct-command/);
+            assert.deepEqual(repaired.hooks.SessionStart[1], {
+              matcher: "startup|resume|clear",
+              customField: "malformed-direct-command",
+            });
+            assert.equal((repaired.hooks.SessionStart[1] as Record<string, unknown>).command, undefined);
           }
           assert.ok(repaired.hooks.SessionStart.some((group) =>
             group.matcher === "startup|resume|clear"
@@ -263,6 +267,89 @@ describe("doctor", () => {
         });
       });
     }
+
+    it(`repairs a direct ${target} command without deleting mixed group data`, () => {
+      withTempDir((dir) => {
+        runCliResult(["init", "--mode", "codebase"], dir);
+        runCliResult(["install-skill", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+
+        const expectedCommand = `benjamin-docs session-start --format ${format}`;
+        const staleCommand = `${expectedCommand} --stale`;
+        const mixedGroup = {
+          matcher: "startup|resume|clear",
+          command: staleCommand,
+          timeout: 23,
+          customField: "preserve-mixed-group",
+          other: { owner: "user", enabled: true },
+          hooks: [
+            { type: "command", command: "echo user-owned", timeout: 17, customField: "preserve-user-entry" },
+          ],
+        };
+        const mixedGroupWithValidBenjaminEntry = {
+          matcher: "startup|resume|clear",
+          command: staleCommand,
+          timeout: 31,
+          customField: "preserve-group-with-valid-entry",
+          other: ["user", "data"],
+          hooks: [
+            { type: "command", command: "echo second-user-owned", timeout: 19 },
+            { type: "command", command: expectedCommand },
+          ],
+        };
+        const unrelatedEmptyGroup = { matcher: "user-empty", hooks: [] };
+        writeFileSync(
+          join(dir, hookPath),
+          `${JSON.stringify({ hooks: { SessionStart: [mixedGroup, mixedGroupWithValidBenjaminEntry, unrelatedEmptyGroup] } }, null, 2)}\n`,
+        );
+
+        const unhealthy = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+        assert.equal(unhealthy.status, 1);
+        assert.match(unhealthy.stdout, /session hook: not installed/);
+
+        const install = runCliResult(["hooks", "install", "--target", target], dir);
+        assert.equal(install.status, 0);
+        assert.match(install.stdout, /installed\s+(Claude Code|Codex CLI)/);
+
+        const repaired = JSON.parse(readFileSync(join(dir, hookPath), "utf8")) as {
+          hooks: { SessionStart: Array<Record<string, unknown>> };
+        };
+        assert.deepEqual(repaired.hooks.SessionStart, [
+          {
+            matcher: "startup|resume|clear",
+            timeout: 23,
+            customField: "preserve-mixed-group",
+            other: { owner: "user", enabled: true },
+            hooks: [
+              { type: "command", command: "echo user-owned", timeout: 17, customField: "preserve-user-entry" },
+            ],
+          },
+          {
+            matcher: "startup|resume|clear",
+            timeout: 31,
+            customField: "preserve-group-with-valid-entry",
+            other: ["user", "data"],
+            hooks: [
+              { type: "command", command: "echo second-user-owned", timeout: 19 },
+              { type: "command", command: expectedCommand },
+            ],
+          },
+          unrelatedEmptyGroup,
+        ]);
+        assert.doesNotMatch(JSON.stringify(repaired), /--stale/);
+        assert.equal(JSON.stringify(repaired).match(new RegExp(expectedCommand, "g"))?.length, 1);
+
+        const healthy = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+        assert.equal(healthy.status, 0, healthy.stdout);
+        assert.match(healthy.stdout, /session hook: installed/);
+
+        const beforeSecondInstall = readFileSync(join(dir, hookPath), "utf8");
+        const again = runCliResult(["hooks", "install", "--target", target], dir);
+        assert.equal(again.status, 0);
+        assert.match(again.stdout, /already installed\s+(Claude Code|Codex CLI)/);
+        assert.equal(readFileSync(join(dir, hookPath), "utf8"), beforeSecondInstall);
+      });
+    });
   }
 
   for (const target of ["claude-code", "codex", "cursor"] as const) {

@@ -24,7 +24,7 @@ The first executable implementation plan is:
 
 That plan is the source of truth for the first release train. This document owns program sequence and release gates.
 
-Implementation status on the dependable-standard branch: Release Train A and the final whole-branch review fixes are implemented. The focused oversized-diff, locale-stable legitimate Git-unavailability versus fail-closed Git-failure, mixed-case cross-platform path, unreadable-global-state, structural diagnose-repair-healthy hook, copy, and command-surface regressions pass against the built CLI. The working package is the 0.12.0 release candidate; publication, tagging, and release creation remain separate maintainer actions.
+Implementation status on the dependable-standard branch: Release Train A and the final whole-branch review fixes are implemented. The focused oversized-diff, locale-stable legitimate Git-unavailability versus fail-closed Git-failure, mixed-case cross-platform path, unreadable-global-state, structural diagnose-repair-healthy hook, copy, and command-surface regressions pass against the built CLI. Hook repair regressions for Claude Code and Codex prove exact preservation of unrelated mixed-group data, reuse of an existing valid nested Benjamin entry, and idempotent reinstall. The working package is the 0.12.0 release candidate; publication, tagging, and release creation remain separate maintainer actions.
 
 ## Product Invariants
 

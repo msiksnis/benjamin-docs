@@ -220,20 +220,22 @@ function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedComma
   const keptGroups: unknown[] = [];
 
   for (const group of groups) {
-    if (entryHasCommandMarker(group, commandMarker)) {
-      changed = true;
-      continue;
-    }
-
     if (typeof group !== "object" || group === null || Array.isArray(group)) {
       keptGroups.push(group);
       continue;
     }
 
     const groupObject = group as JsonObject;
+    let groupChanged = false;
+    if (entryHasCommandMarker(groupObject, commandMarker)) {
+      delete groupObject.command;
+      changed = true;
+      groupChanged = true;
+    }
+
     const entries = groupObject.hooks;
     if (!Array.isArray(entries)) {
-      keptGroups.push(group);
+      if (!groupChanged || hasMeaningfulSharedGroupData(groupObject)) keptGroups.push(groupObject);
       continue;
     }
 
@@ -245,13 +247,14 @@ function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedComma
       return valid;
     });
 
-    if (keptEntries.length > 0) {
-      if (keptEntries.length !== entries.length) groupObject.hooks = keptEntries;
+    if (keptEntries.length !== entries.length) {
+      groupObject.hooks = keptEntries;
+      groupChanged = true;
+    }
+    if (!groupChanged || hasMeaningfulSharedGroupData(groupObject)) {
       keptGroups.push(groupObject);
     } else if (entries.length > 0) {
       changed = true;
-    } else {
-      keptGroups.push(groupObject);
     }
   }
 
@@ -259,6 +262,11 @@ function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedComma
   if (keptGroups.length === 0) delete hooks.SessionStart;
   else hooks.SessionStart = keptGroups;
   return true;
+}
+
+function hasMeaningfulSharedGroupData(group: JsonObject): boolean {
+  if (Array.isArray(group.hooks) && group.hooks.length > 0) return true;
+  return Object.keys(group).some((key) => key !== "matcher" && key !== "hooks" && key !== "command");
 }
 
 function removeSharedSchemaHooks(content: JsonObject): boolean {
