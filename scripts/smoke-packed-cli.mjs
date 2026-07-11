@@ -20,6 +20,7 @@ const env = {
 
 let packDirectory;
 let projectDirectory;
+let homeDirectory;
 
 function isNpmCliPath(path) {
   return /[/\\]npm[/\\]bin[/\\]npm-cli\.js$/i.test(path);
@@ -86,6 +87,8 @@ function run(command, args, cwd) {
 try {
   packDirectory = await mkdtemp(join(tmpdir(), "benjamin docs pack -"));
   projectDirectory = await mkdtemp(join(tmpdir(), "benjamin docs smoke -"));
+  homeDirectory = await mkdtemp(join(tmpdir(), "benjamin docs home -"));
+  env.BENJAMIN_DOCS_HOME = homeDirectory;
   const npmCliPath = await resolveNpmCli();
   const runNpm = (args, cwd) => run(process.execPath, [npmCliPath, ...args], cwd);
 
@@ -126,6 +129,20 @@ try {
   }
 
   runBd(["init", "--mode", "planning", "--no-agent-contract"]);
+  const upgradeOutput = runBd(["upgrade"]);
+  if (!upgradeOutput.includes("Hooks: installed")) {
+    throw new Error(`plain packed upgrade did not install hooks:\n${upgradeOutput}`);
+  }
+  for (const [relativePath, format] of [
+    [".claude/settings.json", "claude"],
+    [".codex/hooks.json", "codex"],
+    [".cursor/hooks.json", "cursor"],
+  ]) {
+    const hookText = await readFile(join(projectDirectory, relativePath), "utf8");
+    if (!hookText.includes(`benjamin-docs session-start --format ${format}`)) {
+      throw new Error(`${relativePath} does not contain the expected ${format} session-start hook`);
+    }
+  }
   runBd(["validate"]);
 
   const sessionStart = runBd(["session-start"]).trimEnd();
@@ -146,7 +163,7 @@ try {
   );
 } finally {
   await Promise.all(
-    [packDirectory, projectDirectory]
+    [packDirectory, projectDirectory, homeDirectory]
       .filter(Boolean)
       .map((directory) => rm(directory, { recursive: true, force: true })),
   );

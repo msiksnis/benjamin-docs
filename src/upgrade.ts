@@ -39,19 +39,23 @@ export async function runUpgrade(root: string, options: UpgradeOptions = {}): Pr
   const lines = ["benjamin-docs upgrade", ""];
   const config = readConfig(root);
   const previousVersion = config.bdVersion;
+  const stepLines: string[] = [];
 
-  stampConfigVersion(root, config, currentVersion);
-  lines.push(
-    previousVersion === currentVersion
-      ? `Project metadata already records CLI ${currentVersion}.`
-      : `Project metadata: ${previousVersion ?? "recorded before 0.10.0"} -> ${currentVersion}.`,
-  );
-
-  lines.push(refreshAgentGuidance(root));
-  lines.push(refreshSkills());
-  lines.push(...refreshViews(root));
+  stepLines.push(refreshAgentGuidance(root));
+  stepLines.push(refreshSkills());
+  stepLines.push(...refreshViews(root));
   const hookStep = resolveHooks(root, options.hooks);
-  lines.push(...hookStep.lines);
+  stepLines.push(...hookStep.lines);
+
+  if (hookStep.ok) stampConfigVersion(root, config, currentVersion);
+  lines.push(
+    hookStep.ok
+      ? previousVersion === currentVersion
+        ? `Project metadata already records CLI ${currentVersion}.`
+        : `Project metadata: ${previousVersion ?? "recorded before 0.10.0"} -> ${currentVersion}.`
+      : `Project metadata: unchanged at ${previousVersion ?? "a pre-0.10.0 setup"} because required hook migration failed.`,
+  );
+  lines.push(...stepLines);
   lines.push(reportMcpRegistration(root));
   lines.push(...(await reportUpdateAvailability(currentVersion)));
 

@@ -71,17 +71,13 @@ When a blocking dimension fails, `bd ready` reports the evidence and a repair co
 
 Deterministic checks do not prove semantic truth. They prove only the configured structural, heuristic, Git-freshness, changed-work, and guidance conditions. An agent or human must still verify that the memory accurately describes the implementation.
 
-## Optional Session Hooks
+## Session Hooks And Upgrades
 
-```bash
-bd hooks install
-```
+After updating the package, run `bd upgrade` once in each initialized repository. It refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and session-start hooks for Claude Code, Codex, and Cursor. It removes legacy Benjamin stop hooks while preserving user-owned configuration. No separate hook command is required. Use `bd upgrade --no-hooks` only when the environment must opt out of hooks.
 
-With consent, Benjamin Docs adds narrowly owned entries for Claude Code, Codex, and Cursor while preserving existing settings. `session-start` supplies a compact pointer/context packet: the memory root, read-first files, and bounded freshness hints. It does not load the whole memory tree or guarantee that the agent reads every document.
+`session-start` supplies a compact pointer/context packet: the memory root, read-first files, and bounded freshness hints. It does not load the whole memory tree or guarantee that the agent reads every document. Benjamin Docs never needs to alter the substantive final answer; agents maintain durable memory during normal work and answer the original request completely.
 
-Stop hooks are response-safe. They never block or auto-submit a follow-up. Benjamin Docs never needs to alter the substantive final answer; if durable facts changed, the agent can maintain memory during normal work and still answer the original request completely.
-
-Remove Benjamin-owned hook entries with `bd hooks uninstall`.
+Advanced hook management remains available through `bd hooks install|status|uninstall`.
 
 ## Optional MCP Memory Tools
 
@@ -127,7 +123,7 @@ The ZIP is generated from the packaged `SKILL.md` and its three references. It i
 
 ## Updates And Network Boundary
 
-Ordinary project-memory reads and writes make no network calls. Benjamin Docs can perform a cached, opt-out npm version check; disable it with `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`. Updating the package and running `bd upgrade` refreshes only Benjamin-owned repository surfaces and chosen skill installs.
+Ordinary project-memory reads and writes make no network calls. Benjamin Docs can perform a cached, opt-out npm version check; disable it with `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`. Package updates remain explicit; after updating, run `bd upgrade` once in each initialized repository to refresh its Benjamin-owned surfaces and integrations.
 
 ## Chat-Only Projects
 

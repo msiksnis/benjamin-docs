@@ -18,6 +18,14 @@ Tasks 1-10 and Release Train A are complete on the dependable-standard branch. T
 
 Final whole-branch review hardening closes the remaining trust gaps: oversized committed diffs are enumerated within an explicit bound and cannot appear fresh after analysis failure; stable Git diagnostics keep legitimate unavailability classification locale-independent; only non-Git and unborn-HEAD planning repositories receive non-blocking unavailability while real Git failures block both freshness dimensions; user-home publication scanning covers Markdown punctuation, case-insensitive Windows home paths, and both separators; repository-only strict diagnosis avoids global integration state; structural hook repair removes malformed Benjamin commands at entry/property granularity while preserving unrelated group fields and nested user hooks exactly; and the four-command human surface remains intact.
 
+Superseding 0.12.0 implementation note: after updating the package, users run one plain `bd upgrade` in each initialized repository. It refreshes Benjamin-owned metadata, guidance, the current skill bundle, existing Memory Views, and all Claude Code/Codex/Cursor session-start hooks; removes legacy Benjamin stop hooks; preserves user-owned configuration; and requires no separate hook command. `bd upgrade --no-hooks` is the explicit environment opt-out. The audit observations below remain the historical 0.11.1 evidence that motivated this change.
+
+Final review hardening makes that completion claim fail closed: `bdVersion` advances only after required skill and hook work succeeds, and parseable files with incompatible user-owned hook shapes are skipped unchanged rather than normalized.
+
+The final preservation pass also handles mixed direct-command legacy stop groups property-by-property: it removes only the Benjamin-owned top-level command while retaining custom metadata and nested user hooks.
+
+Removal is schema-aware: the property-level rule applies to Claude/Codex shared groups, while Cursor flat Benjamin-owned entries are removed whole so invalid commandless entries cannot remain.
+
 Audit date: 2026-07-10
 Audited version: 0.11.1 at commit 3705444
 Verdict: not ready for public positioning as a dependable standard

@@ -12,7 +12,7 @@ export const mainCommands: CommandEntry[] = [
 ];
 
 export const advancedCommands: CommandEntry[] = [
-  { command: "benjamin-docs upgrade", args: ["upgrade"], description: "Refresh this repo's Benjamin-owned surfaces after a CLI update." },
+  { command: "benjamin-docs upgrade", args: ["upgrade"], description: "After a package update, refresh this repo's metadata, guidance, skills, views, and session-start hooks." },
   { command: "benjamin-docs status", args: ["status"], description: "Show current Benjamin Docs setup." },
   { command: "benjamin-docs next", args: ["next"], description: "Print the next recommended agent prompt." },
   { command: "benjamin-docs validate", args: ["validate"], description: "Check structure, frontmatter, links, scopes, and anchors." },

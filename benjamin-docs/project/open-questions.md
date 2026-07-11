@@ -19,6 +19,7 @@ source: session-capture
 - Decision: default installed hooks must not block completion or auto-submit follow-ups; memory maintenance happens before the final answer.
 - Decision: preserve the accepted latency, token, skill-size, and one-sentence completion-note budgets in tests and release gates.
 - Decision: public copy describes bounded start context, deterministic readiness limits, publication metadata, and response-safe final answers exactly; generated skill bundles are verified artifacts rather than tracked sources.
+- Decision for 0.12.0: after updating the package, run one plain `bd upgrade` in each initialized repository. It refreshes metadata, guidance, skills, existing views, and all supported session-start hooks; removes legacy Benjamin stop hooks; preserves user configuration; and requires no separate hook command. `--no-hooks` is the explicit environment opt-out.
 - Current status: the 0.12.0 trust foundation and all ten audit reproductions are complete; publication remains a separate maintainer action.
 - Next plan: impact-evidence ledger and no-doc-impact acknowledgement keyed to commit/content identity.
 - Then, in order: canonical state, typed views, bounded continuation, and mode-specific minimal schemas; agent/MCP resources, prompts, and structured output; public protocol and conformance.

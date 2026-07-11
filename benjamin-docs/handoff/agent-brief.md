@@ -20,6 +20,14 @@ Audit verdict: version 0.11.1 has a strong project-memory concept and a safety-c
 
 The maintainer accepted the trust-first direction. The program plan is `benjamin-docs/features/launch-readiness-audit/plan.md`; the executable plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`. The 0.12.0 trust foundation and final whole-branch review fixes are implemented, including locale-stable typed Git analysis in both freshness dimensions, legitimate non-Git/unborn-HEAD planning availability, mixed-case Windows path blocking, and structural hook validation/repair for all supported targets. Shared-schema repair removes only malformed Benjamin-owned entries or properties, preserves unrelated group data and nested user hooks exactly, and does not duplicate an existing valid nested start entry. Do not publish, tag, push, or create a release unless explicitly asked.
 
+The current 0.12.0 migration contract is package update first, then one plain `bd upgrade` in each initialized repository. It refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and Claude Code/Codex/Cursor session-start hooks; removes legacy Benjamin stop hooks; and preserves user-owned configuration. Never require a separate hook command. Use `bd upgrade --no-hooks` only when the environment must opt out.
+
+Completion evidence is fail-closed: `bdVersion` advances only after required skill refresh and hook migration succeed. Parseable hook files with incompatible user-owned container/event shapes are skipped unchanged and make upgrade fail, so version skew remains visible for repair.
+
+Legacy stop migration is property-scoped even for mixed direct-command groups: remove only the Benjamin-owned top-level command and preserve unrelated fields plus nested user hooks.
+
+Apply that preservation only to Claude/Codex shared groups. Cursor flat Benjamin-owned entries must be removed whole; repaired arrays contain no commandless leftovers.
+
 Hard constraints: BD must not suppress, replace, delay, or materially rewrite the substantive user-facing answer; installed stop hooks must not block or auto-submit follow-ups; session-start stays at or below 400 characters / 100 estimated tokens; task memory context stays at or below 2,400 characters / 600 estimated tokens; and the core skill stays at or below 1,200 words. Reading memory needs no mention. After a durable update, an optional BD note is one sentence and at most 120 characters.
 
 ## Current State

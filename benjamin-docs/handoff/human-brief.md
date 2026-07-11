@@ -20,6 +20,14 @@ The trust foundation is implemented on the release branch. Readiness reports ind
 
 The final branch review also verified the awkward edge cases: very large committed diffs and real Git analysis failures cannot silently look current, Git failure classification is stable across machine locales, legitimate no-history planning remains usable, local home paths are rejected even with mixed Windows case or ordinary Markdown punctuation, repository health does not depend on readable global tool state, and Claude Code/Codex hook repair removes only malformed Benjamin-owned commands while preserving unrelated group settings and nested user hooks exactly. The visible human command set remains `init`, `ready`, `export`, and `help`.
 
+The 0.12.0 update path is now one instruction: after updating the package, run `bd upgrade` once in each initialized repository. It refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and Claude Code/Codex/Cursor session-start hooks. It removes legacy Benjamin stop hooks while preserving user-owned configuration. No separate hook command is required; use `bd upgrade --no-hooks` only when the environment must opt out.
+
+The repository version stamp changes only after required skill and hook work succeeds. If a parseable user hook file has an incompatible structure, BD preserves it unchanged, reports the target failure, and keeps the older version visible for repair.
+
+When a legacy Benjamin stop command shares a group with user settings or nested hooks, upgrade removes only the Benjamin-owned command and keeps the user data.
+
+Cursor uses a flat hook format, so its stale Benjamin entries are removed whole rather than left as commandless objects.
+
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
 
 0.10.0 added drift checks and session hooks. `bd drift` compares watched docs with committed Git history. Session-start hooks provide compact orientation and point agents to project memory; they do not load or verify every fact automatically. The 0.12.0 candidate removes stop-hook continuations so BD maintenance cannot replace or distort the final user response. For humans, the surface stays small: `init`, `ready`, `export`, and `help`, with advanced checks handled by agents.

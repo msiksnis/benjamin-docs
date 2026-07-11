@@ -24,6 +24,14 @@ Trust-foundation Tasks 1-10 and Release Train A are complete on the dependable-s
 
 Final whole-branch review hardening preserves those boundaries under large and hostile inputs: committed filename enumeration is explicitly bounded; locale-stable real Git failures block both freshness dimensions while non-Git and unborn-HEAD planning stay usable; publication path scanning is Markdown-, platform-, and Windows-case-aware; repository-only strict checks never inspect integration state; and structural target validation/reinstall repairs stale or malformed Benjamin hooks at entry/property granularity while preserving unrelated group data and nested user hooks exactly. `upgrade` remains advanced so the primary human surface is still exactly four commands.
 
+For 0.12.0, package migration has one public instruction: update the package, then run `bd upgrade` once in each initialized repository. That command refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and session-start hooks for Claude Code, Codex, and Cursor. It removes legacy Benjamin stop hooks while preserving user-owned configuration. No separate hook command is required; `bd upgrade --no-hooks` is only for environments that must opt out.
+
+The version stamp is completion evidence: required skill or hook failure leaves the prior `bdVersion` intact, and incompatible parseable user hook structures are preserved unchanged while upgrade fails truthfully.
+
+Legacy stop migration is equally narrow: a top-level Benjamin stop command is removed as one property from a mixed group, preserving unrelated metadata and nested user hooks.
+
+That property-level rule is limited to shared Claude/Codex groups; flat Cursor Benjamin entries are removed whole so repair cannot leave invalid commandless objects.
+
 `benjamin-docs` is a persistent repo-local project memory system for AI coding agents and humans. It turns a repo into living project knowledge that agents read, follow, and update while they work, so a new coding session starts with context: what the project is, where work stopped, what decisions and conventions matter, what is risky, and what should happen next.
 
 The public positioning must make that clear in the first few sentences. BD is not a generic documentation package or Markdown helper. Markdown is the storage format; the product is continuity across agent sessions, human handoffs, and implementation work.

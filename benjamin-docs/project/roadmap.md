@@ -64,6 +64,10 @@ Later release trains are strictly sequenced: B, impact evidence; C, canonical st
 
 - Release Train A, the 0.12.0 trust foundation, and all ten audit reproductions are complete on the dependable-standard branch; the release candidate remains unpublished.
 - The final whole-branch review fix set is complete: large-diff and locale-stable execution-failure fail-closed freshness, explicit non-Git/unborn-HEAD planning availability, case-insensitive Windows publication paths, lazy repository doctor, property-level target hook repair with exact user-data preservation and no duplicate valid entry, accurate session-context copy, current repo metadata, and the four-command human surface have focused regressions.
+- The 0.12.0 migration path is complete: after updating the package, run `bd upgrade` once in each initialized repository. It refreshes Benjamin-owned metadata, agent guidance, the current skill bundle, existing Memory Views, and Claude Code/Codex/Cursor session-start hooks; removes legacy Benjamin stop hooks; preserves user-owned configuration; and needs no separate hook command. `bd upgrade --no-hooks` is the explicit environment opt-out.
+- Final review hardening keeps completion evidence truthful: `bdVersion` advances only after required skill and hook success, while incompatible parseable user hook structures are preserved unchanged and reported as migration failures.
+- Final re-review closes mixed direct-command legacy-stop preservation: only the Benjamin-owned command property is removed, leaving unrelated group metadata and nested user hooks intact.
+- Cross-schema hardening removes flat Cursor Benjamin entries whole while retaining property-level preservation for shared Claude/Codex groups; repaired Cursor arrays are asserted exactly.
 - Next, write the Impact Evidence Plan for durable doc-updated/no-impact/deferred/blocker acknowledgements keyed to commit and content identity.
 - After impact evidence is proven, write the Canonical State Plan covering typed views, bounded continuation, and mode-specific minimal schemas; then write the Agent Interface Plan; then the Protocol and Conformance Plan.
 - Keep the human command surface stable and preserve the public-repo privacy guardrail.
@@ -83,7 +87,7 @@ Make project memory self-maintaining instead of voluntary:
 - `bd drift` measures docs against committed git history through watch rules; advisory in `bd ready`, `--strict` for CI, `--json` for agents.
 - `bd hooks install` originally wired start and stop behavior. The 0.12.0 candidate installs compact session-start context only and removes legacy Benjamin stop entries.
 - Interactive `bd init` asks for hook consent. The current primary human command surface is exactly `init`, `ready`, `export`, and `help`; `upgrade` is an advanced repair surfaced on version skew.
-- `bd upgrade` catches previously initialized repos up (version stamp, agent guidance, skills, views, hooks offer); a cached opt-out npm update check makes agents the ones who notice new versions.
+- `bd upgrade` originally caught previously initialized repos up through a version stamp, agent guidance, skills, views, and a hooks offer. In 0.12.0, after the package update, plain `bd upgrade` refreshes those surfaces and installs or repairs session-start hooks by default; no separate hook command is required, and `--no-hooks` is the opt-out.
 
 ## Guided Export Goal
 

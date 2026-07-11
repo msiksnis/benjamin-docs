@@ -13,6 +13,10 @@ source: manual
 
 ## Unreleased (0.12.0)
 
+- After updating the package, one plain `bd upgrade` per initialized repository now refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and Claude Code/Codex/Cursor session-start hooks. It removes legacy Benjamin stop hooks while preserving user-owned configuration. No separate hook command is required; `bd upgrade --no-hooks` is the explicit environment opt-out.
+- Upgrade now advances repository `bdVersion` only after required skill and hook migration succeeds. Parseable hook files with incompatible user-owned container/event shapes are preserved unchanged and fail the migration instead of being destructively normalized.
+- Legacy shared-schema stop migration now removes a top-level Benjamin command property without dropping unrelated fields or nested user hooks from the same group.
+- Hook cleanup is schema-aware: Claude/Codex mixed groups retain user data property-by-property, while flat stale Cursor entries are removed whole so no commandless objects remain.
 - Agent integrations now install session-start only. Upgrade removes legacy Benjamin-owned stop/follow-up hooks while preserving user hooks, and the legacy `session-stop` compatibility command is silent for every supported format.
 - Added explicit numeric context contracts: session start is capped at 400 characters / 100 estimated tokens; task `memory_context` at 2,400 / 600; search snippets at 300 characters with 5 default and 8 maximum results; and the optional completion note at 120 characters. Both `benchmark:agent` and the descriptive `benchmark:agent-overhead` run the same assertion-capable release gate.
 - Split the core Benjamin Docs skill into a compact router capped at 1,200 words plus capture, export, and integration references loaded only when relevant.

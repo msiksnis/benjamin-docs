@@ -26,6 +26,14 @@ That plan is the source of truth for the first release train. This document owns
 
 Implementation status on the dependable-standard branch: Release Train A and the final whole-branch review fixes are implemented. The focused oversized-diff, locale-stable legitimate Git-unavailability versus fail-closed Git-failure, mixed-case cross-platform path, unreadable-global-state, structural diagnose-repair-healthy hook, copy, and command-surface regressions pass against the built CLI. Hook repair regressions for Claude Code and Codex prove exact preservation of unrelated mixed-group data, reuse of an existing valid nested Benjamin entry, and idempotent reinstall. The working package is the 0.12.0 release candidate; publication, tagging, and release creation remain separate maintainer actions.
 
+The completed 0.12.0 upgrade contract is package update followed by one plain `bd upgrade` per initialized repository. It refreshes Benjamin-owned metadata, agent guidance, skills, existing views, and every supported session-start hook; removes legacy Benjamin stop hooks; preserves user configuration; and reports a partial hook failure as failure. No separate hook command is required. `bd upgrade --no-hooks` is the explicit environment opt-out.
+
+The final independent-review fixes are test-first: required skill/hook failure leaves the old `bdVersion` in place, and incompatible parseable user hook container/event shapes remain byte-for-byte unchanged while upgrade reports failure.
+
+The final re-review regression proves that a legacy top-level Benjamin stop command is removed from a mixed group without deleting its custom fields, timeout, or nested user hook entries.
+
+The cross-schema regression asserts complete Cursor arrays: flat stale start/stop entries are removed whole, and only the user command plus exact current Benjamin session-start entry remain.
+
 ## Product Invariants
 
 ### User-facing response

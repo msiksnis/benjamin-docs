@@ -82,6 +82,14 @@ function installHooksForTarget(root: string, target: HookTarget): HookTargetResu
   }
 
   const content = existing.value ?? {};
+  const incompatibleStructure = describeIncompatibleHookStructure(content, target.id);
+  if (incompatibleStructure) {
+    return {
+      ...target,
+      status: "skipped",
+      note: `Existing ${target.path} has an incompatible hook structure (${incompatibleStructure}). Preserved unchanged; add the Benjamin Docs hooks manually.`,
+    };
+  }
   const hadBenjaminHook = eventContainsCommand(content, (command) => command.includes(HOOK_COMMAND_MARKER));
   const changed = target.id === "cursor" ? addCursorHooks(content) : addSharedSchemaHooks(content, target.id);
   if (!changed) {
@@ -90,6 +98,20 @@ function installHooksForTarget(root: string, target: HookTarget): HookTargetResu
 
   writeGeneratedText(root, target.path, `${JSON.stringify(content, null, 2)}\n`, HOOK_FILE_LABEL);
   return { ...target, status: hadBenjaminHook ? "repaired" : "installed" };
+}
+
+function describeIncompatibleHookStructure(content: JsonObject, targetId: HookTargetId): string | undefined {
+  const hooks = content.hooks;
+  if (hooks === undefined) return undefined;
+  if (typeof hooks !== "object" || hooks === null || Array.isArray(hooks)) return "hooks must be an object";
+
+  const hookMap = hooks as JsonObject;
+  const events = targetId === "cursor" ? ["sessionStart", "stop"] : ["SessionStart", "Stop"];
+  for (const event of events) {
+    if (hookMap[event] !== undefined && !Array.isArray(hookMap[event])) return `${event} must be an array`;
+  }
+
+  return undefined;
 }
 
 function uninstallHooksForTarget(root: string, target: HookTarget): HookTargetResult {
@@ -167,7 +189,7 @@ function addSharedSchemaHooks(content: JsonObject, targetId: HookTargetId): bool
   const format = targetId === "codex" ? "codex" : "claude";
   const hooks = ensureObject(content, "hooks");
   const expectedStartCommand = sessionStartCommand(format);
-  const removedLegacyStop = removeBenjaminEntriesFromEvent(hooks, "Stop", "session-stop");
+  const removedLegacyStop = removeBenjaminEntriesFromEvent(hooks, "Stop", "session-stop", undefined, true);
   const removedStaleStart = removeInvalidSharedSessionStartEntries(hooks, expectedStartCommand);
   const addedStart = addSharedSchemaEntry(hooks, "SessionStart", SHARED_SESSION_START_MATCHER, expectedStartCommand);
   return removedLegacyStop || removedStaleStart || addedStart;
@@ -278,7 +300,7 @@ function removeSharedSchemaHooks(content: JsonObject): boolean {
   let changed = false;
 
   for (const event of Object.keys(hookMap)) {
-    changed = removeBenjaminEntriesFromEvent(hookMap, event, "session-") || changed;
+    changed = removeBenjaminEntriesFromEvent(hookMap, event, "session-", undefined, true) || changed;
   }
 
   if (changed && Object.keys(hookMap).length === 0) {
@@ -303,7 +325,13 @@ function addCursorHooks(content: JsonObject): boolean {
   return changed;
 }
 
-function removeBenjaminEntriesFromEvent(hooks: JsonObject, event: string, commandName: string, keepCommand?: string): boolean {
+function removeBenjaminEntriesFromEvent(
+  hooks: JsonObject,
+  event: string,
+  commandName: string,
+  keepCommand?: string,
+  preserveMixedSharedGroup = false,
+): boolean {
   const groups = hooks[event];
   if (!Array.isArray(groups)) return false;
 
@@ -312,7 +340,11 @@ function removeBenjaminEntriesFromEvent(hooks: JsonObject, event: string, comman
   const keptGroups: unknown[] = [];
 
   for (const group of groups) {
-    if (entryHasCommandMarker(group, commandMarker) && entryCommand(group) !== keepCommand) {
+    if (
+      !preserveMixedSharedGroup
+      && entryHasCommandMarker(group, commandMarker)
+      && entryCommand(group) !== keepCommand
+    ) {
       changed = true;
       continue;
     }
@@ -323,23 +355,37 @@ function removeBenjaminEntriesFromEvent(hooks: JsonObject, event: string, comman
     }
 
     const groupObject = group as JsonObject;
+    let groupChanged = false;
+    if (
+      preserveMixedSharedGroup
+      && entryHasCommandMarker(groupObject, commandMarker)
+      && entryCommand(groupObject) !== keepCommand
+    ) {
+      delete groupObject.command;
+      changed = true;
+      groupChanged = true;
+    }
+
     const entries = groupObject.hooks;
     if (!Array.isArray(entries)) {
-      keptGroups.push(group);
+      if (!groupChanged || hasMeaningfulSharedGroupData(groupObject)) keptGroups.push(groupObject);
       continue;
     }
 
     const keptEntries = entries.filter((entry) => !entryHasCommandMarker(entry, commandMarker) || entryCommand(entry) === keepCommand);
     if (keptEntries.length === entries.length) {
-      keptGroups.push(group);
+      if (!groupChanged || hasMeaningfulSharedGroupData(groupObject)) keptGroups.push(groupObject);
       continue;
     }
 
     changed = true;
+    groupChanged = true;
     if (keptEntries.length > 0) {
       groupObject.hooks = keptEntries;
-      keptGroups.push(groupObject);
+    } else {
+      delete groupObject.hooks;
     }
+    if (hasMeaningfulSharedGroupData(groupObject)) keptGroups.push(groupObject);
   }
 
   if (!changed) return false;

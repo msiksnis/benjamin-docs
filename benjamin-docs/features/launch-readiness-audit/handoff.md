@@ -20,6 +20,14 @@ The branch has locked context and latency budgets, response-safe session-start-o
 
 Final whole-branch review fixes are implemented: an 8,200-file committed diff no longer disappears behind Node's default child-process buffer; stable `C` Git diagnostics make legitimate unavailability classification locale-independent; valid-repository Git analysis failures block both freshness dimensions even in planning mode while non-Git and unborn-HEAD planning remain usable; quoted, backticked, linked, and punctuation-delimited user-home paths are blocked across macOS, Linux, mixed-case Windows forms, and both Windows separators; repository-only strict doctor does not touch unreadable global integration state; Claude Code and Codex repair wrong-matcher or malformed direct-command Benjamin entries at entry/property granularity, preserving unrelated group fields and nested user hooks exactly and reusing an existing valid nested Benjamin entry; consent/upgrade copy is exact; and `upgrade` is outside the four-command primary surface.
 
+The final 0.12.0 migration path is also complete: after updating the package, run `bd upgrade` once in each initialized repository. Plain upgrade refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and session-start hooks for Claude Code, Codex, and Cursor. It removes legacy Benjamin stop hooks while preserving user-owned configuration. No separate hook command is required; `bd upgrade --no-hooks` is the explicit environment opt-out.
+
+Independent final review found and closed two migration-safety gaps test-first. A failed required skill or hook migration now leaves the prior `bdVersion` intact so version-skew hints remain actionable. Parseable files with incompatible user-owned hook container or event shapes are preserved byte-for-byte, reported as failed targets, and never normalized destructively.
+
+Final re-review also closed the adjacent legacy-stop mixed-group case: upgrade removes only the top-level Benjamin-owned stop command property and retains custom fields, timeout metadata, and nested user hooks.
+
+The final cross-schema pass keeps that rule limited to shared Claude/Codex groups. Cursor uses flat entries, so stale Benjamin entries are removed whole; exact-array regression coverage prevents commandless remnants.
+
 Executable plan:
 
 - docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md
@@ -63,7 +71,7 @@ All ten reproductions passed against the built CLI in temporary repositories on 
 4. A committed watched source deletion made `committed_freshness` fail.
 5. Repository readiness and project-level strict doctor passed with an empty Benjamin home.
 6. Missing Codex integration failed only the Codex target check and omitted unrelated integration output.
-7. Upgrade-installed Claude Code, Codex, and Cursor hooks contained only `session-start`; no Benjamin stop or follow-up command remained.
+7. Plain upgrade installed Claude Code, Codex, and Cursor hooks containing only `session-start`; no Benjamin stop or follow-up command remained, and a second run reported the integrations already current.
 8. Legacy `session-stop` returned no output for every supported format.
 9. The release-gate benchmark passed: session-start p95 236.515 ms at 283 characters / 71 estimated tokens; session-stop p95 171.218 ms with zero output. MCP `memory_context` stayed within 2,400 characters / 600 estimated tokens.
 10. Evidence recording followed by verified customer feature export succeeded and preserved the evidence in output.

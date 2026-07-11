@@ -10,7 +10,7 @@ Read this reference only for session hooks, MCP registration or use, upgrades, s
 
 Installed Benjamin hooks are session-start only. Legacy `benjamin-docs session-stop` commands are removed during installation/upgrade, and the compatibility command is silent. Never add a blocking stop decision, an automatic follow-up message, or another model turn.
 
-Install hooks only with user consent: interactive `init` asks; automation uses `init --hooks` or `hooks install`. Preserve every user-owned hook and setting; `hooks uninstall` removes only Benjamin-owned entries. Codex also needs `features.hooks = true` in `~/.codex/config.toml` and hook trust through `/hooks`; tell the user when that applies.
+Interactive `init` asks before installing hooks; automation can use `init --hooks` or `init --no-hooks`. After a package update, plain `upgrade` installs or repairs hooks by default; use `upgrade --no-hooks` only when the environment must opt out. Preserve every user-owned hook and setting; `hooks uninstall` removes only Benjamin-owned entries. Codex also needs `features.hooks = true` in `~/.codex/config.toml` and hook trust through `/hooks`; tell the user when that applies.
 
 When session-start already injected context, do not reread the whole memory tree. Follow its pointers and load only what the task needs.
 
@@ -27,9 +27,9 @@ Direct file editing remains correct when MCP is unavailable or a doc is outside 
 
 ## Upgrades And Update Notices
 
-When session context or `ready` reports that the repo setup is older than the CLI, run `benjamin-docs upgrade`. It stamps the CLI version in repo metadata, refreshes only the Benjamin-owned `AGENTS.md` section, refreshes skill installs, regenerates existing Memory Views, migrates legacy Benjamin stop hooks, and reports hook status. It must preserve user-authored content and non-Benjamin hooks.
+After updating the package, run `bd upgrade` once in each initialized repository. It refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and session-start hooks for Claude Code, Codex, and Cursor. It removes legacy Benjamin stop hooks while preserving user-owned configuration. No separate hook command is required. Use `bd upgrade --no-hooks` only when the environment must opt out of hooks.
 
-When a newer npm version is available, suggest `pnpm update -g benjamin-docs` (or `npm update -g benjamin-docs`) followed by `benjamin-docs upgrade` in the repo. Do not silently update a global package. Respect `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`.
+When a newer npm version is available, suggest `pnpm update -g benjamin-docs` (or `npm update -g benjamin-docs`) followed by `bd upgrade` in every initialized repo. Do not silently update a global package. Respect `BENJAMIN_DOCS_NO_UPDATE_CHECK=1`.
 
 ## Skill Install And Package
 

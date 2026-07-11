@@ -47,7 +47,7 @@ function seedLegacyIntegrations(dir: string, home: string): void {
     custom: { preserve: true },
     hooks: {
       sessionStart: [{ command: "benjamin-docs session-start --format claude" }, { command: "echo cursor-user" }],
-      stop: [{ command: "benjamin-docs session-stop --format cursor" }],
+      stop: [{ command: "benjamin-docs session-stop --format cursor", customField: "remove-whole-benjamin-entry" }],
     },
   }, null, 2)}\n`);
 
@@ -163,8 +163,14 @@ describe("upgrade", () => {
         assert.match(readFileSync(join(dir, ".claude/settings.json"), "utf8"), /echo user-stop/);
         assert.match(readFileSync(join(dir, ".codex/hooks.json"), "utf8"), /session-start --format codex/);
         assert.match(readFileSync(join(dir, ".codex/hooks.json"), "utf8"), /echo codex-user/);
-        assert.match(readFileSync(join(dir, ".cursor/hooks.json"), "utf8"), /session-start --format cursor/);
-        assert.match(readFileSync(join(dir, ".cursor/hooks.json"), "utf8"), /echo cursor-user/);
+        const cursorHooks = JSON.parse(readFileSync(join(dir, ".cursor/hooks.json"), "utf8")) as {
+          hooks: { sessionStart: Array<Record<string, unknown>>; stop?: unknown };
+        };
+        assert.deepEqual(cursorHooks.hooks.sessionStart, [
+          { command: "echo cursor-user" },
+          { command: "benjamin-docs session-start --format cursor" },
+        ]);
+        assert.equal(cursorHooks.hooks.stop, undefined);
 
         for (const target of [".agents", ".codex", ".claude", ".cursor"]) {
           const skillDir = join(home, target, "skills/benjamin-docs");
@@ -184,12 +190,46 @@ describe("upgrade", () => {
     });
   });
 
+  it("removes only a top-level legacy stop command from a mixed user-owned group", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        mkdirSync(join(dir, ".claude"), { recursive: true });
+        writeFileSync(join(dir, ".claude/settings.json"), `${JSON.stringify({
+          hooks: {
+            Stop: [{
+              command: "benjamin-docs session-stop --format claude",
+              customField: "keep-stop-group",
+              timeout: 17,
+              hooks: [{ type: "command", command: "echo user-stop", customEntry: "keep-user-entry" }],
+            }],
+          },
+        }, null, 2)}\n`);
+
+        const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+        const updated = JSON.parse(readFileSync(join(dir, ".claude/settings.json"), "utf8")) as {
+          hooks: { Stop: Array<Record<string, unknown>> };
+        };
+
+        assert.equal(result.status, 0);
+        assert.deepEqual(updated.hooks.Stop, [{
+          customField: "keep-stop-group",
+          timeout: 17,
+          hooks: [{ type: "command", command: "echo user-stop", customEntry: "keep-user-entry" }],
+        }]);
+      });
+    });
+  });
+
   it("fails upgrade when a required hook target cannot be migrated", () => {
     withTempDir((dir) => {
       withTempDir((home) => {
         runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
           BENJAMIN_DOCS_HOME: home,
         });
+        stripBdVersion(dir);
         mkdirSync(join(dir, ".codex"), { recursive: true });
         writeFileSync(join(dir, ".codex/hooks.json"), "{ not valid json\n");
 
@@ -199,6 +239,40 @@ describe("upgrade", () => {
         assert.match(result.stdout, /Hooks: failed/);
         assert.match(result.stdout, /\.codex\/hooks\.json could not be parsed/);
         assert.equal(readFileSync(join(dir, ".codex/hooks.json"), "utf8"), "{ not valid json\n");
+        const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { bdVersion?: string };
+        assert.equal(config.bdVersion, undefined);
+      });
+    });
+  });
+
+  it("preserves incompatible user-owned hook structures and leaves metadata unstamped", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        stripBdVersion(dir);
+
+        const fixtures = [
+          [".claude/settings.json", { custom: "keep-claude", hooks: "user-owned" }],
+          [".codex/hooks.json", { custom: "keep-codex", hooks: { SessionStart: { command: "echo user" } } }],
+          [".cursor/hooks.json", { version: 1, custom: "keep-cursor", hooks: { stop: "user-owned" } }],
+        ] as const;
+        for (const [relativePath, value] of fixtures) {
+          mkdirSync(join(dir, relativePath.split("/")[0] ?? ""), { recursive: true });
+          writeFileSync(join(dir, relativePath), `${JSON.stringify(value, null, 2)}\n`);
+        }
+        const originals = fixtures.map(([relativePath]) => readFileSync(join(dir, relativePath), "utf8"));
+
+        const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+
+        assert.equal(result.status, 1);
+        assert.match(result.stdout, /Hooks: failed for Claude Code/);
+        assert.match(result.stdout, /Hooks: failed for Codex CLI/);
+        assert.match(result.stdout, /Hooks: failed for Cursor/);
+        assert.deepEqual(fixtures.map(([relativePath]) => readFileSync(join(dir, relativePath), "utf8")), originals);
+        const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { bdVersion?: string };
+        assert.equal(config.bdVersion, undefined);
       });
     });
   });
@@ -209,12 +283,15 @@ describe("upgrade", () => {
         runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
           BENJAMIN_DOCS_HOME: home,
         });
+        stripBdVersion(dir);
         mkdirSync(join(home, ".agents/skills/benjamin-docs/SKILL.md"), { recursive: true });
 
         const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
 
         assert.equal(result.status, 1);
         assert.match(result.stderr, /SKILL\.md|directory|EISDIR/i);
+        const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { bdVersion?: string };
+        assert.equal(config.bdVersion, undefined);
       });
     });
   });
