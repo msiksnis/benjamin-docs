@@ -153,6 +153,58 @@ describe("structured readiness", () => {
     });
   });
 
+  it("keeps a planning project usable in a Git repository without HEAD", () => {
+    withTempDir((dir) => {
+      git(dir, "init", "-q");
+      runCliResult(["init", "--mode", "planning", "--no-agent-contract", "--no-hooks"], dir);
+      writeReadyBaseline(dir);
+
+      const report = analyzeReadiness({ cwd: dir });
+      const freshness = dimension(report, "committed_freshness");
+      const workingTree = dimension(report, "working_tree_impact");
+
+      assert.equal(report.status, "ready");
+      assert.equal(freshness.status, "unavailable");
+      assert.equal(freshness.blocking, false);
+      assert.match(freshness.summary, /planning mode remains usable/i);
+      assert.equal(workingTree.status, "unavailable");
+      assert.equal(workingTree.blocking, false);
+      assert.match(workingTree.summary, /planning mode remains usable/i);
+      assert.equal(runCliResult(["ready"], dir).status, 0);
+    });
+  });
+
+  it("fails planning readiness closed when Git working-tree analysis fails", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "planning", "--no-agent-contract", "--no-hooks"], dir);
+      writeReadyBaseline(dir);
+
+      const report = analyzeReadiness({
+        cwd: dir,
+        dependencies: {
+          getChangedFiles: () => ({
+            files: [],
+            ok: false,
+            failure: {
+              operation: "working-tree changes",
+              message: "simulated Git execution failure",
+            },
+          }),
+        },
+      });
+      const freshness = dimension(report, "committed_freshness");
+      const workingTree = dimension(report, "working_tree_impact");
+
+      assert.equal(report.status, "not_ready");
+      assert.equal(freshness.status, "fail");
+      assert.equal(freshness.blocking, true);
+      assert.match(freshness.evidence.join("\n"), /working-tree changes.*simulated Git execution failure/i);
+      assert.equal(workingTree.status, "fail");
+      assert.equal(workingTree.blocking, true);
+      assert.match(workingTree.evidence.join("\n"), /working-tree changes.*simulated Git execution failure/i);
+    });
+  });
+
   it("blocks enabled Benjamin agent guidance when AGENTS.md is broken", () => {
     withTempDir((dir) => {
       setUpCapturedRepository(dir, true);

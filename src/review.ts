@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { CONFIG_DIR } from "./constants.js";
 import { parseMarkdown } from "./frontmatter.js";
-import { getChangedFiles, gitLastCommit, isReviewableSourceChange } from "./git.js";
+import { getChangedFiles, gitLastCommit, isReviewableSourceChange, type GitAnalysisFailure } from "./git.js";
 import { readGeneratedJson, rootPath } from "./fsx.js";
 import { readConfig } from "./project-config.js";
 import type { ManifestFile, WatchRule } from "./types.js";
@@ -17,6 +17,7 @@ export interface ReviewResult {
   warnings: ReviewIssue[];
   changedWarnings: ReviewIssue[];
   changedWorkStatus: "available" | "unavailable" | "not_requested";
+  changedWorkFailure?: GitAnalysisFailure;
 }
 
 export interface ReviewIssue {
@@ -28,11 +29,15 @@ export interface ReviewOptions {
   changed?: boolean;
   since?: string;
   includeValidation?: boolean;
+  dependencies?: {
+    getChangedFiles?: typeof getChangedFiles;
+  };
 }
 
 interface ChangedReviewResult {
   filesChecked: number;
   status: "available" | "unavailable";
+  failure?: GitAnalysisFailure;
 }
 
 const STARTER_PHRASES = [
@@ -187,7 +192,14 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
 
   if (options.changed) {
     const changedWarningsStart = warnings.length;
-    changedReview = reviewChangedWork(root, docsRoot, watchRules, options.since ?? "HEAD", warnings);
+    changedReview = reviewChangedWork(
+      root,
+      docsRoot,
+      watchRules,
+      options.since ?? "HEAD",
+      warnings,
+      options.dependencies?.getChangedFiles ?? getChangedFiles,
+    );
     changedWarnings = warnings.slice(changedWarningsStart);
   }
 
@@ -197,12 +209,20 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
     warnings,
     changedWarnings,
     changedWorkStatus: changedReview?.status ?? "not_requested",
+    changedWorkFailure: changedReview?.failure,
     changedFilesChecked: changedReview?.filesChecked,
   });
 }
 
-function reviewChangedWork(root: string, docsRoot: string, rules: WatchRule[], since: string, warnings: ReviewIssue[]): ChangedReviewResult {
-  const changedResult = getChangedFiles(root, since);
+function reviewChangedWork(
+  root: string,
+  docsRoot: string,
+  rules: WatchRule[],
+  since: string,
+  warnings: ReviewIssue[],
+  changedFilesProvider: typeof getChangedFiles,
+): ChangedReviewResult {
+  const changedResult = changedFilesProvider(root, since);
   const changedFiles = changedResult.files;
   const docsChanged = changedFiles.filter((file) => isBenjaminSourceDoc(file, docsRoot));
   const sourceChanges = changedFiles.filter((file) => isReviewableSourceChange(file, docsRoot));
@@ -247,7 +267,11 @@ function reviewChangedWork(root: string, docsRoot: string, rules: WatchRule[], s
 
   reviewStaleClaims(root, docsRoot, sourceChanges.length > 0, warnings);
 
-  return { filesChecked: sourceChanges.length, status: changedResult.ok ? "available" : "unavailable" };
+  return {
+    filesChecked: sourceChanges.length,
+    status: changedResult.ok ? "available" : "unavailable",
+    ...(changedResult.failure ? { failure: changedResult.failure } : {}),
+  };
 }
 
 function expectedRuleDocs(rules: WatchRule[]): string[] {
@@ -699,6 +723,7 @@ function formatReview(result: {
   warnings: ReviewIssue[];
   changedWarnings: ReviewIssue[];
   changedWorkStatus: ReviewResult["changedWorkStatus"];
+  changedWorkFailure?: GitAnalysisFailure;
   changedFilesChecked?: number;
 }): ReviewResult {
   const ok = result.errors.length === 0;
@@ -742,6 +767,7 @@ function formatReview(result: {
     warnings: result.warnings,
     changedWarnings: result.changedWarnings,
     changedWorkStatus: result.changedWorkStatus,
+    ...(result.changedWorkFailure ? { changedWorkFailure: result.changedWorkFailure } : {}),
   };
 }
 

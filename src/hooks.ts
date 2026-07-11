@@ -164,9 +164,11 @@ function sessionStartCommand(format: string): string {
 function addSharedSchemaHooks(content: JsonObject, targetId: HookTargetId): boolean {
   const format = targetId === "codex" ? "codex" : "claude";
   const hooks = ensureObject(content, "hooks");
+  const expectedStartCommand = sessionStartCommand(format);
   const removedLegacyStop = removeBenjaminEntriesFromEvent(hooks, "Stop", "session-stop");
-  const addedStart = addSharedSchemaEntry(hooks, "SessionStart", "startup|resume|clear", sessionStartCommand(format));
-  return removedLegacyStop || addedStart;
+  const removedStaleStart = removeBenjaminEntriesFromEvent(hooks, "SessionStart", "session-start", expectedStartCommand);
+  const addedStart = addSharedSchemaEntry(hooks, "SessionStart", "startup|resume|clear", expectedStartCommand);
+  return removedLegacyStop || removedStaleStart || addedStart;
 }
 
 function addSharedSchemaEntry(hooks: JsonObject, event: string, matcher: string | undefined, command: string): boolean {
@@ -211,13 +213,15 @@ function addCursorHooks(content: JsonObject): boolean {
     changed = true;
   }
   const hooks = ensureObject(content, "hooks");
+  const expectedStartCommand = sessionStartCommand("cursor");
   changed = removeBenjaminEntriesFromEvent(hooks, "stop", "session-stop") || changed;
-  changed = addCursorEntry(hooks, "sessionStart", { command: sessionStartCommand("cursor") }) || changed;
+  changed = removeBenjaminEntriesFromEvent(hooks, "sessionStart", "session-start", expectedStartCommand) || changed;
+  changed = addCursorEntry(hooks, "sessionStart", { command: expectedStartCommand }) || changed;
 
   return changed;
 }
 
-function removeBenjaminEntriesFromEvent(hooks: JsonObject, event: string, commandName: string): boolean {
+function removeBenjaminEntriesFromEvent(hooks: JsonObject, event: string, commandName: string, keepCommand?: string): boolean {
   const groups = hooks[event];
   if (!Array.isArray(groups)) return false;
 
@@ -226,7 +230,7 @@ function removeBenjaminEntriesFromEvent(hooks: JsonObject, event: string, comman
   const keptGroups: unknown[] = [];
 
   for (const group of groups) {
-    if (entryHasCommandMarker(group, commandMarker)) {
+    if (entryHasCommandMarker(group, commandMarker) && entryCommand(group) !== keepCommand) {
       changed = true;
       continue;
     }
@@ -243,7 +247,7 @@ function removeBenjaminEntriesFromEvent(hooks: JsonObject, event: string, comman
       continue;
     }
 
-    const keptEntries = entries.filter((entry) => !entryHasCommandMarker(entry, commandMarker));
+    const keptEntries = entries.filter((entry) => !entryHasCommandMarker(entry, commandMarker) || entryCommand(entry) === keepCommand);
     if (keptEntries.length === entries.length) {
       keptGroups.push(group);
       continue;
@@ -310,6 +314,12 @@ function entryHasCommandMarker(entry: unknown, marker: string): boolean {
   if (typeof entry !== "object" || entry === null) return false;
   const command = (entry as JsonObject).command;
   return typeof command === "string" && command.includes(marker);
+}
+
+function entryCommand(entry: unknown): string | undefined {
+  if (typeof entry !== "object" || entry === null) return undefined;
+  const command = (entry as JsonObject).command;
+  return typeof command === "string" ? command : undefined;
 }
 
 function inspectHookHealth(content: JsonObject, targetId: HookTargetId): { expectedStart: boolean; legacyStop: boolean } {

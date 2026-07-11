@@ -31,7 +31,7 @@ export interface ExportPreflightResult {
 
 const ABSOLUTE_USER_HOME_PATHS = [
   /(?:^|[^\w.:/\\-])\/(?:Users|home)\/[^\s"'`<>()[\]{};,!?]+/m,
-  /(?:^|[^\w./\\-])[A-Za-z]:[\\/]Users[\\/][^\s"'`<>()[\]{};,!?]+/m,
+  /(?:^|[^\w./\\-])[a-z]:[\\/]users[\\/][^\s"'`<>()[\]{};,!?]+/im,
 ];
 
 const STARTER_PHRASES = [

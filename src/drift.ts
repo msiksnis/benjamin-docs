@@ -46,7 +46,11 @@ export interface DriftOptions {
   strict?: boolean;
 }
 
-export function detectDrift(root: string): DriftResult {
+export interface DriftDependencies {
+  getChangedFiles?: typeof getChangedFiles;
+}
+
+export function detectDrift(root: string, dependencies: DriftDependencies = {}): DriftResult {
   if (!existsSync(rootPath(root, CONFIG_DIR, "config.json"))) {
     return { ok: false, gitAvailable: false, initialized: false, docsChecked: 0, drifted: [], skipped: [] };
   }
@@ -55,9 +59,20 @@ export function detectDrift(root: string): DriftResult {
   const docsRoot = config.docsRoot;
   const rules = resolveWatchRules(config);
 
-  const workingChanges = getChangedFiles(root, "HEAD");
+  const workingChanges = (dependencies.getChangedFiles ?? getChangedFiles)(root, "HEAD");
   if (!workingChanges.ok) {
-    return { ok: true, gitAvailable: false, initialized: true, docsChecked: 0, drifted: [], skipped: [] };
+    if (workingChanges.unavailable) {
+      return { ok: true, gitAvailable: false, initialized: true, docsChecked: 0, drifted: [], skipped: [] };
+    }
+    return {
+      ok: false,
+      gitAvailable: true,
+      initialized: true,
+      docsChecked: 0,
+      drifted: [],
+      skipped: [],
+      ...(workingChanges.failure ? { analysisFailure: workingChanges.failure } : {}),
+    };
   }
 
   const untracked = new Set(getUntrackedFiles(root).files);

@@ -4,6 +4,7 @@ import { findEnvironmentBlockers } from "./environment.js";
 import { readConfig } from "./project-config.js";
 import { reviewProject, type ReviewIssue } from "./review.js";
 import { validateProject } from "./validate.js";
+import { getChangedFiles, type GitAnalysisFailure } from "./git.js";
 
 export type ReadinessDimensionId =
   | "structure"
@@ -32,14 +33,23 @@ export interface AnalyzeReadinessOptions {
   cwd?: string;
   dependencies?: {
     detectDrift?: (cwd: string) => DriftResult;
+    getChangedFiles?: typeof getChangedFiles;
   };
 }
 
 export function analyzeReadiness(options: AnalyzeReadinessOptions = {}): ReadinessReport {
   const cwd = options.cwd ?? process.cwd();
   const validation = validateProject(cwd);
-  const review = reviewProject(cwd, { changed: true, since: "HEAD", includeValidation: false });
-  const driftAnalysis = analyzeDrift(cwd, options.dependencies?.detectDrift ?? detectDrift);
+  const changedFilesProvider = options.dependencies?.getChangedFiles ?? getChangedFiles;
+  const review = reviewProject(cwd, {
+    changed: true,
+    since: "HEAD",
+    includeValidation: false,
+    dependencies: { getChangedFiles: changedFilesProvider },
+  });
+  const driftDetector = options.dependencies?.detectDrift
+    ?? ((root: string) => detectDrift(root, { getChangedFiles: changedFilesProvider }));
+  const driftAnalysis = analyzeDrift(cwd, driftDetector);
   const agentGuidance = checkAgentContracts(cwd);
   const planningMode = readMode(cwd) === "planning";
   const baselineWarnings = review.warnings.slice(0, review.warnings.length - review.changedWarnings.length);
@@ -69,7 +79,7 @@ export function analyzeReadiness(options: AnalyzeReadinessOptions = {}): Readine
       "benjamin-docs review",
     ),
     committedFreshnessDimension(driftAnalysis, planningMode),
-    workingTreeDimension(review.changedWarnings, review.changedWorkStatus === "available", planningMode),
+    workingTreeDimension(review.changedWarnings, review.changedWorkStatus === "available", planningMode, review.changedWorkFailure),
     agentGuidanceDimension(agentGuidance),
   ];
 
@@ -151,7 +161,22 @@ function committedFreshnessDimension(driftAnalysis: DriftAnalysis, planningMode:
   };
 }
 
-function workingTreeDimension(changedWarnings: ReviewIssue[], gitAvailable: boolean, planningMode: boolean): ReadinessDimension {
+function workingTreeDimension(
+  changedWarnings: ReviewIssue[],
+  gitAvailable: boolean,
+  planningMode: boolean,
+  analysisFailure?: GitAnalysisFailure,
+): ReadinessDimension {
+  if (analysisFailure) {
+    return {
+      id: "working_tree_impact",
+      status: "fail",
+      blocking: true,
+      summary: "Working-tree impact analysis failed.",
+      evidence: [`Git ${analysisFailure.operation} analysis failed: ${analysisFailure.message}`],
+      repair: "benjamin-docs review --changed --since HEAD",
+    };
+  }
   if (!gitAvailable) {
     return {
       id: "working_tree_impact",

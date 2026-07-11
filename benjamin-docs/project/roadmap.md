@@ -63,7 +63,7 @@ Later release trains are strictly sequenced: B, impact evidence; C, canonical st
 ## Immediate Next Work
 
 - Release Train A, the 0.12.0 trust foundation, and all ten audit reproductions are complete on the dependable-standard branch; the release candidate remains unpublished.
-- The final whole-branch review fix set is complete: large-diff fail-closed freshness, publication path coverage, lazy repository doctor, exact target hook health, accurate session-context copy, current repo metadata, and the four-command human surface have focused regressions.
+- The final whole-branch review fix set is complete: large-diff and execution-failure fail-closed freshness, explicit non-Git/unborn-HEAD planning availability, case-insensitive Windows publication paths, lazy repository doctor, exact target hook repair, accurate session-context copy, current repo metadata, and the four-command human surface have focused regressions.
 - Next, write the Impact Evidence Plan for durable doc-updated/no-impact/deferred/blocker acknowledgements keyed to commit and content identity.
 - After impact evidence is proven, write the Canonical State Plan covering typed views, bounded continuation, and mode-specific minimal schemas; then write the Agent Interface Plan; then the Protocol and Conformance Plan.
 - Keep the human command surface stable and preserve the public-repo privacy guardrail.
@@ -76,13 +76,13 @@ Turn project memory into a native agent interface:
 - `bd mcp install` registers the server for Claude Code, Cursor, and Codex without touching user config.
 - Hooks remain the push path (context in); MCP is the pull-and-write path.
 
-## 0.10.0 Goal
+## 0.10.0 Goal (historical; superseded by 0.12.0 where noted)
 
 Make project memory self-maintaining instead of voluntary:
 
 - `bd drift` measures docs against committed git history through watch rules; advisory in `bd ready`, `--strict` for CI, `--json` for agents.
-- `bd hooks install` wires Claude Code, Codex, and Cursor session hooks: compact context injection at session start, a once-per-turn-chain update nudge at stop.
-- Interactive `bd init` asks for hook consent; the human command surface stays `init`, `ready`, `export`, plus `upgrade` when bd asks for it.
+- `bd hooks install` originally wired start and stop behavior. The 0.12.0 candidate installs compact session-start context only and removes legacy Benjamin stop entries.
+- Interactive `bd init` asks for hook consent. The current primary human command surface is exactly `init`, `ready`, `export`, and `help`; `upgrade` is an advanced repair surfaced on version skew.
 - `bd upgrade` catches previously initialized repos up (version stamp, agent guidance, skills, views, hooks offer); a cached opt-out npm update check makes agents the ones who notice new versions.
 
 ## Guided Export Goal

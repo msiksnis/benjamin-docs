@@ -5,6 +5,7 @@ export interface ChangedFilesResult {
   files: string[];
   ok: boolean;
   failure?: GitAnalysisFailure;
+  unavailable?: "not_git_repository" | "no_head";
 }
 
 export interface GitAnalysisFailure {
@@ -20,6 +21,9 @@ export interface LastCommitsResult {
 const GIT_FILENAME_BUFFER_BYTES = 64 * 1024 * 1024;
 
 export function getChangedFiles(root: string, since: string): ChangedFilesResult {
+  const availability = gitHistoryAvailability(root);
+  if (availability) return availability;
+
   try {
     const changed = execFileSync("git", ["diff", "--name-only", "--diff-filter=ACMRTD", since, "--"], {
       cwd: root,
@@ -41,6 +45,37 @@ export function getChangedFiles(root: string, since: string): ChangedFilesResult
   } catch (error) {
     return failedChangedFiles("working-tree changes", error);
   }
+}
+
+function gitHistoryAvailability(root: string): ChangedFilesResult | undefined {
+  try {
+    execFileSync("git", ["rev-parse", "--is-inside-work-tree"], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    if (gitErrorText(error).includes("not a git repository")) {
+      return { files: [], ok: false, unavailable: "not_git_repository" };
+    }
+    return failedChangedFiles("working-tree changes", error);
+  }
+
+  try {
+    execFileSync("git", ["rev-parse", "--verify", "HEAD"], {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (error) {
+    const text = gitErrorText(error);
+    if (text.includes("Needed a single revision") || text.includes("unknown revision")) {
+      return { files: [], ok: false, unavailable: "no_head" };
+    }
+    return failedChangedFiles("working-tree changes", error);
+  }
+
+  return undefined;
 }
 
 export function getCommittedChanges(root: string, since: string): ChangedFilesResult {
@@ -160,4 +195,15 @@ function failedChangedFiles(operation: GitAnalysisFailure["operation"], error: u
       message: error instanceof Error ? error.message : String(error),
     },
   };
+}
+
+function gitErrorText(error: unknown): string {
+  if (typeof error !== "object" || error === null) return String(error);
+  const value = error as { message?: unknown; stderr?: unknown };
+  const stderr = typeof value.stderr === "string"
+    ? value.stderr
+    : Buffer.isBuffer(value.stderr)
+      ? value.stderr.toString("utf8")
+      : "";
+  return `${typeof value.message === "string" ? value.message : ""}\n${stderr}`;
 }

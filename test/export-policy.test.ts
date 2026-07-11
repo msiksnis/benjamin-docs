@@ -272,6 +272,24 @@ describe("export publication policy", () => {
     });
   }
 
+  for (const [label, pathText] of [
+    ["lowercase backslash path in backticks", "Local checkout: `c:\\users\\alice\\project`"],
+    ["mixed-case backslash path in quotes", 'Local checkout: "c:\\UsErS\\alice\\project"'],
+    ["lowercase forward-slash path with punctuation", "Local checkout (c:/users/alice/project), do not publish."],
+    ["mixed-case forward-slash path in backticks", "Local checkout: `C:/uSeRs/alice/project`"],
+  ] as const) {
+    it(`blocks customer output containing a ${label}`, () => {
+      const sources = customerFeatureSources.map((source, index) =>
+        index === 0 ? { ...source, content: `${source.content}\n\n${pathText}` } : source,
+      );
+
+      const result = preflight(customerFeatureOperation, sources);
+
+      assert.equal(result.allowed, false);
+      assert.ok(result.reasons.some((reason) => reason.includes("absolute user path")));
+    });
+  }
+
   it("does not treat ordinary URLs, relative paths, or empty home roots as absolute user-home paths", () => {
     for (const text of [
       "Reference: https://example.com/Users/alice/project",

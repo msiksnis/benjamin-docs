@@ -172,6 +172,78 @@ describe("doctor", () => {
     });
   });
 
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`repairs wrong-format and legacy-stop ${target} hooks through diagnose, install, diagnose`, () => {
+      withTempDir((dir) => {
+        runCliResult(["init", "--mode", "codebase"], dir);
+        runCliResult(["install-skill", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+
+        const isCursor = target === "cursor";
+        const hookPath = isCursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+        const wrongFormat = target === "codex" ? "claude" : target === "cursor" ? "claude" : "codex";
+        const expectedFormat = target === "codex" ? "codex" : target === "cursor" ? "cursor" : "claude";
+        const content = isCursor
+          ? {
+              version: 1,
+              hooks: {
+                sessionStart: [
+                  { command: "echo user-start", customField: "keep-user-entry" },
+                  { command: `benjamin-docs session-start --format ${wrongFormat}`, customField: "remove-stale-entry" },
+                ],
+                stop: [
+                  { command: "echo user-stop", customField: "keep-user-stop" },
+                  { command: "benjamin-docs session-stop --format cursor", customField: "remove-legacy-stop" },
+                ],
+              },
+            }
+          : {
+              hooks: {
+                SessionStart: [{
+                  matcher: "startup|resume|clear",
+                  customField: "keep-group",
+                  hooks: [
+                    { type: "command", command: "echo user-start", timeout: 5 },
+                    { type: "command", command: `benjamin-docs session-start --format ${wrongFormat}`, timeout: 10 },
+                  ],
+                }],
+                Stop: [{
+                  matcher: "user-stop",
+                  customField: "keep-stop-group",
+                  hooks: [
+                    { type: "command", command: "echo user-stop" },
+                    { type: "command", command: `benjamin-docs session-stop --format ${target === "codex" ? "codex" : "claude"}` },
+                  ],
+                }],
+              },
+            };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        writeFileSync(join(dir, hookPath), `${JSON.stringify(content, null, 2)}\n`);
+
+        const unhealthy = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+        assert.equal(unhealthy.status, 1);
+        assert.match(unhealthy.stdout, /session hook: not installed/);
+        assert.match(unhealthy.stdout, /legacy Benjamin stop hook detected/i);
+
+        const install = runCliResult(["hooks", "install", "--target", target], dir);
+        assert.equal(install.status, 0);
+        assert.match(install.stdout, /installed\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.doesNotMatch(install.stdout, /already installed/);
+
+        const repairedText = readFileSync(join(dir, hookPath), "utf8");
+        assert.match(repairedText, /echo user-start/);
+        assert.match(repairedText, /echo user-stop/);
+        assert.match(repairedText, new RegExp(`benjamin-docs session-start --format ${expectedFormat}`));
+        assert.doesNotMatch(repairedText, new RegExp(`benjamin-docs session-start --format ${wrongFormat}`));
+        assert.doesNotMatch(repairedText, /benjamin-docs session-stop/);
+        assert.match(repairedText, isCursor ? /keep-user-entry/ : /keep-group/);
+
+        const healthy = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+        assert.equal(healthy.status, 0, healthy.stdout);
+        assert.match(healthy.stdout, /session hook: installed/);
+      });
+    });
+  }
+
   it("strict mode isolates Claude Desktop to the upload zip", () => {
     withTempDir((dir) => {
       runCliResult(["init", "--mode", "codebase"], dir);
