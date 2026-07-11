@@ -68,6 +68,7 @@ Later release trains are strictly sequenced: B, impact evidence; C, canonical st
 - Final review hardening keeps completion evidence truthful: `bdVersion` advances only after required skill and hook success, while incompatible parseable user hook structures are preserved unchanged and reported as migration failures.
 - Final re-review closes mixed direct-command legacy-stop preservation: only the Benjamin-owned command property is removed, leaving unrelated group metadata and nested user hooks intact.
 - Cross-schema hardening removes flat Cursor Benjamin entries whole while retaining property-level preservation for shared Claude/Codex groups; repaired Cursor arrays are asserted exactly.
+- Final automatic-upgrade hardening preflights every skill bundle destination before I/O and anchors hook ownership to actual command-start Benjamin start/stop forms. Symlinked external targets fail without partial writes or version advancement; wrapped user commands survive upgrade and uninstall across all three hook schemas.
 - Next, write the Impact Evidence Plan for durable doc-updated/no-impact/deferred/blocker acknowledgements keyed to commit and content identity.
 - After impact evidence is proven, write the Canonical State Plan covering typed views, bounded continuation, and mode-specific minimal schemas; then write the Agent Interface Plan; then the Protocol and Conformance Plan.
 - Keep the human command surface stable and preserve the public-repo privacy guardrail.

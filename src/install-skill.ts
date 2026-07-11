@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
+import { assertGeneratedPathSafe } from "./fsx.js";
 
 export const SKILL_NAME = "benjamin-docs";
 export const SKILL_BUNDLE_FILES = [
@@ -70,9 +71,11 @@ export interface SkillCheckResult {
 export function installSkill(options: InstallSkillOptions = {}): InstallSkillResult {
   const homeDir = resolve(options.homeDir ?? process.env.BENJAMIN_DOCS_HOME ?? homedir());
   const target = options.target ?? "all";
+  const selectedTargets = resolveTargets(target);
+  assertSkillTargetsSafe(homeDir, selectedTargets);
   const skillSourcePath = getBundledSkillPath();
   const bundle = readBundledSkillBundle();
-  const targets = resolveTargets(target).map((entry) => {
+  const targets = selectedTargets.map((entry) => {
     const destination = resolveSkillPath(homeDir, entry.relativePath);
     const existing = readExistingSkill(destination);
     const bundleCurrent = bundle.every((file) => readExistingSkill(resolve(dirname(destination), file.path)) === file.content);
@@ -102,8 +105,10 @@ export function checkInstalledSkills(
   targetIds?: Array<Exclude<SkillTargetId, "all">>,
 ): SkillCheckResult {
   const homeDir = resolve(homeDirOption ?? process.env.BENJAMIN_DOCS_HOME ?? homedir());
+  const selectedTargets = TARGETS.filter((entry) => !targetIds || targetIds.includes(entry.id));
+  assertSkillTargetsSafe(homeDir, selectedTargets);
   const bundle = readBundledSkillBundle();
-  const targets = TARGETS.filter((entry) => !targetIds || targetIds.includes(entry.id)).map((entry) => {
+  const targets = selectedTargets.map((entry) => {
     const path = resolveSkillPath(homeDir, entry.relativePath);
     const existing = readExistingSkill(path);
     const bundleCurrent = bundle.every((file) => readExistingSkill(resolve(dirname(path), file.path)) === file.content);
@@ -177,6 +182,16 @@ function resolveSkillPath(homeDir: string, relativePath: string): string {
   }
 
   return destination;
+}
+
+function assertSkillTargetsSafe(homeDir: string, targets: Array<(typeof TARGETS)[number]>): void {
+  for (const target of targets) {
+    const skillDir = target.relativePath.slice(0, -"/SKILL.md".length);
+    for (const bundlePath of SKILL_BUNDLE_FILES) {
+      const relativePath = `${skillDir}/${bundlePath}`;
+      assertGeneratedPathSafe(homeDir, relativePath.split("/"), "Skill install path", "file");
+    }
+  }
 }
 
 function readExistingSkill(path: string): string | undefined {

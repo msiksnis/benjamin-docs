@@ -34,6 +34,8 @@ The final re-review regression proves that a legacy top-level Benjamin stop comm
 
 The cross-schema regression asserts complete Cursor arrays: flat stale start/stop entries are removed whole, and only the user command plus exact current Benjamin session-start entry remain.
 
+The final automatic-upgrade review regressions cover two additional trust boundaries. Skill installation preflights every bundle file across all selected targets before bundle I/O, so symlinked files/directories cannot redirect writes outside the resolved home or cause partial earlier-target writes. Claude Code, Codex, and Cursor upgrade/uninstall tests prove that prefixed start and stop mentions survive structurally unchanged while real malformed or legacy Benjamin commands are repaired or removed.
+
 ## Product Invariants
 
 ### User-facing response

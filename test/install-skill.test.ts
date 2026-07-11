@@ -1,11 +1,27 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { formatInstallSkillResult, installSkill } from "../src/install-skill.js";
 import { runCli, withTempDir } from "./helpers.js";
 
 describe("install-skill", () => {
+  it("rejects a symlinked skill file before writing any target", () => {
+    withTempDir((home) => {
+      withTempDir((external) => {
+        const victim = join(external, "victim.md");
+        const original = Buffer.from("external victim\n", "utf8");
+        writeFileSync(victim, original);
+        mkdirSync(join(home, ".agents/skills/benjamin-docs"), { recursive: true });
+        symlinkSync(victim, join(home, ".agents/skills/benjamin-docs/SKILL.md"));
+
+        assert.throws(() => installSkill({ homeDir: home }), /must not be a symlink/i);
+        assert.deepEqual(readFileSync(victim), original);
+        assert.equal(existsSync(join(home, ".codex/skills/benjamin-docs/SKILL.md")), false);
+      });
+    });
+  });
+
   it("installs the bundled skill into shared and app-specific skill folders", () => {
     withTempDir((home) => {
       const result = installSkill({ homeDir: home });

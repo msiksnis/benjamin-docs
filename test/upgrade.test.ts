@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { compareVersions, isUpdateCacheStale } from "../src/update-check.js";
 import { runCliResult, withTempDir } from "./helpers.js";
@@ -59,6 +59,37 @@ function seedLegacyIntegrations(dir: string, home: string): void {
 }
 
 describe("upgrade", () => {
+  it("fails before any skill write when a skill directory is symlinked outside home", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        withTempDir((external) => {
+          runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+            BENJAMIN_DOCS_HOME: home,
+          });
+          const configPath = join(dir, ".benjamin-docs/config.json");
+          const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+          config.bdVersion = "0.11.1";
+          writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
+
+          const victim = join(external, "SKILL.md");
+          const original = Buffer.from("external directory victim\n", "utf8");
+          writeFileSync(victim, original);
+          mkdirSync(join(home, ".codex/skills"), { recursive: true });
+          symlinkSync(external, join(home, ".codex/skills/benjamin-docs"));
+
+          const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+
+          assert.equal(result.status, 1);
+          assert.match(result.stderr, /must not be a symlink/i);
+          assert.deepEqual(readFileSync(victim), original);
+          assert.equal(existsSync(join(home, ".agents/skills/benjamin-docs/SKILL.md")), false);
+          const after = JSON.parse(readFileSync(configPath, "utf8")) as { bdVersion?: string };
+          assert.equal(after.bdVersion, "0.11.1");
+        });
+      });
+    });
+  });
+
   it("fails when benjamin-docs is not initialized", () => {
     withTempDir((dir) => {
       const result = runCliResult(["upgrade"], dir);
@@ -367,6 +398,79 @@ describe("upgrade", () => {
       });
     });
   });
+
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`preserves prefixed start and stop user commands while upgrading ${target}`, () => {
+      withTempDir((dir) => {
+        withTempDir((home) => {
+          runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+            BENJAMIN_DOCS_HOME: home,
+          });
+          stripBdVersion(dir);
+          const cursor = target === "cursor";
+          const hookPath = cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+          const format = target === "codex" ? "codex" : target === "cursor" ? "cursor" : "claude";
+          const userStart = { command: "echo benjamin-docs session-start --format claude", user: "keep-start" };
+          const userStop = { command: "logger benjamin-docs session-stop --format claude", user: "keep-stop" };
+          const content = cursor
+            ? {
+                version: 1,
+                custom: "keep-file",
+                hooks: {
+                  sessionStart: [userStart, { command: "benjamin-docs session-start --format wrong", stale: true }],
+                  stop: [userStop, { command: `benjamin-docs session-stop --format ${format}`, legacy: true }],
+                },
+              }
+            : {
+                custom: "keep-file",
+                hooks: {
+                  SessionStart: [{
+                    matcher: "startup|resume|clear",
+                    customGroup: "keep-start-group",
+                    hooks: [
+                      { type: "command", ...userStart },
+                      { type: "command", command: "benjamin-docs session-start --format wrong", stale: true },
+                    ],
+                  }],
+                  Stop: [{
+                    customGroup: "keep-stop-group",
+                    hooks: [
+                      { type: "command", ...userStop },
+                      { type: "command", command: `benjamin-docs session-stop --format ${format}`, legacy: true },
+                    ],
+                  }],
+                },
+              };
+          mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+          writeFileSync(join(dir, hookPath), `${JSON.stringify(content, null, 2)}\n`);
+
+          const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+          const updated = JSON.parse(readFileSync(join(dir, hookPath), "utf8")) as Record<string, unknown>;
+
+          assert.equal(result.status, 0, result.stderr || result.stdout);
+          assert.match(JSON.stringify(updated), new RegExp(`benjamin-docs session-start --format ${format}`));
+          assert.doesNotMatch(JSON.stringify(updated), /--format wrong|"legacy":true/);
+          assert.match(JSON.stringify(updated), /echo benjamin-docs session-start/);
+          assert.match(JSON.stringify(updated), /logger benjamin-docs session-stop/);
+          assert.equal(updated.custom, "keep-file");
+          const serialized = JSON.stringify(updated);
+          assert.equal(serialized.match(/"user":"keep-start"/g)?.length, 1);
+          assert.equal(serialized.match(/"user":"keep-stop"/g)?.length, 1);
+          const hookMap = updated.hooks as Record<string, unknown[]>;
+          const preserved = cursor
+            ? [...(hookMap.sessionStart ?? []), ...(hookMap.stop ?? [])].filter((entry) => typeof entry === "object" && entry !== null && "user" in entry)
+            : [...(hookMap.SessionStart ?? []), ...(hookMap.Stop ?? [])]
+                .flatMap((group) => typeof group === "object" && group !== null && Array.isArray((group as { hooks?: unknown }).hooks)
+                  ? (group as { hooks: unknown[] }).hooks
+                  : [])
+                .filter((entry) => typeof entry === "object" && entry !== null && "user" in entry);
+          assert.deepEqual(preserved, cursor
+            ? [userStart, userStop]
+            : [{ type: "command", ...userStart }, { type: "command", ...userStop }]);
+        });
+      });
+    });
+  }
 
   it("fails upgrade when a required skill target cannot be refreshed", () => {
     withTempDir((dir) => {

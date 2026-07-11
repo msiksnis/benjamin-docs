@@ -48,6 +48,7 @@ Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 20
 - 2026-07-11: Prepare 0.12.0 as the implemented trust foundation, not as proof that Benjamin Docs is already a dependable standard. Sequence follow-on work strictly as B, impact evidence; C, canonical state, typed views, bounded continuation, and mode-specific minimal schemas; D, agent/MCP interfaces; E, public protocol and conformance.
 - 2026-07-11: Make `bd upgrade` the complete post-package-update migration path in every initialized repository. Default to installing or repairing session-start hooks, preserve user configuration, remove legacy Benjamin stop hooks, keep `--no-hooks` as the opt-out, and never require `bd hooks install` as a follow-up.
 - 2026-07-11: Treat the repository version stamp as completion evidence, not an attempted-upgrade marker. Preserve it on any required skill/hook failure, and fail closed without rewriting incompatible user-owned hook structures.
+- 2026-07-11: Preflight every selected skill bundle destination before bundle I/O and treat only command-start `benjamin-docs session-start|session-stop` forms as hook ownership. Reject symlinked or escaping skill targets as a whole migration; preserve wrappers, prefixes, and logging commands during repair and uninstall.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 

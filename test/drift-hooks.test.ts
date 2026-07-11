@@ -393,6 +393,64 @@ describe("hooks", () => {
     });
   });
 
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`preserves prefixed start and stop user commands while uninstalling ${target}`, () => {
+      withTempDir((dir) => {
+        const cursor = target === "cursor";
+        const hookPath = cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+        const format = target === "codex" ? "codex" : target === "cursor" ? "cursor" : "claude";
+        const userStart = { command: "echo benjamin-docs session-start --format claude", user: "keep-start" };
+        const userStop = { command: "logger benjamin-docs session-stop --format claude", user: "keep-stop" };
+        const content = cursor
+          ? {
+              version: 1,
+              custom: "keep-file",
+              hooks: {
+                sessionStart: [userStart, { command: `benjamin-docs session-start --format ${format}` }],
+                stop: [userStop, { command: `benjamin-docs session-stop --format ${format}` }],
+              },
+            }
+          : {
+              custom: "keep-file",
+              hooks: {
+                SessionStart: [{ customGroup: "keep-start-group", hooks: [
+                  { type: "command", ...userStart },
+                  { type: "command", command: `benjamin-docs session-start --format ${format}` },
+                ] }],
+                Stop: [{ customGroup: "keep-stop-group", hooks: [
+                  { type: "command", ...userStop },
+                  { type: "command", command: `benjamin-docs session-stop --format ${format}` },
+                ] }],
+              },
+            };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        writeFileSync(join(dir, hookPath), `${JSON.stringify(content, null, 2)}\n`);
+
+        const result = runCliResult(["hooks", "uninstall", "--target", target], dir);
+        const updated = JSON.parse(readFileSync(join(dir, hookPath), "utf8")) as Record<string, unknown>;
+
+        assert.equal(result.status, 0);
+        assert.equal(updated.custom, "keep-file");
+        const serialized = JSON.stringify(updated);
+        assert.doesNotMatch(serialized, new RegExp(`"command":"benjamin-docs session-(?:start|stop) --format ${format}"`));
+        assert.equal(serialized.match(/"user":"keep-start"/g)?.length, 1);
+        assert.equal(serialized.match(/"user":"keep-stop"/g)?.length, 1);
+        assert.match(serialized, /echo benjamin-docs session-start/);
+        assert.match(serialized, /logger benjamin-docs session-stop/);
+        const hookMap = updated.hooks as Record<string, unknown[]>;
+        const preserved = cursor
+          ? [...(hookMap.sessionStart ?? []), ...(hookMap.stop ?? [])]
+          : [...(hookMap.SessionStart ?? []), ...(hookMap.Stop ?? [])]
+              .flatMap((group) => typeof group === "object" && group !== null && Array.isArray((group as { hooks?: unknown }).hooks)
+                ? (group as { hooks: unknown[] }).hooks
+                : []);
+        assert.deepEqual(preserved, cursor
+          ? [userStart, userStop]
+          : [{ type: "command", ...userStart }, { type: "command", ...userStop }]);
+      });
+    });
+  }
+
   it("preserves unparseable hook files and reports them as skipped", () => {
     withTempDir((dir) => {
       mkdirSync(join(dir, ".claude"), { recursive: true });

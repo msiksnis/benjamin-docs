@@ -26,6 +26,8 @@ The final preservation pass also handles mixed direct-command legacy stop groups
 
 Removal is schema-aware: the property-level rule applies to Claude/Codex shared groups, while Cursor flat Benjamin-owned entries are removed whole so invalid commandless entries cannot remain.
 
+Final migration-safety review also makes skill refresh path-safe and hook ownership conservative. Upgrade preflights all four skill destinations before bundle I/O and rejects symlinked or escaping targets without changing external files or the prior version stamp. Repair and uninstall own only commands that begin with the Benjamin start/stop executable form; wrappers and logging commands that merely mention it remain user-owned.
+
 Audit date: 2026-07-10
 Audited version: 0.11.1 at commit 3705444
 Verdict: not ready for public positioning as a dependable standard

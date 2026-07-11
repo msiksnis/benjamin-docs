@@ -26,6 +26,8 @@ Independent final review found and closed two migration-safety gaps test-first. 
 
 Final re-review also closed the adjacent legacy-stop mixed-group case: upgrade removes only the top-level Benjamin-owned stop command property and retains custom fields, timeout metadata, and nested user hooks.
 
+Final automatic-upgrade review closed the remaining destination and ownership gaps. All skill targets are preflighted before bundle I/O; symlinked or escaping destinations fail without touching external victims, earlier targets, or the prior `bdVersion`. Hook repair and uninstall recognize only command-start Benjamin session commands, preserving wrapped/prefixed start and stop mentions for Claude Code, Codex, and Cursor.
+
 The final cross-schema pass keeps that rule limited to shared Claude/Codex groups. Cursor uses flat entries, so stale Benjamin entries are removed whole; exact-array regression coverage prevents commandless remnants.
 
 Executable plan:

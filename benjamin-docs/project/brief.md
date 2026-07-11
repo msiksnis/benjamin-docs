@@ -32,6 +32,8 @@ Legacy stop migration is equally narrow: a top-level Benjamin stop command is re
 
 That property-level rule is limited to shared Claude/Codex groups; flat Cursor Benjamin entries are removed whole so repair cannot leave invalid commandless objects.
 
+Skill refresh is fail-closed at the filesystem boundary: every selected bundle destination is preflighted before bundle I/O, and symlinked, non-directory, or escaping paths abort the all-target migration without external or partial target writes. Hook ownership is likewise conservative: only command-start Benjamin session commands are repaired or removed; wrapper, prefix, and logging mentions stay user-owned.
+
 `benjamin-docs` is a persistent repo-local project memory system for AI coding agents and humans. It turns a repo into living project knowledge that agents read, follow, and update while they work, so a new coding session starts with context: what the project is, where work stopped, what decisions and conventions matter, what is risky, and what should happen next.
 
 The public positioning must make that clear in the first few sentences. BD is not a generic documentation package or Markdown helper. Markdown is the storage format; the product is continuity across agent sessions, human handoffs, and implementation work.

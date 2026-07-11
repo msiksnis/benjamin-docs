@@ -90,7 +90,7 @@ function installHooksForTarget(root: string, target: HookTarget): HookTargetResu
       note: `Existing ${target.path} has an incompatible hook structure (${incompatibleStructure}). Preserved unchanged; add the Benjamin Docs hooks manually.`,
     };
   }
-  const hadBenjaminHook = eventContainsCommand(content, (command) => command.includes(HOOK_COMMAND_MARKER));
+  const hadBenjaminHook = eventContainsCommand(content, isBenjaminSessionCommand);
   const changed = target.id === "cursor" ? addCursorHooks(content) : addSharedSchemaHooks(content, target.id);
   if (!changed) {
     return { ...target, status: "already installed" };
@@ -229,7 +229,7 @@ function isExecutableCommandEntry(entry: unknown, expectedCommand: string): bool
 
 function hasInvalidSharedSessionStartEntry(group: unknown, expectedCommand: string): boolean {
   const commandMarker = "benjamin-docs session-start";
-  if (!eventContainsCommand(group, (command) => command.includes(commandMarker))) return false;
+  if (!eventContainsCommand(group, (command) => commandStartsWithMarker(command, commandMarker))) return false;
   if (typeof group !== "object" || group === null || Array.isArray(group)) return true;
 
   const groupObject = group as JsonObject;
@@ -237,7 +237,7 @@ function hasInvalidSharedSessionStartEntry(group: unknown, expectedCommand: stri
   if (!Array.isArray(groupObject.hooks)) return true;
 
   return groupObject.hooks.some((entry) => {
-    if (!eventContainsCommand(entry, (command) => command.includes(commandMarker))) return false;
+    if (!eventContainsCommand(entry, (command) => commandStartsWithMarker(command, commandMarker))) return false;
     return groupObject.matcher !== SHARED_SESSION_START_MATCHER
       || !isExecutableCommandEntry(entry, expectedCommand);
   });
@@ -450,7 +450,16 @@ function entryHasMarker(entry: unknown): boolean {
 function entryHasCommandMarker(entry: unknown, marker: string): boolean {
   if (typeof entry !== "object" || entry === null) return false;
   const command = (entry as JsonObject).command;
-  return typeof command === "string" && command.includes(marker);
+  return typeof command === "string" && commandStartsWithMarker(command, marker);
+}
+
+function commandStartsWithMarker(command: string, marker: string): boolean {
+  if (marker === HOOK_COMMAND_MARKER) return isBenjaminSessionCommand(command);
+  return command === marker || (command.startsWith(marker) && /\s/.test(command.charAt(marker.length)));
+}
+
+function isBenjaminSessionCommand(command: string): boolean {
+  return /^benjamin-docs session-(?:start|stop)(?:\s|$)/.test(command);
 }
 
 function entryCommand(entry: unknown): string | undefined {
@@ -477,7 +486,7 @@ function inspectHookHealth(content: JsonObject, targetId: HookTargetId): { expec
       : Array.isArray(hookMap[startEvent])
         && hookMap[startEvent].some((group) => isValidSharedSessionStartGroup(group, expectedCommand))
         && !hookMap[startEvent].some((group) => hasInvalidSharedSessionStartEntry(group, expectedCommand)),
-    legacyStop: eventContainsCommand(hookMap[stopEvent], (command) => command.includes("benjamin-docs session-stop")),
+    legacyStop: eventContainsCommand(hookMap[stopEvent], (command) => commandStartsWithMarker(command, "benjamin-docs session-stop")),
   };
 }
 
