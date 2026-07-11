@@ -116,4 +116,4 @@ pnpm run release:verify-public
 
 ## Current Architectural Bias
 
-Keep BD boring and local. The next architecture work should deepen validation, review, and install reliability before adding hosted services, sync, dashboards, or plugin infrastructure.
+Keep BD boring and local. The next architecture work is Release Train B, Impact Evidence: durable update/no-impact/deferred/blocker records tied to source identity. Hosted services, sync, dashboards, and plugin infrastructure remain deferred.

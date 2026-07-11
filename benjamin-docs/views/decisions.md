@@ -39,7 +39,7 @@ Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 20
 - 2026-07-10: Treat agent overhead as a release contract: session-start stays at or below 400 characters and 100 estimated tokens; task-scoped memory_context stays at or below 2,400 characters and 600 estimated tokens; the core skill stays at or below 1,200 words; session-start and no-op session-stop p95 stay at or below 400 ms on the maintainer reference machine and 750 ms in CI.
 - 2026-07-10: Benjamin Docs must never suppress, replace, delay, or materially rewrite the user's substantive final answer. Installed stop hooks will not block or auto-submit follow-ups. Reading memory needs no mention; after a durable update, an agent may append one sentence of at most 120 characters.
 - 2026-07-10: Execute the dependable-standard work as staged plans. Start with docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md; follow with separate impact-evidence, canonical-state, agent-interface, and protocol/conformance plans after the preceding interfaces are proven.
-- 2026-07-11: Prepare 0.12.0 as the implemented trust foundation, not as proof that Benjamin Docs is already a dependable standard. Sequence follow-on work strictly as impact evidence, canonical state and typed views, agent interfaces and mode-specific schemas, then public protocol and conformance.
+- 2026-07-11: Prepare 0.12.0 as the implemented trust foundation, not as proof that Benjamin Docs is already a dependable standard. Sequence follow-on work strictly as B, impact evidence; C, canonical state, typed views, bounded continuation, and mode-specific minimal schemas; D, agent/MCP interfaces; E, public protocol and conformance.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 

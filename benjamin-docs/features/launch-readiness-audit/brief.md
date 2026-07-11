@@ -14,7 +14,7 @@ freshness: status
 
 ## Trust-Foundation Progress
 
-Tasks 1-8 are implemented on the dependable-standard branch. The work locks budgets, installs response-safe start-only hooks, bounds retrieval and skill size, reports truthful structured readiness, isolates optional integration diagnostics, covers complete repository changes, fails customer/public publication closed, and aligns public/distribution claims. The tracked stale skill ZIP is removed; release automation generates and verifies the complete bundle without publishing. Task 9 adds cross-platform/package/performance gates.
+Tasks 1-10 and Release Train A are complete on the dependable-standard branch. The work locks budgets, installs response-safe start-only hooks, bounds retrieval and skill size, reports truthful structured readiness, isolates optional integration diagnostics, covers complete repository changes, fails customer/public publication closed, aligns public/distribution claims, and enforces cross-platform, installed-package, and performance gates. The tracked stale skill ZIP is removed; release automation generates and verifies the complete bundle without publishing. The working package is the unpublished 0.12.0 release candidate. Release Train B, Impact Evidence, is next.
 
 Audit date: 2026-07-10
 Audited version: 0.11.1 at commit 3705444

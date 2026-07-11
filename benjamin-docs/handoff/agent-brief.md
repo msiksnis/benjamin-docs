@@ -75,12 +75,12 @@ node dist/src/cli.js ready
 
 Risks/hazards: do not add more primary commands beyond the approved `bd export` human path, keep detailed export flags in advanced/agent guidance, keep all review checks deterministic and warning-only inside `review` (only `ready` escalates), keep `review` read-only (checks must not mutate the project), do not overwrite user-owned `AGENTS.md`, do not require exact headings when equivalent continuation evidence exists, and avoid making planning-only projects invent code paths. Freshness coverage warnings should reveal blind spots, not force every tiny code edit to rewrite every doc. Do not imply BD has an autonomous background daemon unless the user's agent environment actually invokes one; instead, make the agent contract and repair commands strong enough that agents do the work when they operate in the repo. Keep MCP tool access manifest-scoped; never widen it to arbitrary repo files.
 
-Next action: write the Impact Evidence Plan. It must add durable doc-updated/no-doc-impact/deferred/blocker acknowledgements keyed to commit and content identity without weakening strict readiness or exceeding the response, latency, token, and human-surface budgets. Only after that interface is proven should work proceed to canonical state and typed views, then agent interfaces and mode-specific schemas, then protocol/conformance.
+Next action: write the Impact Evidence Plan. It must add durable doc-updated/no-doc-impact/deferred/blocker acknowledgements keyed to commit and content identity without weakening strict readiness or exceeding the response, latency, token, and human-surface budgets. Only after that interface is proven should work proceed to canonical state, typed views, bounded continuation, and mode-specific minimal schemas; then agent/MCP interfaces; then protocol/conformance.
 
 ## Implemented So Far
 
 - TypeScript CLI, dependency-light: two runtime dependencies as of 0.11.0 (`@modelcontextprotocol/sdk` and `zod` for the MCP memory server); zero before that.
-- Main commands: `init`, `ready`, `export`, `upgrade`, `help`.
+- Human command surface: `init`, `ready`, `export`, `help`. `upgrade` remains an agent-led maintenance command shown when setup is stale.
 - Advanced drawer: `commands`, with numbered interactive selection in real terminals.
 - Advanced commands include `status`, `next`, `validate`, `review`, `review --changed`, `drift`, `hooks install|status|uninstall`, `mcp` (serve), `mcp install|status|uninstall`, `session-start`, `session-stop`, `doctor`, `views`, `export --audience <audience>`, `export --list`, `export --feature <slug> --profile <profile>`, `export --type <app|handoff|summary> --profile <profile>`, `scope create feature <slug>`, `scope status <id> <status>`, `anchor add <id> <file>`, `anchor list`, `install-skill`, `package-skill`, and `chat-project`.
 - Short binary alias: `bd`.
@@ -138,7 +138,7 @@ The priority is agent behavior:
 - clearer handoff docs
 - direct challenge of weak assumptions and missing decisions
 
-Do not expand the primary command surface unless dogfooding proves a repeated workflow cannot fit under `init`, `ready`, `help`, or the advanced `commands` drawer.
+Do not expand the primary command surface unless dogfooding proves a repeated workflow cannot fit under `init`, `ready`, `export`, `help`, or the advanced `commands` drawer.
 
 ## Public Repo Setup
 
@@ -216,5 +216,5 @@ When continuing this project:
 
 - Complete the 0.12.0 trust-foundation plan task by task.
 - Write the impact-evidence plan only after structured readiness and complete Git change accounting are proven.
-- Write the canonical-state and agent-interface plans after impact evidence is stable.
+- Write the canonical-state plan, including typed views, bounded continuation, and mode-specific minimal schemas, after impact evidence is stable; write the agent-interface plan only after those canonical interfaces are proven.
 - Write the protocol/conformance plan only after canonical-state behavior is stable.

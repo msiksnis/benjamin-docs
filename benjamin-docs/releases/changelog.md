@@ -13,6 +13,9 @@ source: manual
 
 ## Unreleased (0.12.0)
 
+- Agent integrations now install session-start only. Upgrade removes legacy Benjamin-owned stop/follow-up hooks while preserving user hooks, and the legacy `session-stop` compatibility command is silent for every supported format.
+- Added explicit numeric context contracts: session start is capped at 400 characters / 100 estimated tokens; task `memory_context` at 2,400 / 600; search snippets at 300 characters with 5 default and 8 maximum results; and the optional completion note at 120 characters.
+- Split the core Benjamin Docs skill into a compact router capped at 1,200 words plus capture, export, and integration references loaded only when relevant.
 - Added a structured readiness report with stable dimensions for structure, content heuristics, committed freshness, working-tree impact, and agent guidance. `bd ready --json` emits the versioned report for agents and CI.
 - `bd ready` now blocks known committed drift and unresolved changed-work findings in their own dimensions. Changed-work warnings no longer masquerade as baseline content warnings, and non-Git planning folders remain usable with non-blocking unavailable freshness dimensions.
 - Removed global `doctor --strict` setup from repository readiness. Recorded environment/tooling blockers remain visible but non-blocking, and passing output now states that deterministic checks do not prove semantic truth.
@@ -22,7 +25,7 @@ source: manual
 - Customer and public exports now share a fail-closed publication preflight. Verified customer feature exports remain available while unsafe app, handoff, summary, and public/user audience paths are disabled.
 - Public README, npm metadata, CLI help/introduction, command descriptions, contributor guidance, and security boundaries now describe the exact readiness, response-safe hook, visibility, external-write, and network guarantees.
 - Removed the stale tracked Claude skill ZIP. GitHub release automation now generates a temporary skill bundle and verifies `SKILL.md` plus all three references against package sources before creating a release; it does not publish npm.
-- Added Linux, macOS, and Windows CI on Node 22 and 24, plus installed-tarball smoke, structured repository readiness, and agent-overhead trust gates.
+- Added Linux, macOS, and Windows CI on Node 22 and 24, plus installed-tarball smoke, structured repository readiness, and benchmark gates that enforce session-start and silent-stop p95 at 400 ms on the maintainer reference machine and 750 ms in CI.
 - Reproduced all ten launch-audit scenarios against temporary repositories. False-ready, cross-stack, deletion, empty-home, target-doctor, hook, silence, context-budget, starter-export, and verified-export contracts all passed before preparing the release candidate.
 
 ## 0.11.1

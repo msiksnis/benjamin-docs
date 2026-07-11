@@ -17,7 +17,7 @@ Because this repository is public, do not create feature scopes for private comm
 
 ## Active
 
-- [Launch Readiness Audit / Dependable Standard Program](./launch-readiness-audit/brief.md): trust-foundation Tasks 1-8 are complete on the dependable-standard branch. Cross-platform CI, installed-tarball smoke, and performance gates are next before 0.12.0 dogfood.
+- [Launch Readiness Audit / Dependable Standard Program](./launch-readiness-audit/brief.md): trust-foundation Tasks 1-10 and Release Train A are complete on the dependable-standard branch. The working package is the unpublished 0.12.0 release candidate; Release Train B, Impact Evidence, is next.
 
 ## Shipped (archived)
 

@@ -20,7 +20,7 @@ The trust foundation is implemented on the release branch. Readiness reports ind
 
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
 
-0.10.0 added drift checks and session hooks. `bd drift` compares watched docs with committed Git history. Session-start hooks provide compact orientation and point agents to project memory; they do not load or verify every fact automatically. The 0.12.0 plan removes stop-hook continuations so BD maintenance cannot replace or distort the final user response. For humans, the surface stays small: `init`, `status`, and `export`, with advanced checks handled by agents.
+0.10.0 added drift checks and session hooks. `bd drift` compares watched docs with committed Git history. Session-start hooks provide compact orientation and point agents to project memory; they do not load or verify every fact automatically. The 0.12.0 candidate removes stop-hook continuations so BD maintenance cannot replace or distort the final user response. For humans, the surface stays small: `init`, `ready`, `export`, and `help`, with advanced checks handled by agents.
 
 The product promise is simple: every new AI coding session should start with usable context instead of a cold read. BD preserves the project purpose, decisions, progress, conventions, risks, open questions, next actions, and handoff notes in Markdown. The docs live in the project under `benjamin-docs/`; metadata lives under `.benjamin-docs/`.
 
@@ -38,4 +38,4 @@ Important product direction: BD should feel like a safety system for agent-led w
 
 Public repo guardrail: private commercial strategy, pricing, and future paid SaaS planning should stay out of tracked Benjamin docs unless the user explicitly says the content is public-safe. Use ignored local folders for private notes.
 
-Next work is deliberately sequenced: impact evidence to avoid meaningless docs churn; canonical state and typed views; improved agent/MCP interfaces and minimal mode schemas; then the public protocol and conformance suite. The main open product question remains how strict deterministic freshness should become without turning into documentation busywork.
+Next work is deliberately sequenced: Impact Evidence to avoid meaningless docs churn; canonical state, typed views, bounded continuation, and mode-specific minimal schemas; agent/MCP interfaces; then the public protocol and conformance suite. The main open product question remains how strict deterministic freshness should become without turning into documentation busywork.
