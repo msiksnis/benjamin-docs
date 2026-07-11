@@ -26,7 +26,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 - `src/init.ts` creates `.benjamin-docs/`, `benjamin-docs/`, starter docs, manifest, scopes, and anchors. It also seeds default `watch` rules into config and preserves custom rules on re-init.
 - `src/templates.ts` contains starter Markdown docs and frontmatter defaults.
 - `src/scopes.ts` creates feature scopes and updates scope lifecycle status. Scope creation writes the four feature docs, adds them to the manifest, and appends a feature-specific watch rule. `setScopeStatus` cascades a new status and updated date into the scope's managed docs.
-- `src/export.ts` owns feature matching, customer/developer rendering, implementation-verification recording, and generated Markdown under `exports/`. `src/export-policy.ts` is the only publication boundary and runs before any directory preparation or write.
+- `src/export.ts` owns feature matching, side-effect-free candidate rendering, concrete verification-evidence recording, and generated Markdown under `exports/`. `src/export-policy.ts` is the only publication boundary; it inspects source docs and complete rendered artifacts before any directory preparation or write.
 - `src/status.ts` summarizes the current initialized project.
 
 ## Validation And Review

@@ -64,7 +64,7 @@ function customerFeatureHandoff(slug: string, title: string): string {
     "Implementation verified: yes",
     "",
     "Evidence:",
-    "- Checked the owner page, deletion action, retention guard, and visible blocked state against the current implementation.",
+    "- Checked: owner page, deletion action, retention guard, and visible blocked state; Result: documented success and blocked states matched the current implementation.",
     "",
     "## Known Limits",
     "",
@@ -657,7 +657,8 @@ describe("status and export", () => {
       assert.match(output, /## Verification/);
       assert.match(output, /Implementation verified: yes/);
       assert.doesNotMatch(output, /Owner Delete Handoff/);
-      assert.match(output, /implementation_verified: true/);
+      assert.match(output, /implementation_verification_recorded: true/);
+      assert.doesNotMatch(output, /implementation_verified: true/);
       assert.match(output, /generated: true/);
       assert.match(output, /source_commit:/);
       assert.match(output, /source_dirty:/);
@@ -751,6 +752,32 @@ describe("status and export", () => {
       assert.match(list, /Owner Delete \(owner-delete\) - blocked: Customer or public export source contains an absolute user path/);
       assert.equal(exported.status, 1);
       assert.match(exported.stderr, /Customer or public export source contains an absolute user path/);
+    });
+  });
+
+  it("keeps list readiness blocked when rendered metadata introduces a local file URI", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      captureProjectBaseline(dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      const scopesPath = join(dir, ".benjamin-docs/scopes.json");
+      const scopes = JSON.parse(readFileSync(scopesPath, "utf8")) as { scopes: Array<{ id: string; title: string }> };
+      const ownerDelete = scopes.scopes.find((scope) => scope.id === "owner-delete");
+      assert.ok(ownerDelete);
+      ownerDelete.title = "Owner file:///Users/alice/project";
+      writeFileSync(scopesPath, `${JSON.stringify(scopes, null, 2)}\n`, "utf8");
+
+      const list = runCli(["export", "--list"], dir);
+      const exported = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      assert.match(list, /Owner file:\/\/\/Users\/alice\/project \(owner-delete\) - blocked: Customer or public export artifact contains an absolute user path/);
+      assert.equal(exported.status, 1);
+      assert.match(exported.stderr, /Customer or public export artifact contains an absolute user path/);
+      assert.equal(existsSync(join(dir, "exports/features/owner-delete-customer.md")), false);
     });
   });
 
@@ -883,7 +910,7 @@ describe("status and export", () => {
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Export preflight blocked/);
       assert.match(result.stderr, /Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry/);
-      assert.match(result.stderr, /benjamin-docs export --verify owner-delete --evidence "Checked the implemented customer workflow against the current code\."/);
+      assert.match(result.stderr, /benjamin-docs export --verify owner-delete --evidence "Checked: <route, component, test, or manual workflow>; Result: <what matched, passed, failed, or was observed>\."/);
       assert.equal(existsSync(join(dir, "exports/features/owner-delete-customer.md")), false);
     });
   });
@@ -933,7 +960,7 @@ describe("status and export", () => {
         "--verify",
         "owner-delete",
         "--evidence",
-        "Checked owner page, delete mutation, cascade RPC, and cache updates.",
+        "Checked: owner page, delete mutation, cascade RPC, and cache updates; Result: documented success and blocked states matched the current implementation.",
       ], dir);
 
       assert.equal(verified.status, 0);
@@ -944,14 +971,15 @@ describe("status and export", () => {
       assert.match(handoff, /updated: 20\d\d-\d\d-\d\d/);
       assert.match(handoff, /## Implementation Verification/);
       assert.match(handoff, /Implementation verified: yes/);
-      assert.match(handoff, /Evidence:\n- Checked owner page, delete mutation, cascade RPC, and cache updates\./);
+      assert.match(handoff, /Evidence:\n- Checked: owner page, delete mutation, cascade RPC, and cache updates; Result: documented success and blocked states matched the current implementation\./);
       assert.doesNotMatch(handoff, /Implementation verification is pending/);
 
       const exported = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
       assert.equal(exported.status, 0);
       const output = readFileSync(join(dir, "exports/features/owner-delete-customer.md"), "utf8");
-      assert.match(output, /implementation_verified: true/);
-      assert.match(output, /Checked owner page, delete mutation, cascade RPC, and cache updates\./);
+      assert.match(output, /implementation_verification_recorded: true/);
+      assert.doesNotMatch(output, /implementation_verified: true/);
+      assert.match(output, /Checked: owner page, delete mutation, cascade RPC, and cache updates; Result: documented success and blocked states matched the current implementation\./);
     });
   });
 
@@ -964,6 +992,21 @@ describe("status and export", () => {
 
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Usage: benjamin-docs export --verify <feature> --evidence/);
+    });
+  });
+
+  it("rejects vague verification evidence without changing the handoff", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      const handoffPath = join(dir, "benjamin-docs/features/owner-delete/handoff.md");
+      const before = readFileSync(handoffPath, "utf8");
+
+      const result = runCliResult(["export", "--verify", "owner-delete", "--evidence", "x"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Evidence must use: Checked: <what was inspected>; Result: <what matched, passed, failed, or was observed>/);
+      assert.equal(readFileSync(handoffPath, "utf8"), before);
     });
   });
 

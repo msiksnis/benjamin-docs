@@ -13,6 +13,7 @@ source: manual
 
 ## Unreleased (0.12.0)
 
+- Hardened the customer publication boundary after adversarial review: the complete in-memory artifact, including titles and generated metadata, is scanned before writes; local `file:` user-home URIs are blocked; vague evidence such as a one-character bullet is rejected in favor of concrete `Checked:` and `Result:` details; generated metadata records verification evidence without claiming semantic proof.
 - After updating the package, one plain `bd upgrade` per initialized repository now refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and Claude Code/Codex/Cursor session-start hooks. It removes legacy Benjamin stop hooks while preserving user-owned configuration. No separate hook command is required; `bd upgrade --no-hooks` is the explicit environment opt-out.
 - Upgrade now advances repository `bdVersion` only after required skill and hook migration succeeds. Parseable hook files with incompatible user-owned container/event shapes are preserved unchanged and fail the migration instead of being destructively normalized.
 - Legacy shared-schema stop migration now removes a top-level Benjamin command property without dropping unrelated fields or nested user hooks from the same group.

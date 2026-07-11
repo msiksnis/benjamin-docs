@@ -3,7 +3,13 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { CONFIG_DIR, KNOWN_AUDIENCES, MANIFEST_FILE, SCOPES_FILE } from "./constants.js";
 import { assertGeneratedPathSafe, ensureGeneratedDir, lstatIfExists, readGeneratedJson, rootPath, writeGeneratedText } from "./fsx.js";
 import { parseMarkdown, serializeMarkdown } from "./frontmatter.js";
-import { preflightExport, type ExportOperation, type ExportPolicySource } from "./export-policy.js";
+import {
+  isConcreteVerificationEvidence,
+  preflightExport,
+  type ExportOperation,
+  type ExportPolicyArtifact,
+  type ExportPolicySource,
+} from "./export-policy.js";
 import { readConfig } from "./project-config.js";
 import { analyzeReadiness, type ReadinessReport } from "./readiness.js";
 import { today } from "./templates.js";
@@ -78,9 +84,13 @@ export function exportAudience(root: string, audience: string): string[] {
       return { docPath, relativePath, content, parsed: parseMarkdown(content) };
     })
     .filter(({ parsed }) => parsed.frontmatter.audience.includes(selectedAudience));
-  assertExportPreflight(root, operation, selectedDocs.map(toPolicySource), config, readiness);
-
   const bundleRelativeRoot = `exports/${selectedAudience}`;
+  const artifacts = selectedDocs.map(({ relativePath, content }) => ({
+    path: `${bundleRelativeRoot}/${relativePath}`,
+    content,
+  }));
+  assertExportPreflight(root, operation, selectedDocs.map(toPolicySource), config, readiness, undefined, artifacts);
+
   prepareCleanBundleDirectory(root, selectedAudience);
   const written: string[] = [];
 
@@ -155,6 +165,11 @@ export function exportFeature(root: string, query: string, options: ExportFeatur
   const config = readConfig(root);
   const allSources = readFeatureSourceDocs(root, config.docsRoot, match.scope);
   const sources = profile === "customer" ? allSources.filter((source) => isCustomerFeatureSource(source.relativePath)) : allSources;
+  const content =
+    profile === "customer"
+      ? renderCustomerFeatureExport(root, match.scope, sources, detail)
+      : renderDeveloperFeatureExport(root, match.scope, sources, detail);
+  const relativePath = `exports/features/${match.scope.id}-${profile}${detailSuffix(detail)}.md`;
   assertExportPreflight(
     root,
     { kind: "feature", profile },
@@ -162,13 +177,8 @@ export function exportFeature(root: string, query: string, options: ExportFeatur
     config,
     undefined,
     { slug: match.scope.id, scopePath: match.scope.path },
+    [{ path: relativePath, content }],
   );
-
-  const content =
-    profile === "customer"
-      ? renderCustomerFeatureExport(root, match.scope, sources, detail)
-      : renderDeveloperFeatureExport(root, match.scope, sources, detail);
-  const relativePath = `exports/features/${match.scope.id}-${profile}${detailSuffix(detail)}.md`;
   writeGeneratedText(root, relativePath, content);
 
   return {
@@ -182,13 +192,12 @@ export function exportAppDocumentation(root: string, options: ExportDocumentOpti
   const detail = options.detail ?? "standard";
   const config = readConfig(root);
   const sources = profile === "customer" ? readCustomerProjectSources(root, config) : readDeveloperProjectSources(root, config);
-  assertExportPreflight(root, { kind: "app", profile }, sources.map(toPolicySource), config);
-
   const content =
     profile === "customer"
       ? renderCustomerAppDocumentation(root, config, sources, detail)
       : renderDeveloperAppDocumentation(root, config, sources, detail);
   const relativePath = `exports/app/${profile}-app-documentation${detailSuffix(detail)}.md`;
+  assertExportPreflight(root, { kind: "app", profile }, sources.map(toPolicySource), config, undefined, undefined, [{ path: relativePath, content }]);
   writeGeneratedText(root, relativePath, content);
 
   return {
@@ -202,13 +211,12 @@ export function exportHandoff(root: string, options: ExportDocumentOptions = {})
   const detail = options.detail ?? "standard";
   const config = readConfig(root);
   const sources = profile === "customer" ? readCustomerHandoffSources(root, config) : readDeveloperHandoffSources(root, config);
-  assertExportPreflight(root, { kind: "handoff", profile }, sources.map(toPolicySource), config);
-
   const content =
     profile === "customer"
       ? renderCustomerHandoff(root, config, sources, detail)
       : renderDeveloperHandoff(root, config, sources, detail);
   const relativePath = `exports/handoff/${profile}-handoff${detailSuffix(detail)}.md`;
+  assertExportPreflight(root, { kind: "handoff", profile }, sources.map(toPolicySource), config, undefined, undefined, [{ path: relativePath, content }]);
   writeGeneratedText(root, relativePath, content);
 
   return {
@@ -222,10 +230,9 @@ export function exportProjectSummary(root: string, options: ExportDocumentOption
   const detail = options.detail ?? "brief";
   const config = readConfig(root);
   const sources = profile === "customer" ? readCustomerProjectSources(root, config) : readDeveloperProjectSources(root, config);
-  assertExportPreflight(root, { kind: "summary", profile }, sources.map(toPolicySource), config);
-
   const content = renderProjectSummary(root, config, sources, profile, detail);
   const relativePath = `exports/summary/${profile}-project-summary${detailSuffix(detail)}.md`;
+  assertExportPreflight(root, { kind: "summary", profile }, sources.map(toPolicySource), config, undefined, undefined, [{ path: relativePath, content }]);
   writeGeneratedText(root, relativePath, content);
 
   return {
@@ -320,11 +327,13 @@ function assertExportPreflight(
   config: BenjaminDocsConfig,
   readiness: ReadinessReport = analyzeReadiness({ cwd: root }),
   feature?: { slug: string; scopePath: string },
+  artifacts: ExportPolicyArtifact[] = [],
 ): void {
   const result = preflightExport({
     operation,
     readiness,
     sources,
+    artifacts,
     blockedPhrases: config.export?.blockedPhrases,
     feature,
   });
@@ -350,9 +359,11 @@ function toPolicySource(source: SourceDoc | { relativePath: string; parsed: Pars
 }
 
 function assertVerificationEvidence(evidence: string): void {
-  if (!evidence.trim()) {
-    throw new Error("Usage: benjamin-docs export --verify <feature> --evidence \"<what the agent checked>\"");
-  }
+  if (isConcreteVerificationEvidence(evidence)) return;
+  throw new Error(
+    "Evidence must use: Checked: <what was inspected>; Result: <what matched, passed, failed, or was observed>.\n"
+      + "Usage: benjamin-docs export --verify <feature> --evidence \"Checked: ...; Result: ...\"",
+  );
 }
 
 function parseAudience(audience: string): Audience {
@@ -484,12 +495,15 @@ function getFeatureExportReadiness(
   if (scope.status === "archived") return { status: "archived", messages: ["archived"] };
 
   const sources = readFeatureSourceDocs(root, config.docsRoot, scope).filter((source) => isCustomerFeatureSource(source.relativePath));
+  const content = renderCustomerFeatureExport(root, scope, sources, "standard");
+  const relativePath = `exports/features/${scope.id}-customer.md`;
   const preflight = preflightExport({
     operation: { kind: "feature", profile: "customer" },
     readiness: readinessReport,
     sources: sources.map(toPolicySource),
     blockedPhrases: config.export?.blockedPhrases,
     feature: { slug: scope.id, scopePath: scope.path },
+    artifacts: [{ path: relativePath, content }],
   });
   return preflight.allowed ? { status: "ready", messages: [] } : { status: "blocked", messages: preflight.reasons };
 }
@@ -522,7 +536,7 @@ function renderCustomerFeatureExport(root: string, scope: ScopeRecord, sources: 
     profile: "customer",
     detail,
     sources,
-    extraFrontmatter: [`source_scope: ${scope.id}`, "implementation_verified: true"],
+    extraFrontmatter: [`source_scope: ${scope.id}`, "implementation_verification_recorded: true"],
     sections,
   });
 }

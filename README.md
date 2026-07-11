@@ -102,10 +102,10 @@ Views are generated from managed source docs; they are not a second source of tr
 
 ## Safe Exports And Visibility
 
-`bd export` creates a local snapshot for a feature, app, summary, or handoff. Customer exports fail closed when source material is private, unverified, risky, or contains unsafe output. Agents can record implementation evidence before retrying an export.
+`bd export` creates a local snapshot for a feature, app, summary, or handoff. Customer exports fail closed when source material is private, unverified, risky, or contains unsafe output. The complete rendered artifact is scanned before any write. Agents can record a concrete check and observed result before retrying an export; the CLI records that evidence but does not claim to prove semantic truth.
 
 ```bash
-bd export --verify checkout --evidence "Checked routes, permissions, UI flow, tests, and known limits."
+bd export --verify checkout --evidence "Checked: checkout routes, permissions, UI flow, and tests; Result: documented success, denial, and error states matched."
 bd export --feature checkout --profile customer
 ```
 

@@ -9,7 +9,7 @@ Teach people `bd export` or `benjamin-docs export` as the normal guided command.
 Agents and automation may use direct flags when the target is clear:
 
 - `bd export --list`
-- `bd export --verify <slug> --evidence "<what the agent checked>"`
+- `bd export --verify <slug> --evidence "Checked: <what was inspected>; Result: <what matched, passed, failed, or was observed>."`
 - `bd export --feature <slug> --profile customer`
 - `bd export --feature <slug> --profile developer`
 - `bd export --type app --profile customer`
@@ -27,7 +27,7 @@ Before a customer-facing feature export:
 
 1. Verify the implementation against the Benjamin Docs source docs.
 2. Check documented behavior, limitations, roles, UI flow, and edge cases against the actual code.
-3. Record the check with `bd export --verify <slug> --evidence "<what the agent checked>"`. Name the routes, components, mutations, RPCs, tests, workflows, or manual checks inspected.
+3. Record the check with `bd export --verify <slug> --evidence "Checked: <routes, components, tests, or manual workflow>; Result: <what matched, passed, failed, or was observed>."`. Both fields must be concrete; a marker or vague token is not evidence.
 4. If docs are stale, thin, private-only, or missing implementation verification, update them before retrying.
 5. If `bd export` blocks with a readiness prompt, follow it first. Do not bypass a blocked customer export unless the user explicitly accepts the risk.
 
@@ -38,5 +38,6 @@ If a feature does not exist, do not invent export content. Create or update its 
 - Customer and public exports must not leak agent-only notes, implementation risks, secrets, credentials, environment details, private internal instructions, pricing, or private commercial strategy.
 - Treat `visibility` as document/export metadata, not proof that a repository or file is confidential or publicly safe.
 - Do not publish content merely because a profile or audience can render it. Inspect the selected source docs and the generated artifact.
+- Benjamin Docs scans the complete rendered customer artifact before writing, including generated metadata and titles. The generated snapshot records that verification evidence exists; it does not claim the CLI semantically proved the implementation.
 - In a public repository, do not capture private commercial strategy, pricing, or future paid-service planning in tracked Benjamin Docs unless the user explicitly marks it public-safe.
 - Use safe, audience-appropriate language and keep evidence concrete without exposing sensitive internals.
