@@ -1,5 +1,11 @@
-import { readFileSync, readdirSync, rmSync, rmdirSync } from "node:fs";
-import { lstatIfExists, rootPath, writeGeneratedText } from "./fsx.js";
+import { readFileSync, readdirSync, rmdirSync } from "node:fs";
+import {
+  assertGeneratedPathSafe,
+  lstatIfExists,
+  removeGeneratedFile,
+  rootPath,
+  writeGeneratedTextAtomically,
+} from "./fsx.js";
 
 const HOOK_COMMAND_MARKER = "benjamin-docs session-";
 const HOOK_FILE_LABEL = "Agent hook path";
@@ -79,6 +85,9 @@ function applyToTargets(
 
 function installHooksForTarget(root: string, target: HookTarget): HookTargetResult {
   const existing = readHookFile(root, target);
+  if (existing.unsafePath) {
+    return { ...target, status: "skipped", note: `${existing.unsafePath} Preserved unchanged; add the Benjamin Docs hooks manually.` };
+  }
   if (existing.unreadable) {
     return { ...target, status: "skipped", note: `Existing ${target.path} could not be parsed. Preserved unchanged; add the Benjamin Docs hooks manually.` };
   }
@@ -98,11 +107,17 @@ function installHooksForTarget(root: string, target: HookTarget): HookTargetResu
     return { ...target, status: "already installed" };
   }
 
-  writeGeneratedText(root, target.path, `${JSON.stringify(content, null, 2)}\n`, HOOK_FILE_LABEL);
+  writeGeneratedTextAtomically(root, target.path, `${JSON.stringify(content, null, 2)}\n`, HOOK_FILE_LABEL, {
+    expectedState: { text: existing.text },
+  });
   return { ...target, status: hadBenjaminHook ? "repaired" : "installed" };
 }
 
 function describeIncompatibleHookStructure(content: JsonObject, targetId: HookTargetId): string | undefined {
+  if (targetId === "cursor" && content.version !== undefined && content.version !== 1) {
+    return "version must be 1";
+  }
+
   const hooks = content.hooks;
   if (hooks === undefined) return undefined;
   if (typeof hooks !== "object" || hooks === null || Array.isArray(hooks)) return "hooks must be an object";
@@ -111,13 +126,17 @@ function describeIncompatibleHookStructure(content: JsonObject, targetId: HookTa
   const events = targetId === "cursor" ? ["sessionStart", "stop"] : ["SessionStart", "Stop"];
   for (const event of events) {
     if (hookMap[event] !== undefined && !Array.isArray(hookMap[event])) return `${event} must be an array`;
-    if (targetId !== "cursor" && Array.isArray(hookMap[event])) {
-      for (const group of hookMap[event]) {
-        if (typeof group !== "object" || group === null || Array.isArray(group)) continue;
-        const groupObject = group as JsonObject;
-        if (Object.hasOwn(groupObject, "hooks") && !Array.isArray(groupObject.hooks)) {
-          return `${event} group hooks must be an array`;
-        }
+    if (!Array.isArray(hookMap[event])) continue;
+
+    for (const entry of hookMap[event]) {
+      if (!isJsonObject(entry)) return `${event} entries must be objects`;
+      if (targetId === "cursor") continue;
+
+      if (Object.hasOwn(entry, "hooks") && !Array.isArray(entry.hooks)) {
+        return `${event} group hooks must be an array`;
+      }
+      if (Array.isArray(entry.hooks) && entry.hooks.some((hookEntry) => !isJsonObject(hookEntry))) {
+        return `${event} group hook entries must be objects`;
       }
     }
   }
@@ -127,6 +146,9 @@ function describeIncompatibleHookStructure(content: JsonObject, targetId: HookTa
 
 function uninstallHooksForTarget(root: string, target: HookTarget): HookTargetResult {
   const existing = readHookFile(root, target);
+  if (existing.unsafePath) {
+    return { ...target, status: "skipped", note: `${existing.unsafePath} Preserved unchanged.` };
+  }
   if (existing.unreadable) {
     return { ...target, status: "skipped", note: `Existing ${target.path} could not be parsed. Preserved unchanged.` };
   }
@@ -136,29 +158,51 @@ function uninstallHooksForTarget(root: string, target: HookTarget): HookTargetRe
   }
 
   const content = existing.value;
+  const incompatibleStructure = describeIncompatibleHookStructure(content, target.id);
+  if (incompatibleStructure) {
+    return {
+      ...target,
+      status: "skipped",
+      note: `Existing ${target.path} has an incompatible hook structure (${incompatibleStructure}). Preserved unchanged.`,
+    };
+  }
   const changed = target.id === "cursor" ? removeCursorHooks(content) : removeSharedSchemaHooks(content);
   if (!changed) {
     return { ...target, status: "not installed" };
   }
 
   if (isEmptyHookFile(content, target.id)) {
-    rmSync(rootPath(root, target.path));
+    removeGeneratedFile(root, target.path, HOOK_FILE_LABEL, { expectedState: { text: existing.text } });
     removeDirIfEmpty(root, target.path.split("/")[0] ?? "");
     return { ...target, status: "removed", note: `Removed ${target.path} because only Benjamin Docs hooks were in it.` };
   }
 
-  writeGeneratedText(root, target.path, `${JSON.stringify(content, null, 2)}\n`, HOOK_FILE_LABEL);
+  writeGeneratedTextAtomically(root, target.path, `${JSON.stringify(content, null, 2)}\n`, HOOK_FILE_LABEL, {
+    expectedState: { text: existing.text },
+  });
   return { ...target, status: "removed" };
 }
 
 function checkHooksForTarget(root: string, target: HookTarget): HookTargetResult {
   const existing = readHookFile(root, target);
+  if (existing.unsafePath) {
+    return { ...target, status: "skipped", note: existing.unsafePath };
+  }
   if (existing.unreadable) {
     return { ...target, status: "skipped", note: `Existing ${target.path} could not be parsed.` };
   }
 
   if (!existing.value) {
     return { ...target, status: "not installed" };
+  }
+
+  const incompatibleStructure = describeIncompatibleHookStructure(existing.value, target.id);
+  if (incompatibleStructure) {
+    return {
+      ...target,
+      status: "not installed",
+      note: `Existing ${target.path} has an incompatible hook structure (${incompatibleStructure}).`,
+    };
   }
 
   const health = inspectHookHealth(existing.value, target.id);
@@ -177,19 +221,29 @@ function checkHooksForTarget(root: string, target: HookTarget): HookTargetResult
 
 interface ReadHookFileResult {
   value?: JsonObject;
+  text?: string;
   unreadable: boolean;
+  unsafePath?: string;
 }
 
 function readHookFile(root: string, target: HookTarget): ReadHookFileResult {
+  try {
+    assertGeneratedPathSafe(root, target.path.split("/"), HOOK_FILE_LABEL, "file");
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    return { unreadable: false, unsafePath: `Unsafe ${target.path}: ${detail}.` };
+  }
+
   const fullPath = rootPath(root, target.path);
   const stat = lstatIfExists(fullPath);
   if (!stat) return { unreadable: false };
   if (!stat.isFile()) return { unreadable: true };
 
   try {
-    const parsed: unknown = JSON.parse(readFileSync(fullPath, "utf8"));
+    const rawText = readFileSync(fullPath, "utf8");
+    const parsed: unknown = JSON.parse(rawText);
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return { unreadable: true };
-    return { value: parsed as JsonObject, unreadable: false };
+    return { value: parsed as JsonObject, text: rawText, unreadable: false };
   } catch {
     return { unreadable: true };
   }
@@ -232,25 +286,12 @@ function isExecutableCommandEntry(entry: unknown, expectedCommand: string): bool
   return object.type === "command" && object.command === expectedCommand;
 }
 
-function hasInvalidSharedSessionStartEntry(group: unknown, expectedCommand: string): boolean {
-  if (typeof group !== "object" || group === null || Array.isArray(group)) return false;
-
-  const groupObject = group as JsonObject;
-  if (entryHasMarker(group)) return true;
-  if (!Array.isArray(groupObject.hooks)) return false;
-
-  return groupObject.hooks.some((entry) => {
-    if (!entryHasMarker(entry)) return false;
-    return groupObject.matcher !== SHARED_SESSION_START_MATCHER
-      || !isExecutableCommandEntry(entry, expectedCommand);
-  });
-}
-
 function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedCommand: string): boolean {
   const groups = hooks.SessionStart;
   if (!Array.isArray(groups)) return false;
 
   let changed = false;
+  let keptExpectedStart = false;
   const keptGroups: unknown[] = [];
 
   for (const group of groups) {
@@ -276,7 +317,10 @@ function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedComma
     const supportedMatcher = groupObject.matcher === SHARED_SESSION_START_MATCHER;
     const keptEntries = entries.filter((entry) => {
       if (!entryHasMarker(entry)) return true;
-      const valid = supportedMatcher && isExecutableCommandEntry(entry, expectedCommand);
+      const valid = supportedMatcher
+        && !keptExpectedStart
+        && isExecutableCommandEntry(entry, expectedCommand);
+      if (valid) keptExpectedStart = true;
       if (!valid) changed = true;
       return valid;
     });
@@ -330,10 +374,33 @@ function addCursorHooks(content: JsonObject): boolean {
   const hooks = ensureObject(content, "hooks");
   const expectedStartCommand = sessionStartCommand("cursor");
   changed = removeBenjaminEntriesFromEvent(hooks, "stop", "session-") || changed;
-  changed = removeBenjaminEntriesFromEvent(hooks, "sessionStart", "session-", expectedStartCommand) || changed;
+  changed = normalizeCursorSessionStartEntries(hooks, expectedStartCommand) || changed;
   changed = addCursorEntry(hooks, "sessionStart", { command: expectedStartCommand }) || changed;
 
   return changed;
+}
+
+function normalizeCursorSessionStartEntries(hooks: JsonObject, expectedCommand: string): boolean {
+  const entries = hooks.sessionStart;
+  if (!Array.isArray(entries)) return false;
+
+  let changed = false;
+  let keptExpectedStart = false;
+  const keptEntries = entries.filter((entry) => {
+    if (!entryHasMarker(entry)) return true;
+    if (!keptExpectedStart && entryCommand(entry) === expectedCommand) {
+      keptExpectedStart = true;
+      return true;
+    }
+
+    changed = true;
+    return false;
+  });
+
+  if (!changed) return false;
+  if (keptEntries.length === 0) delete hooks.sessionStart;
+  else hooks.sessionStart = keptEntries;
+  return true;
 }
 
 function removeBenjaminEntriesFromEvent(
@@ -456,12 +523,14 @@ function entryHasCommandMarker(entry: unknown, marker: string): boolean {
 }
 
 function commandStartsWithMarker(command: string, marker: string): boolean {
-  if (marker === HOOK_COMMAND_MARKER) return isBenjaminSessionCommand(command);
-  return command === marker || (command.startsWith(marker) && /\s/.test(command.charAt(marker.length)));
+  const normalizedCommand = command.trimStart();
+  if (marker === HOOK_COMMAND_MARKER) return isBenjaminSessionCommand(normalizedCommand);
+  return normalizedCommand === marker
+    || (normalizedCommand.startsWith(marker) && /\s/.test(normalizedCommand.charAt(marker.length)));
 }
 
 function isBenjaminSessionCommand(command: string): boolean {
-  return /^benjamin-docs session-(?:start|stop)(?:\s|$)/.test(command);
+  return /^benjamin-docs session-(?:start|stop)(?:\s|$)/.test(command.trimStart());
 }
 
 function entryCommand(entry: unknown): string | undefined {
@@ -492,13 +561,53 @@ function inspectHookHealth(content: JsonObject, targetId: HookTargetId): {
 
   return {
     expectedStart: targetId === "cursor"
-      ? directEntriesContainCommand(hookMap[startEvent], (command) => command === expectedCommand)
-      : Array.isArray(hookMap[startEvent])
-        && hookMap[startEvent].some((group) => isValidSharedSessionStartGroup(group, expectedCommand))
-        && !hookMap[startEvent].some((group) => hasInvalidSharedSessionStartEntry(group, expectedCommand)),
+      ? content.version === 1 && hasOneCanonicalCursorStart(hookMap[startEvent], expectedCommand)
+      : hasOneCanonicalSharedStart(hookMap[startEvent], expectedCommand),
     unsafeStop: stopContains(isBenjaminSessionCommand),
     legacyStop: stopContains((command) => commandStartsWithMarker(command, "benjamin-docs session-stop")),
   };
+}
+
+function hasOneCanonicalCursorStart(value: unknown, expectedCommand: string): boolean {
+  if (!Array.isArray(value)) return false;
+
+  let benjaminCommandCount = 0;
+  let expectedCommandCount = 0;
+  for (const entry of value) {
+    const command = entryCommand(entry);
+    if (command === undefined || !isBenjaminSessionCommand(command)) continue;
+    benjaminCommandCount += 1;
+    if (command === expectedCommand) expectedCommandCount += 1;
+  }
+
+  return benjaminCommandCount === 1 && expectedCommandCount === 1;
+}
+
+function hasOneCanonicalSharedStart(value: unknown, expectedCommand: string): boolean {
+  if (!Array.isArray(value)) return false;
+
+  let benjaminCommandCount = 0;
+  let expectedCommandCount = 0;
+  for (const group of value) {
+    const groupCommand = entryCommand(group);
+    if (groupCommand !== undefined && isBenjaminSessionCommand(groupCommand)) {
+      benjaminCommandCount += 1;
+    }
+
+    if (typeof group !== "object" || group === null || Array.isArray(group)) continue;
+    const groupObject = group as JsonObject;
+    if (!Array.isArray(groupObject.hooks)) continue;
+    for (const entry of groupObject.hooks) {
+      const command = entryCommand(entry);
+      if (command === undefined || !isBenjaminSessionCommand(command)) continue;
+      benjaminCommandCount += 1;
+      if (groupObject.matcher === SHARED_SESSION_START_MATCHER && isExecutableCommandEntry(entry, expectedCommand)) {
+        expectedCommandCount += 1;
+      }
+    }
+  }
+
+  return benjaminCommandCount === 1 && expectedCommandCount === 1;
 }
 
 function targetContainsCommand(
@@ -550,6 +659,7 @@ function removeDirIfEmpty(root: string, dir: string): void {
 
   try {
     const fullPath = rootPath(root, dir);
+    assertGeneratedPathSafe(root, [dir], HOOK_FILE_LABEL, "directory");
     if (readdirSync(fullPath).length === 0) rmdirSync(fullPath);
   } catch {
     // Leave the directory alone when it cannot be inspected or removed.
@@ -565,6 +675,10 @@ function ensureObject(parent: JsonObject, key: string): JsonObject {
   const created: JsonObject = {};
   parent[key] = created;
   return created;
+}
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function ensureArray(parent: JsonObject, key: string): unknown[] {

@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { CONTEXT_BUDGETS, estimatedTokens } from "../src/context-budget.js";
 import { getSessionStopNudge } from "../src/session.js";
@@ -338,6 +338,301 @@ describe("hooks", () => {
       assert.deepEqual(afterUninstall.hooks.Stop, afterInstall.hooks.Stop);
     });
   });
+
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`repairs duplicate canonical ${target} starts to one idempotent hook`, () => {
+      withTempDir((dir) => {
+        const cursor = target === "cursor";
+        const hookPath = cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+        const format = target === "codex" ? "codex" : cursor ? "cursor" : "claude";
+        const expectedCommand = `benjamin-docs session-start --format ${format}`;
+        const content = cursor
+          ? {
+              version: 1,
+              hooks: {
+                sessionStart: [
+                  { command: expectedCommand, owner: "first-duplicate" },
+                  { command: expectedCommand, owner: "second-duplicate" },
+                ],
+              },
+            }
+          : {
+              hooks: {
+                SessionStart: [
+                  {
+                    matcher: "startup|resume|clear",
+                    hooks: [{ type: "command", command: expectedCommand, owner: "first-duplicate" }],
+                  },
+                  {
+                    matcher: "startup|resume|clear",
+                    hooks: [{ type: "command", command: expectedCommand, owner: "second-duplicate" }],
+                  },
+                ],
+              },
+            };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        writeFileSync(join(dir, hookPath), `${JSON.stringify(content, null, 2)}\n`);
+
+        const unhealthy = runCliResult(["hooks", "status", "--target", target], dir);
+        assert.match(unhealthy.stdout, /not installed\s+(Claude Code|Codex CLI|Cursor)/);
+
+        const install = runCliResult(["hooks", "install", "--target", target], dir);
+        assert.equal(install.status, 0);
+        assert.match(install.stdout, /repaired\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.doesNotMatch(install.stdout, /already installed/);
+
+        const repairedText = readFileSync(join(dir, hookPath), "utf8");
+        assert.equal(repairedText.split(expectedCommand).length - 1, 1);
+
+        const again = runCliResult(["hooks", "install", "--target", target], dir);
+        assert.equal(again.status, 0);
+        assert.match(again.stdout, /already installed\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.equal(readFileSync(join(dir, hookPath), "utf8"), repairedText);
+      });
+    });
+  }
+
+  it("repairs misplaced and wrong-format Cursor start-event commands beside the canonical start", () => {
+    withTempDir((dir) => {
+      const hookPath = ".cursor/hooks.json";
+      const expectedCommand = "benjamin-docs session-start --format cursor";
+      const content = {
+        version: 1,
+        hooks: {
+          sessionStart: [
+            { command: "echo user-start", owner: "keep-user-entry" },
+            { command: expectedCommand },
+            { command: "benjamin-docs session-start --format claude", owner: "remove-wrong-format" },
+            { command: "benjamin-docs session-stop --format cursor", owner: "remove-misplaced-stop" },
+          ],
+        },
+      };
+      mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+      writeFileSync(join(dir, hookPath), `${JSON.stringify(content, null, 2)}\n`);
+
+      const unhealthy = runCliResult(["hooks", "status", "--target", "cursor"], dir);
+      assert.match(unhealthy.stdout, /not installed\s+Cursor/);
+
+      const install = runCliResult(["hooks", "install", "--target", "cursor"], dir);
+      assert.equal(install.status, 0);
+      assert.match(install.stdout, /repaired\s+Cursor/);
+      const repairedText = readFileSync(join(dir, hookPath), "utf8");
+      assert.match(repairedText, /keep-user-entry/);
+      assert.equal(repairedText.split(expectedCommand).length - 1, 1);
+      assert.doesNotMatch(repairedText, /benjamin-docs session-start --format claude/);
+      assert.doesNotMatch(repairedText, /benjamin-docs session-stop/);
+    });
+  });
+
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`repairs a shell-equivalent whitespace-prefixed ${target} duplicate`, () => {
+      withTempDir((dir) => {
+        const cursor = target === "cursor";
+        const hookPath = cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+        const format = target === "codex" ? "codex" : cursor ? "cursor" : "claude";
+        const expectedCommand = `benjamin-docs session-start --format ${format}`;
+        const content = cursor
+          ? {
+              version: 1,
+              hooks: { sessionStart: [{ command: expectedCommand }, { command: `\t  ${expectedCommand}` }] },
+            }
+          : {
+              hooks: {
+                SessionStart: [{
+                  matcher: "startup|resume|clear",
+                  hooks: [
+                    { type: "command", command: expectedCommand },
+                    { type: "command", command: `\t  ${expectedCommand}` },
+                  ],
+                }],
+              },
+            };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        writeFileSync(join(dir, hookPath), `${JSON.stringify(content, null, 2)}\n`);
+
+        const status = runCliResult(["hooks", "status", "--target", target], dir);
+        assert.match(status.stdout, /not installed\s+(Claude Code|Codex CLI|Cursor)/);
+
+        const install = runCliResult(["hooks", "install", "--target", target], dir);
+        const repairedText = readFileSync(join(dir, hookPath), "utf8");
+        assert.match(install.stdout, /repaired\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.equal(repairedText.split(expectedCommand).length - 1, 1);
+        assert.doesNotMatch(repairedText, /"command": "\\t/);
+
+        const again = runCliResult(["hooks", "install", "--target", target], dir);
+        assert.match(again.stdout, /already installed\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.equal(readFileSync(join(dir, hookPath), "utf8"), repairedText);
+      });
+    });
+  }
+
+  it("preserves an unsupported Cursor hook schema version across every hook operation", () => {
+    withTempDir((dir) => {
+      const hookPath = ".cursor/hooks.json";
+      const content = {
+        version: 2,
+        hooks: { sessionStart: [{ command: "benjamin-docs session-start --format cursor" }] },
+      };
+      mkdirSync(join(dir, ".cursor"), { recursive: true });
+      const originalText = `${JSON.stringify(content, null, 2)}\n`;
+      writeFileSync(join(dir, hookPath), originalText);
+
+      const status = runCliResult(["hooks", "status", "--target", "cursor"], dir);
+      const install = runCliResult(["hooks", "install", "--target", "cursor"], dir);
+      const uninstall = runCliResult(["hooks", "uninstall", "--target", "cursor"], dir);
+
+      assert.match(status.stdout, /not installed\s+Cursor/);
+      assert.match(install.stdout, /skipped\s+Cursor/);
+      assert.match(uninstall.stdout, /skipped\s+Cursor/);
+      assert.equal(readFileSync(join(dir, hookPath), "utf8"), originalText);
+    });
+  });
+
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`preserves ${target} hook arrays containing non-object schema entries`, () => {
+      withTempDir((dir) => {
+        const cursor = target === "cursor";
+        const hookPath = cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+        const format = target === "codex" ? "codex" : cursor ? "cursor" : "claude";
+        const expectedCommand = `benjamin-docs session-start --format ${format}`;
+        const content = cursor
+          ? {
+              version: 1,
+              hooks: { sessionStart: [null, { command: expectedCommand }] },
+            }
+          : target === "codex"
+            ? {
+                hooks: {
+                  SessionStart: [{
+                    matcher: "startup|resume|clear",
+                    hooks: [null, { type: "command", command: expectedCommand }],
+                  }],
+                },
+              }
+            : {
+                hooks: {
+                  SessionStart: [null, {
+                    matcher: "startup|resume|clear",
+                    hooks: [{ type: "command", command: expectedCommand }],
+                  }],
+                },
+              };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        const originalText = `${JSON.stringify(content, null, 2)}\n`;
+        writeFileSync(join(dir, hookPath), originalText);
+
+        const status = runCliResult(["hooks", "status", "--target", target], dir);
+        const install = runCliResult(["hooks", "install", "--target", target], dir);
+        const uninstall = runCliResult(["hooks", "uninstall", "--target", target], dir);
+
+        assert.match(status.stdout, /not installed\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.match(install.stdout, /skipped\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.match(uninstall.stdout, /skipped\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.equal(readFileSync(join(dir, hookPath), "utf8"), originalText);
+      });
+    });
+  }
+
+  for (const target of ["claude-code", "codex"] as const) {
+    it(`treats a valid ${target} start beside an incompatible group as unhealthy and preserves it on uninstall`, () => {
+      withTempDir((dir) => {
+        const hookPath = target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+        const format = target === "codex" ? "codex" : "claude";
+        const expectedCommand = `benjamin-docs session-start --format ${format}`;
+        const content = {
+          permissions: { allow: ["Bash(git status:*)"] },
+          hooks: {
+            SessionStart: [
+              {
+                matcher: "startup|resume|clear",
+                hooks: [{ type: "command", command: expectedCommand }],
+              },
+              {
+                matcher: "user-event",
+                hooks: { command: "echo user-owned", timeout: 12 },
+                owner: "preserve-incompatible-group",
+              },
+            ],
+          },
+        };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        const originalText = `${JSON.stringify(content, null, 2)}\n`;
+        writeFileSync(join(dir, hookPath), originalText);
+
+        const status = runCliResult(["hooks", "status", "--target", target], dir);
+        const install = runCliResult(["hooks", "install", "--target", target], dir);
+        const uninstall = runCliResult(["hooks", "uninstall", "--target", target], dir);
+
+        assert.match(status.stdout, /(?:not installed|skipped)\s+(Claude Code|Codex CLI)/);
+        assert.match(install.stdout, /skipped\s+(Claude Code|Codex CLI)/);
+        assert.match(uninstall.stdout, /skipped\s+(Claude Code|Codex CLI)/);
+        assert.equal(readFileSync(join(dir, hookPath), "utf8"), originalText);
+      });
+    });
+
+    it(`does not erase a ${target} group with a direct Benjamin command and incompatible user hook data`, () => {
+      withTempDir((dir) => {
+        const hookPath = target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+        const format = target === "codex" ? "codex" : "claude";
+        const content = {
+          hooks: {
+            SessionStart: [{
+              matcher: "startup|resume|clear",
+              command: `benjamin-docs session-start --format ${format}`,
+              hooks: { owner: "user", command: "echo preserve-me" },
+            }],
+          },
+        };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        const originalText = `${JSON.stringify(content, null, 2)}\n`;
+        writeFileSync(join(dir, hookPath), originalText);
+
+        const uninstall = runCliResult(["hooks", "uninstall", "--target", target], dir);
+
+        assert.match(uninstall.stdout, /skipped\s+(Claude Code|Codex CLI)/);
+        assert.equal(readFileSync(join(dir, hookPath), "utf8"), originalText);
+      });
+    });
+  }
+
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`skips ${target} hook operations when the target directory is a symlink`, { skip: process.platform === "win32" }, () => {
+      withTempDir((dir) => {
+        withTempDir((outsideDir) => {
+          const cursor = target === "cursor";
+          const targetDir = cursor ? ".cursor" : target === "codex" ? ".codex" : ".claude";
+          const hookFile = cursor || target === "codex" ? "hooks.json" : "settings.json";
+          const format = target === "codex" ? "codex" : cursor ? "cursor" : "claude";
+          const expectedCommand = `benjamin-docs session-start --format ${format}`;
+          const content = cursor
+            ? { version: 1, hooks: { sessionStart: [{ command: expectedCommand }] } }
+            : {
+                hooks: {
+                  SessionStart: [{
+                    matcher: "startup|resume|clear",
+                    hooks: [{ type: "command", command: expectedCommand }],
+                  }],
+                },
+              };
+          const victimPath = join(outsideDir, hookFile);
+          const originalText = `${JSON.stringify(content, null, 2)}\n`;
+          writeFileSync(victimPath, originalText);
+          symlinkSync(outsideDir, join(dir, targetDir), "dir");
+
+          const install = runCliResult(["hooks", "install", "--target", target], dir);
+          const status = runCliResult(["hooks", "status", "--target", target], dir);
+          const uninstall = runCliResult(["hooks", "uninstall", "--target", target], dir);
+
+          assert.match(install.stdout, /skipped\s+(Claude Code|Codex CLI|Cursor)/);
+          assert.match(status.stdout, /skipped\s+(Claude Code|Codex CLI|Cursor)/);
+          assert.match(uninstall.stdout, /skipped\s+(Claude Code|Codex CLI|Cursor)/);
+          assert.equal(existsSync(victimPath), true);
+          assert.equal(readFileSync(victimPath, "utf8"), originalText);
+          assert.equal(existsSync(join(dir, targetDir)), true);
+        });
+      });
+    });
+  }
 
   it("removes only Benjamin commands when directly uninstalling mixed shared-schema groups", () => {
     withTempDir((dir) => {

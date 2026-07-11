@@ -1,9 +1,49 @@
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
-import { isAbsolute, relative, resolve, sep, win32 } from "node:path";
+import {
+  closeSync,
+  existsSync,
+  fchmodSync,
+  fchownSync,
+  fsyncSync,
+  lstatSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { randomUUID } from "node:crypto";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep, win32 } from "node:path";
 
 const DEFAULT_GENERATED_LABEL = "Generated output path";
 
 type GeneratedTarget = "any" | "directory" | "file";
+
+export interface AtomicWriteOptions {
+  /** Best-effort stale-read guard evaluated immediately before rename; not a cross-process compare-and-swap. */
+  expectedState?: GeneratedExpectedState;
+  beforeRename?: (paths: Readonly<{ targetPath: string; temporaryPath: string }>) => void;
+  writeTempFile?: (tempPath: string, value: string, existingMetadata: AtomicFileMetadata | undefined) => void;
+  replaceFile?: (tempPath: string, destinationPath: string) => void;
+  removeTempFile?: (tempPath: string) => void;
+}
+
+export interface GeneratedRemoveOptions {
+  /** Best-effort stale-read guard evaluated immediately before deletion; not a cross-process compare-and-swap. */
+  expectedState?: GeneratedExpectedState;
+  beforeRemove?: (paths: Readonly<{ targetPath: string }>) => void;
+}
+
+interface GeneratedExpectedState {
+  text: string | undefined;
+}
+
+interface AtomicFileMetadata {
+  mode: number;
+  uid: number;
+  gid: number;
+}
 
 export function pathExists(path: string): boolean {
   return existsSync(path);
@@ -36,6 +76,63 @@ export function writeGeneratedText(root: string, relativePath: string, value: st
   const parts = generatedPathParts(relativePath, label);
   const fullPath = prepareGeneratedFile(root, parts, label);
   writeFileSync(fullPath, value, "utf8");
+}
+
+export function writeGeneratedTextAtomically(
+  root: string,
+  relativePath: string,
+  value: string,
+  label = DEFAULT_GENERATED_LABEL,
+  options: AtomicWriteOptions = {},
+): void {
+  const parts = generatedPathParts(relativePath, label);
+  const fullPath = prepareGeneratedFile(root, parts, label);
+  const existingStat = lstatIfExists(fullPath);
+  const existingMetadata = existingStat === undefined ? undefined : {
+    mode: Number(existingStat.mode) & 0o7777,
+    uid: Number(existingStat.uid),
+    gid: Number(existingStat.gid),
+  };
+  const tempPath = join(dirname(fullPath), `.${basename(fullPath)}.benjamin-docs-${process.pid}-${randomUUID()}.tmp`);
+  const writeTempFile = options.writeTempFile ?? writeAndSyncTemporaryFile;
+  const replaceFile = options.replaceFile ?? renameSync;
+  const removeTempFile = options.removeTempFile ?? ((path: string) => rmSync(path, { force: true }));
+
+  try {
+    writeTempFile(tempPath, value, existingMetadata);
+    options.beforeRename?.({ targetPath: fullPath, temporaryPath: tempPath });
+    assertGeneratedPathSafe(root, parts, label, "file");
+    if (options.expectedState) assertExpectedGeneratedText(fullPath, options.expectedState.text, label);
+    replaceFile(tempPath, fullPath);
+    syncParentDirectoryBestEffort(fullPath);
+  } catch (error) {
+    try {
+      removeTempFile(tempPath);
+    } catch (cleanupError) {
+      attachCleanupError(error, cleanupError);
+    }
+    throw error;
+  }
+}
+
+export function removeGeneratedFile(
+  root: string,
+  relativePath: string,
+  label = DEFAULT_GENERATED_LABEL,
+  options: GeneratedRemoveOptions = {},
+): boolean {
+  const parts = generatedPathParts(relativePath, label);
+  assertGeneratedPathSafe(root, parts, label, "file");
+
+  const fullPath = rootPath(root, ...parts);
+  if (!lstatIfExists(fullPath) && !options.expectedState) return false;
+
+  options.beforeRemove?.({ targetPath: fullPath });
+  assertGeneratedPathSafe(root, parts, label, "file");
+  if (options.expectedState) assertExpectedGeneratedText(fullPath, options.expectedState.text, label);
+  rmSync(fullPath);
+  syncParentDirectoryBestEffort(fullPath);
+  return true;
 }
 
 export function writeGeneratedJsonIfMissing(root: string, relativePath: string, value: unknown, label = DEFAULT_GENERATED_LABEL): boolean {
@@ -139,6 +236,57 @@ function prepareGeneratedParent(root: string, parts: string[], label: string): v
   assertGeneratedPathSafe(root, parentParts, label, "directory");
   mkdirSync(parentPath, { recursive: true });
   assertGeneratedPathSafe(root, parentParts, label, "directory");
+}
+
+function writeAndSyncTemporaryFile(tempPath: string, value: string, existingMetadata: AtomicFileMetadata | undefined): void {
+  const descriptor = openSync(tempPath, "wx", existingMetadata?.mode ?? 0o666);
+  try {
+    writeFileSync(descriptor, value, "utf8");
+    if (existingMetadata !== undefined) {
+      if (process.platform !== "win32") fchownSync(descriptor, existingMetadata.uid, existingMetadata.gid);
+      fchmodSync(descriptor, existingMetadata.mode);
+    }
+    fsyncSync(descriptor);
+  } finally {
+    closeSync(descriptor);
+  }
+}
+
+function syncParentDirectoryBestEffort(fullPath: string): void {
+  if (process.platform === "win32") return;
+
+  let descriptor: number | undefined;
+  try {
+    descriptor = openSync(dirname(fullPath), "r");
+    fsyncSync(descriptor);
+  } catch {
+    // The file operation already committed; directory fsync is not portable enough to make it fail afterward.
+  } finally {
+    if (descriptor !== undefined) {
+      try {
+        closeSync(descriptor);
+      } catch {
+        // The file operation already committed; closing a best-effort durability descriptor must not reverse success.
+      }
+    }
+  }
+}
+
+function assertExpectedGeneratedText(fullPath: string, expectedText: string | undefined, label: string): void {
+  const currentStat = lstatIfExists(fullPath);
+  const matches = expectedText === undefined
+    ? currentStat === undefined
+    : currentStat !== undefined && readFileSync(fullPath, "utf8") === expectedText;
+  if (!matches) throw new Error(`${label} changed while it was being updated; preserved newer contents.`);
+}
+
+function attachCleanupError(primaryError: unknown, cleanupError: unknown): void {
+  if ((typeof primaryError !== "object" && typeof primaryError !== "function") || primaryError === null) return;
+  try {
+    Object.defineProperty(primaryError, "cleanupError", { value: cleanupError, configurable: true });
+  } catch {
+    // The primary failure is more important than cleanup diagnostics on a frozen or sealed error object.
+  }
 }
 
 function generatedPathParts(relativePath: string, label: string): string[] {

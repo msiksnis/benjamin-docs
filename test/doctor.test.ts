@@ -173,6 +173,113 @@ describe("doctor", () => {
   });
 
   for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`strict target mode rejects duplicate canonical ${target} starts`, () => {
+      withTempDir((dir) => {
+        runCliResult(["init", "--mode", "codebase", "--no-hooks"], dir);
+        runCliResult(["install-skill", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+        const cursor = target === "cursor";
+        const format = target === "codex" ? "codex" : cursor ? "cursor" : "claude";
+        const hookPath = join(dir, cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json");
+        const expectedCommand = `benjamin-docs session-start --format ${format}`;
+        const content = cursor
+          ? {
+              version: 1,
+              hooks: { sessionStart: [{ command: expectedCommand }, { command: expectedCommand }] },
+            }
+          : {
+              hooks: {
+                SessionStart: [
+                  { matcher: "startup|resume|clear", hooks: [{ type: "command", command: expectedCommand }] },
+                  { matcher: "startup|resume|clear", hooks: [{ type: "command", command: expectedCommand }] },
+                ],
+              },
+            };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        writeFileSync(hookPath, `${JSON.stringify(content, null, 2)}\n`);
+
+        const result = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+
+        assert.equal(result.status, 1);
+        assert.match(result.stdout, /session hook: not installed/);
+        assert.match(result.stdout, new RegExp(`hooks install --target ${target}`));
+      });
+    });
+  }
+
+  it("strict Cursor mode rejects misplaced and wrong-format commands beside its canonical start", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase", "--no-hooks"], dir);
+      runCliResult(["install-skill", "--target", "cursor"], dir, { BENJAMIN_DOCS_HOME: dir });
+      const hookPath = join(dir, ".cursor/hooks.json");
+      mkdirSync(join(dir, ".cursor"), { recursive: true });
+      writeFileSync(hookPath, `${JSON.stringify({
+        version: 1,
+        hooks: {
+          sessionStart: [
+            { command: "benjamin-docs session-start --format cursor" },
+            { command: "benjamin-docs session-start --format claude" },
+            { command: "benjamin-docs session-stop --format cursor" },
+          ],
+        },
+      }, null, 2)}\n`);
+
+      const result = runCliResult(["doctor", "--strict", "--target", "cursor"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /session hook: not installed/);
+      assert.match(result.stdout, /hooks install --target cursor/);
+    });
+  });
+
+  it("strict Cursor mode rejects an unsupported hook schema version", () => {
+    withTempDir((dir) => {
+      runCliResult(["init", "--mode", "codebase", "--no-hooks"], dir);
+      runCliResult(["install-skill", "--target", "cursor"], dir, { BENJAMIN_DOCS_HOME: dir });
+      const hookPath = join(dir, ".cursor/hooks.json");
+      mkdirSync(join(dir, ".cursor"), { recursive: true });
+      writeFileSync(hookPath, `${JSON.stringify({
+        version: 2,
+        hooks: { sessionStart: [{ command: "benjamin-docs session-start --format cursor" }] },
+      }, null, 2)}\n`);
+
+      const result = runCliResult(["doctor", "--strict", "--target", "cursor"], dir, { BENJAMIN_DOCS_HOME: dir });
+
+      assert.equal(result.status, 1);
+      assert.match(result.stdout, /session hook: not installed/);
+      assert.match(result.stdout, /hooks install --target cursor/);
+    });
+  });
+
+  for (const target of ["claude-code", "codex"] as const) {
+    it(`strict target mode rejects a valid ${target} start beside an incompatible group`, () => {
+      withTempDir((dir) => {
+        runCliResult(["init", "--mode", "codebase", "--no-hooks"], dir);
+        runCliResult(["install-skill", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+        const hookPath = join(dir, target === "codex" ? ".codex/hooks.json" : ".claude/settings.json");
+        const format = target === "codex" ? "codex" : "claude";
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        writeFileSync(hookPath, `${JSON.stringify({
+          hooks: {
+            SessionStart: [
+              {
+                matcher: "startup|resume|clear",
+                hooks: [{ type: "command", command: `benjamin-docs session-start --format ${format}` }],
+              },
+              { matcher: "user-event", hooks: { command: "echo user-owned" } },
+            ],
+          },
+        }, null, 2)}\n`);
+
+        const result = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+
+        assert.equal(result.status, 1);
+        assert.match(result.stdout, /session hook: not installed/);
+        assert.match(result.stdout, new RegExp(`hooks install --target ${target}`));
+      });
+    });
+  }
+
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
     it(`keeps a valid ${target} hook healthy beside nested custom command metadata`, () => {
       withTempDir((dir) => {
         runCliResult(["init", "--mode", "codebase", "--no-hooks"], dir);
