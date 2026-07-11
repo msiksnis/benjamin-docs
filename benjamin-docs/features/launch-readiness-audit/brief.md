@@ -30,6 +30,8 @@ Final migration-safety review also makes skill refresh path-safe and hook owners
 
 Final schema-health review makes ownership location-specific as well as command-specific. Only direct Claude/Codex group or `group.hooks[]` commands in `SessionStart`/`Stop`, and direct Cursor entries in `sessionStart`/`stop`, affect health, repair, upgrade, or uninstall. Nested custom command metadata and unrelated event names remain user-owned.
 
+Final cross-event review makes those direct locations symmetric: any Benjamin session command under Stop/stop is unsafe, and `session-stop` under SessionStart/sessionStart is misplaced. Repair removes both while retaining exactly one healthy target start command and preserving nested or prefixed user content.
+
 Audit date: 2026-07-10
 Audited version: 0.11.1 at commit 3705444
 Verdict: not ready for public positioning as a dependable standard

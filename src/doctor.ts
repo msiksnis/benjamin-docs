@@ -172,8 +172,10 @@ function strictDoctorErrors(
       if (hook && hook.status !== "installed") {
         errors.push(`${hook.label} session hook is ${hook.status}. Run: benjamin-docs hooks install --target ${target}`);
       }
-      if (hook?.legacyStop) {
-        errors.push(`${hook.label} legacy Benjamin stop hook detected. Run: benjamin-docs hooks install --target ${target}`);
+      if (hook?.unsafeStop) {
+        errors.push(hook.legacyStop
+          ? `${hook.label} legacy Benjamin stop hook detected. Run: benjamin-docs hooks install --target ${target}`
+          : `${hook.label} unsafe Benjamin command detected in Stop event. Run: benjamin-docs hooks install --target ${target}`);
       }
     }
   }

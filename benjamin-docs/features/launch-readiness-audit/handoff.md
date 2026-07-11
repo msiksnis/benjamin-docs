@@ -30,6 +30,8 @@ Final automatic-upgrade review closed the remaining destination and ownership ga
 
 Final schema-health review narrowed that ownership boundary to executable locations. Claude/Codex inspect only direct group commands and direct `group.hooks[]` entries in `SessionStart`/`Stop`; Cursor inspects only direct entries in `sessionStart`/`stop`. Nested custom command metadata and unrelated custom events remain byte-for-byte user data, cannot satisfy hook health or trigger legacy-stop diagnosis, and do not prevent idempotent upgrade.
 
+Final cross-event review completed the symmetry: either direct Benjamin session command under Stop/stop now makes status and strict doctor unhealthy, and a direct `session-stop` under SessionStart/sessionStart is removed as misplaced. Upgrade leaves exactly one healthy start entry, preserves nested/prefixed user content, and is current on its second run for all three targets.
+
 The final cross-schema pass keeps that rule limited to shared Claude/Codex groups. Cursor uses flat entries, so stale Benjamin entries are removed whole; exact-array regression coverage prevents commandless remnants.
 
 Executable plan:

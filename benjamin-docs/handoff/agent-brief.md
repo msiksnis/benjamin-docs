@@ -24,6 +24,8 @@ The current 0.12.0 migration contract is package update first, then one plain `b
 
 Skill refresh preflights every bundle destination across all four targets and fails before bundle I/O on symlinked or escaping paths, preserving external files and the prior version stamp. Hook ownership is command-start anchored and schema-local: Claude/Codex inspect direct group or `group.hooks[]` commands only in `SessionStart`/`Stop`, while Cursor inspects direct entries only in `sessionStart`/`stop`. Wrappers, prefixes, logging commands, nested custom metadata, and unrelated events survive health checks, upgrade, and uninstall.
 
+Within those direct schema locations, Stop/stop must contain no Benjamin session command; SessionStart/sessionStart may contain only the exact target start command. Status and strict doctor report an unsafe direct start under Stop as unhealthy, upgrade removes cross-event commands, and legacy stop hooks keep their narrower compatibility diagnostic.
+
 Completion evidence is fail-closed: `bdVersion` advances only after required skill refresh and hook migration succeed. Parseable hook files with incompatible user-owned container/event shapes are skipped unchanged and make upgrade fail, so version skew remains visible for repair.
 
 Legacy stop migration is property-scoped even for mixed direct-command groups: remove only the Benjamin-owned top-level command and preserve unrelated fields plus nested user hooks.

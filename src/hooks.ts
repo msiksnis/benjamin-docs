@@ -19,6 +19,8 @@ export interface HookTargetResult {
   path: string;
   status: "installed" | "repaired" | "already installed" | "removed" | "not installed" | "skipped";
   note?: string;
+  unsafeStop?: boolean;
+  /** @deprecated Use unsafeStop for current health checks. */
   legacyStop?: boolean;
 }
 
@@ -162,10 +164,13 @@ function checkHooksForTarget(root: string, target: HookTarget): HookTargetResult
   const health = inspectHookHealth(existing.value, target.id);
   return {
     ...target,
-    status: health.expectedStart ? "installed" : "not installed",
-    ...(health.legacyStop && {
-      legacyStop: true,
-      note: "Legacy Benjamin stop hook detected; reinstall this target to remove it.",
+    status: health.expectedStart && !health.unsafeStop ? "installed" : "not installed",
+    ...(health.unsafeStop && {
+      unsafeStop: true,
+      ...(health.legacyStop && { legacyStop: true }),
+      note: health.legacyStop
+        ? "Legacy Benjamin stop hook detected; reinstall this target to remove it."
+        : "Unsafe Benjamin command detected in Stop event; reinstall this target to remove it.",
     }),
   };
 }
@@ -198,10 +203,10 @@ function addSharedSchemaHooks(content: JsonObject, targetId: HookTargetId): bool
   const format = targetId === "codex" ? "codex" : "claude";
   const hooks = ensureObject(content, "hooks");
   const expectedStartCommand = sessionStartCommand(format);
-  const removedLegacyStop = removeBenjaminEntriesFromEvent(hooks, "Stop", "session-stop", undefined, true);
+  const removedUnsafeStop = removeBenjaminEntriesFromEvent(hooks, "Stop", "session-", undefined, true);
   const removedStaleStart = removeInvalidSharedSessionStartEntries(hooks, expectedStartCommand);
   const addedStart = addSharedSchemaEntry(hooks, "SessionStart", SHARED_SESSION_START_MATCHER, expectedStartCommand);
-  return removedLegacyStop || removedStaleStart || addedStart;
+  return removedUnsafeStop || removedStaleStart || addedStart;
 }
 
 function addSharedSchemaEntry(hooks: JsonObject, event: string, matcher: string | undefined, command: string): boolean {
@@ -228,15 +233,14 @@ function isExecutableCommandEntry(entry: unknown, expectedCommand: string): bool
 }
 
 function hasInvalidSharedSessionStartEntry(group: unknown, expectedCommand: string): boolean {
-  const commandMarker = "benjamin-docs session-start";
   if (typeof group !== "object" || group === null || Array.isArray(group)) return false;
 
   const groupObject = group as JsonObject;
-  if (entryHasCommandMarker(group, commandMarker)) return true;
+  if (entryHasMarker(group)) return true;
   if (!Array.isArray(groupObject.hooks)) return false;
 
   return groupObject.hooks.some((entry) => {
-    if (!entryHasCommandMarker(entry, commandMarker)) return false;
+    if (!entryHasMarker(entry)) return false;
     return groupObject.matcher !== SHARED_SESSION_START_MATCHER
       || !isExecutableCommandEntry(entry, expectedCommand);
   });
@@ -246,7 +250,6 @@ function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedComma
   const groups = hooks.SessionStart;
   if (!Array.isArray(groups)) return false;
 
-  const commandMarker = "benjamin-docs session-start";
   let changed = false;
   const keptGroups: unknown[] = [];
 
@@ -258,7 +261,7 @@ function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedComma
 
     const groupObject = group as JsonObject;
     let groupChanged = false;
-    if (entryHasCommandMarker(groupObject, commandMarker)) {
+    if (entryHasMarker(groupObject)) {
       delete groupObject.command;
       changed = true;
       groupChanged = true;
@@ -272,7 +275,7 @@ function removeInvalidSharedSessionStartEntries(hooks: JsonObject, expectedComma
 
     const supportedMatcher = groupObject.matcher === SHARED_SESSION_START_MATCHER;
     const keptEntries = entries.filter((entry) => {
-      if (!entryHasCommandMarker(entry, commandMarker)) return true;
+      if (!entryHasMarker(entry)) return true;
       const valid = supportedMatcher && isExecutableCommandEntry(entry, expectedCommand);
       if (!valid) changed = true;
       return valid;
@@ -326,8 +329,8 @@ function addCursorHooks(content: JsonObject): boolean {
   }
   const hooks = ensureObject(content, "hooks");
   const expectedStartCommand = sessionStartCommand("cursor");
-  changed = removeBenjaminEntriesFromEvent(hooks, "stop", "session-stop") || changed;
-  changed = removeBenjaminEntriesFromEvent(hooks, "sessionStart", "session-start", expectedStartCommand) || changed;
+  changed = removeBenjaminEntriesFromEvent(hooks, "stop", "session-") || changed;
+  changed = removeBenjaminEntriesFromEvent(hooks, "sessionStart", "session-", expectedStartCommand) || changed;
   changed = addCursorEntry(hooks, "sessionStart", { command: expectedStartCommand }) || changed;
 
   return changed;
@@ -467,10 +470,14 @@ function entryCommand(entry: unknown): string | undefined {
   return typeof command === "string" ? command : undefined;
 }
 
-function inspectHookHealth(content: JsonObject, targetId: HookTargetId): { expectedStart: boolean; legacyStop: boolean } {
+function inspectHookHealth(content: JsonObject, targetId: HookTargetId): {
+  expectedStart: boolean;
+  unsafeStop: boolean;
+  legacyStop: boolean;
+} {
   const hooks = content.hooks;
   if (typeof hooks !== "object" || hooks === null || Array.isArray(hooks)) {
-    return { expectedStart: false, legacyStop: false };
+    return { expectedStart: false, unsafeStop: false, legacyStop: false };
   }
 
   const hookMap = hooks as JsonObject;
@@ -479,15 +486,18 @@ function inspectHookHealth(content: JsonObject, targetId: HookTargetId): { expec
   const stopEvent = targetId === "cursor" ? "stop" : "Stop";
   const expectedCommand = sessionStartCommand(format);
 
+  const stopContains = (predicate: (command: string) => boolean): boolean => targetId === "cursor"
+    ? directEntriesContainCommand(hookMap[stopEvent], predicate)
+    : sharedGroupsContainCommand(hookMap[stopEvent], predicate);
+
   return {
     expectedStart: targetId === "cursor"
       ? directEntriesContainCommand(hookMap[startEvent], (command) => command === expectedCommand)
       : Array.isArray(hookMap[startEvent])
         && hookMap[startEvent].some((group) => isValidSharedSessionStartGroup(group, expectedCommand))
         && !hookMap[startEvent].some((group) => hasInvalidSharedSessionStartEntry(group, expectedCommand)),
-    legacyStop: targetId === "cursor"
-      ? directEntriesContainCommand(hookMap[stopEvent], (command) => commandStartsWithMarker(command, "benjamin-docs session-stop"))
-      : sharedGroupsContainCommand(hookMap[stopEvent], (command) => commandStartsWithMarker(command, "benjamin-docs session-stop")),
+    unsafeStop: stopContains(isBenjaminSessionCommand),
+    legacyStop: stopContains((command) => commandStartsWithMarker(command, "benjamin-docs session-stop")),
   };
 }
 

@@ -32,6 +32,8 @@ The final migration safety pass rejects symlinked skill files or folders before 
 
 Hook cleanup now follows each tool's executable schema exactly. Nested custom objects that happen to contain Benjamin command text do not count as installed or legacy hooks, are preserved during upgrade/uninstall, and cannot keep strict doctor unhealthy after the real executable hook is installed.
 
+Hook events are also repaired symmetrically: Stop/stop cannot directly run either Benjamin session command, and SessionStart/sessionStart cannot directly run `session-stop`. Upgrade removes those misplaced commands while keeping one correct start hook and leaving wrapped or nested user content alone.
+
 `benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
 
 0.10.0 added drift checks and session hooks. `bd drift` compares watched docs with committed Git history. Session-start hooks provide compact orientation and point agents to project memory; they do not load or verify every fact automatically. The 0.12.0 candidate removes stop-hook continuations so BD maintenance cannot replace or distort the final user response. For humans, the surface stays small: `init`, `ready`, `export`, and `help`, with advanced checks handled by agents.

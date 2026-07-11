@@ -325,6 +325,121 @@ describe("upgrade", () => {
     });
   }
 
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`repairs cross-event Benjamin commands for ${target} and becomes current`, () => {
+      withTempDir((dir) => {
+        withTempDir((home) => {
+          runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+            BENJAMIN_DOCS_HOME: home,
+          });
+          stripBdVersion(dir);
+          const cursor = target === "cursor";
+          const format = target === "codex" ? "codex" : cursor ? "cursor" : "claude";
+          const hookPath = join(dir, cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json");
+          const expectedStart = `benjamin-docs session-start --format ${format}`;
+          const directStop = `benjamin-docs session-stop --format ${format}`;
+          const nestedStart = { metadata: { command: expectedStart }, owner: "nested-start" };
+          const nestedStop = { metadata: { command: directStop }, owner: "nested-stop" };
+          const prefixedStart = { command: `echo ${expectedStart}`, owner: "prefixed-start" };
+          const prefixedStop = { command: `logger ${directStop}`, owner: "prefixed-stop" };
+          const content = cursor
+            ? {
+                version: 1,
+                hooks: {
+                  sessionStart: [
+                    nestedStart,
+                    prefixedStart,
+                    { command: expectedStart },
+                    { command: directStop, owner: "misplaced-stop" },
+                  ],
+                  stop: [
+                    nestedStop,
+                    prefixedStop,
+                    { command: expectedStart, owner: "unsafe-start" },
+                  ],
+                },
+              }
+            : {
+                hooks: {
+                  SessionStart: [
+                    nestedStart,
+                    {
+                      matcher: "startup|resume|clear",
+                      owner: "start-group",
+                      hooks: [
+                        { type: "command", ...prefixedStart },
+                        { type: "command", command: expectedStart },
+                        { type: "command", command: directStop, owner: "misplaced-stop" },
+                      ],
+                    },
+                  ],
+                  Stop: [
+                    nestedStop,
+                    {
+                      owner: "stop-group",
+                      hooks: [
+                        { type: "command", ...prefixedStop },
+                        { type: "command", command: expectedStart, owner: "unsafe-start" },
+                      ],
+                    },
+                  ],
+                },
+              };
+          mkdirSync(join(hookPath, ".."), { recursive: true });
+          writeFileSync(hookPath, `${JSON.stringify(content, null, 2)}\n`);
+
+          const before = runCliResult(["hooks", "status", "--target", target], dir);
+          assert.match(before.stdout, new RegExp(`not installed\\s+${target === "codex" ? "Codex CLI" : cursor ? "Cursor" : "Claude Code"}`));
+          assert.match(before.stdout, /unsafe Benjamin command.*Stop event/i);
+          const unhealthy = runCliResult(["doctor", "--strict", "--target", target], dir, {
+            BENJAMIN_DOCS_HOME: home,
+          });
+          assert.equal(unhealthy.status, 1);
+          assert.match(unhealthy.stdout, /unsafe Benjamin command.*Stop event/i);
+
+          const first = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+          assert.equal(first.status, 0, first.stderr || first.stdout);
+          assert.match(first.stdout, /Hooks: repaired/);
+          const repaired = JSON.parse(readFileSync(hookPath, "utf8")) as {
+            hooks: Record<string, unknown[]>;
+          };
+          assert.deepEqual(repaired.hooks, cursor
+            ? {
+                sessionStart: [nestedStart, prefixedStart, { command: expectedStart }],
+                stop: [nestedStop, prefixedStop],
+              }
+            : {
+                SessionStart: [nestedStart, {
+                  matcher: "startup|resume|clear",
+                  owner: "start-group",
+                  hooks: [
+                    { type: "command", ...prefixedStart },
+                    { type: "command", command: expectedStart },
+                  ],
+                }],
+                Stop: [nestedStop, {
+                  owner: "stop-group",
+                  hooks: [{ type: "command", ...prefixedStop }],
+                }],
+              });
+
+          const healthy = runCliResult(["doctor", "--strict", "--target", target], dir, {
+            BENJAMIN_DOCS_HOME: home,
+          });
+          assert.equal(healthy.status, 0, healthy.stdout);
+          assert.match(healthy.stdout, /session hook: installed/);
+          assert.doesNotMatch(healthy.stdout, /unsafe Benjamin command.*Stop event/i);
+
+          const afterFirst = readFileSync(hookPath, "utf8");
+          const second = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+          assert.equal(second.status, 0, second.stderr || second.stdout);
+          assert.match(second.stdout, new RegExp(`Hooks: already current for .*${target === "codex" ? "Codex CLI" : cursor ? "Cursor" : "Claude Code"}`));
+          assert.equal(readFileSync(hookPath, "utf8"), afterFirst);
+        });
+      });
+    });
+  }
+
   it("removes only a top-level legacy stop command from a mixed user-owned group", () => {
     withTempDir((dir) => {
       withTempDir((home) => {

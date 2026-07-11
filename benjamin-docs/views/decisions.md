@@ -50,6 +50,7 @@ Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 20
 - 2026-07-11: Treat the repository version stamp as completion evidence, not an attempted-upgrade marker. Preserve it on any required skill/hook failure, and fail closed without rewriting incompatible user-owned hook structures.
 - 2026-07-11: Preflight every selected skill bundle destination before bundle I/O and treat only command-start `benjamin-docs session-start|session-stop` forms as hook ownership. Reject symlinked or escaping skill targets as a whole migration; preserve wrappers, prefixes, and logging commands during repair and uninstall.
 - 2026-07-11: Enumerate hook ownership only at direct executable schema locations. Claude/Codex use direct group commands and direct `group.hooks[]` entries under `SessionStart`/`Stop`; Cursor uses direct entries under `sessionStart`/`stop`. Never infer ownership or health from nested custom objects or unrelated event names.
+- 2026-07-11: Make hook health and repair event-symmetric. Any schema-local direct Benjamin start or stop command under Stop/stop is unsafe; SessionStart/sessionStart may retain only the exact target start command. Preserve the narrower legacy-stop diagnostic for compatibility, but expose the broader unsafe-Stop health flag for truthful status and strict doctor output.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
