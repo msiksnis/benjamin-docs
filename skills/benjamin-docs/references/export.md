@@ -9,7 +9,7 @@ Teach people `bd export` or `benjamin-docs export` as the normal guided command.
 Agents and automation may use direct flags when the target is clear:
 
 - `bd export --list`
-- `bd export --verify <slug> --evidence "Checked: <what was inspected>; Result: <what matched, passed, failed, or was observed>."`
+- `bd export --verify <slug> --evidence "Checked: file:<repo path>, test:<name>, or manual:<workflow>; Result: <what matched, passed, failed, or was observed>."`
 - `bd export --feature <slug> --profile customer`
 - `bd export --feature <slug> --profile developer`
 - `bd export --type app --profile customer`
@@ -27,7 +27,7 @@ Before a customer-facing feature export:
 
 1. Verify the implementation against the Benjamin Docs source docs.
 2. Check documented behavior, limitations, roles, UI flow, and edge cases against the actual code.
-3. Record the check with `bd export --verify <slug> --evidence "Checked: <routes, components, tests, or manual workflow>; Result: <what matched, passed, failed, or was observed>."`. Both fields must be concrete; a marker or vague token is not evidence.
+3. Record the check with `bd export --verify <slug> --evidence "Checked: file:<repo path>, route:<route>, component:<name>, test:<name>, or manual:<workflow>; Result: <what matched, passed, failed, or was observed>."`. Name at least one typed artifact or check and give an observed result; a marker or vague token is not evidence.
 4. If docs are stale, thin, private-only, or missing implementation verification, update them before retrying.
 5. If `bd export` blocks with a readiness prompt, follow it first. Do not bypass a blocked customer export unless the user explicitly accepts the risk.
 

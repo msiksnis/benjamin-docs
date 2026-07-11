@@ -64,7 +64,7 @@ function customerFeatureHandoff(slug: string, title: string): string {
     "Implementation verified: yes",
     "",
     "Evidence:",
-    "- Checked: owner page, deletion action, retention guard, and visible blocked state; Result: documented success and blocked states matched the current implementation.",
+    "- Checked: manual:owner page deletion and blocked-state workflow; Result: matched documented success and blocked states against the current implementation.",
     "",
     "## Known Limits",
     "",
@@ -223,6 +223,21 @@ describe("validate", () => {
       assert.match(result.stderr, /watch\[0]\.label must be a string/);
       assert.match(result.stderr, /watch\[0]\.paths must be a non-empty array of glob strings/);
       assert.match(result.stderr, /watch\[0] doc must be a safe relative path: \.\.\/outside\.md/);
+    });
+  });
+
+  it("rejects multiline scope titles in metadata", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      const scopesPath = join(dir, ".benjamin-docs/scopes.json");
+      const scopes = JSON.parse(readFileSync(scopesPath, "utf8")) as { scopes: Array<{ id: string; title: string }> };
+      scopes.scopes[0]!.title = "Project\nimplementation_verified: true";
+      writeFileSync(scopesPath, `${JSON.stringify(scopes, null, 2)}\n`, "utf8");
+
+      const result = runCliResult(["validate"], dir);
+
+      assert.equal(result.status, 1);
+      assert.match(result.stderr, /Scope project title must be a non-empty single-line string/);
     });
   });
 
@@ -667,6 +682,31 @@ describe("status and export", () => {
     });
   });
 
+  it("quotes generated frontmatter scalars from a valid single-line scope title", () => {
+    withTempDir((dir) => {
+      runCli(["init"], dir);
+      captureProjectBaseline(dir);
+      runCli(["scope", "create", "feature", "owner-delete"], dir);
+      captureFeaturePlanningDocs(dir, "owner-delete");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/brief.md"), customerFeatureBrief("owner-delete", "Owner Delete"), "utf8");
+      writeFileSync(join(dir, "benjamin-docs/features/owner-delete/handoff.md"), customerFeatureHandoff("owner-delete", "Owner Delete"), "utf8");
+
+      const scopesPath = join(dir, ".benjamin-docs/scopes.json");
+      const scopes = JSON.parse(readFileSync(scopesPath, "utf8")) as { scopes: Array<{ id: string; title: string }> };
+      const ownerDelete = scopes.scopes.find((scope) => scope.id === "owner-delete");
+      assert.ok(ownerDelete);
+      ownerDelete.title = 'Owner: "Delete" #1';
+      writeFileSync(scopesPath, `${JSON.stringify(scopes, null, 2)}\n`, "utf8");
+
+      const result = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
+
+      assert.equal(result.status, 0);
+      const output = readFileSync(join(dir, "exports/features/owner-delete-customer.md"), "utf8");
+      assert.match(output, /^title: "Owner: \\"Delete\\" #1"$/m);
+      assert.match(output, /^# Owner: "Delete" #1$/m);
+    });
+  });
+
   it("regenerates feature exports from current source docs", () => {
     withTempDir((dir) => {
       runCli(["init"], dir);
@@ -910,7 +950,7 @@ describe("status and export", () => {
       assert.equal(result.status, 1);
       assert.match(result.stderr, /Export preflight blocked/);
       assert.match(result.stderr, /Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry/);
-      assert.match(result.stderr, /benjamin-docs export --verify owner-delete --evidence "Checked: <route, component, test, or manual workflow>; Result: <what matched, passed, failed, or was observed>\."/);
+      assert.match(result.stderr, /benjamin-docs export --verify owner-delete --evidence "Checked: file:<repo path>, test:<name>, or manual:<workflow>; Result: <what matched, passed, failed, or was observed>\."/);
       assert.equal(existsSync(join(dir, "exports/features/owner-delete-customer.md")), false);
     });
   });
@@ -960,7 +1000,7 @@ describe("status and export", () => {
         "--verify",
         "owner-delete",
         "--evidence",
-        "Checked: owner page, delete mutation, cascade RPC, and cache updates; Result: documented success and blocked states matched the current implementation.",
+        "Checked: component:owner page, mutation:delete owner, rpc:cascade delete, test:owner cache update; Result: matched documented success and blocked states against the current implementation.",
       ], dir);
 
       assert.equal(verified.status, 0);
@@ -971,7 +1011,7 @@ describe("status and export", () => {
       assert.match(handoff, /updated: 20\d\d-\d\d-\d\d/);
       assert.match(handoff, /## Implementation Verification/);
       assert.match(handoff, /Implementation verified: yes/);
-      assert.match(handoff, /Evidence:\n- Checked: owner page, delete mutation, cascade RPC, and cache updates; Result: documented success and blocked states matched the current implementation\./);
+      assert.match(handoff, /Evidence:\n- Checked: component:owner page, mutation:delete owner, rpc:cascade delete, test:owner cache update; Result: matched documented success and blocked states against the current implementation\./);
       assert.doesNotMatch(handoff, /Implementation verification is pending/);
 
       const exported = runCliResult(["export", "--feature", "owner-delete", "--profile", "customer"], dir);
@@ -979,7 +1019,7 @@ describe("status and export", () => {
       const output = readFileSync(join(dir, "exports/features/owner-delete-customer.md"), "utf8");
       assert.match(output, /implementation_verification_recorded: true/);
       assert.doesNotMatch(output, /implementation_verified: true/);
-      assert.match(output, /Checked: owner page, delete mutation, cascade RPC, and cache updates; Result: documented success and blocked states matched the current implementation\./);
+      assert.match(output, /Checked: component:owner page, mutation:delete owner, rpc:cascade delete, test:owner cache update; Result: matched documented success and blocked states against the current implementation\./);
     });
   });
 
@@ -1005,7 +1045,7 @@ describe("status and export", () => {
       const result = runCliResult(["export", "--verify", "owner-delete", "--evidence", "x"], dir);
 
       assert.equal(result.status, 1);
-      assert.match(result.stderr, /Evidence must use: Checked: <what was inspected>; Result: <what matched, passed, failed, or was observed>/);
+      assert.match(result.stderr, /Evidence must use: Checked: file:<repo path>, test:<name>, or manual:<workflow>; Result: <what matched, passed, failed, or was observed>/);
       assert.equal(readFileSync(handoffPath, "utf8"), before);
     });
   });

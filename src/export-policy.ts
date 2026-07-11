@@ -36,11 +36,13 @@ export interface ExportPreflightResult {
 }
 
 const ABSOLUTE_USER_HOME_PATHS = [
-  /(?:^|[^\w-])file:\/\/\/(?:Users|home)\/[^\s"'`<>()[\]{};,!?]+/im,
-  /(?:^|[^\w-])file:\/\/\/[a-z]:\/users\/[^\s"'`<>()[\]{};,!?]+/im,
   /(?:^|[^\w.:/\\-])\/(?:Users|home)\/[^\s"'`<>()[\]{};,!?]+/m,
   /(?:^|[^\w./\\-])[a-z]:[\\/]users[\\/][^\s"'`<>()[\]{};,!?]+/im,
 ];
+
+const FILE_URI_CANDIDATE = /file:[^\s"'`<>()[\]{};,!?]+/gi;
+const CHECKED_ARTIFACT_PATTERN = /(?:^|,\s*)(?:file|route|component|mutation|rpc|test|command|manual):\s*[^,;]{3,}/i;
+const OBSERVED_RESULT_PATTERN = /\b(?:matched|passed|failed|blocked|observed|returned|rendered|confirmed|succeeded|worked)\b/i;
 
 const STARTER_PHRASES = [
   "Capture what this project is, who it serves, and why it matters.",
@@ -241,7 +243,7 @@ function addCustomerFeatureFailures(
 
   if (!hasMarker || !hasConcreteEvidenceEntry(verification)) {
     repairs.push(feature
-      ? `Run: benjamin-docs export --verify ${feature.slug} --evidence "Checked: <route, component, test, or manual workflow>; Result: <what matched, passed, failed, or was observed>."`
+      ? `Run: benjamin-docs export --verify ${feature.slug} --evidence "Checked: file:<repo path>, test:<name>, or manual:<workflow>; Result: <what matched, passed, failed, or was observed>."`
       : `Add concrete 'Checked:' and 'Result:' evidence to ${handoffPath}`);
   }
 }
@@ -279,11 +281,33 @@ export function isConcreteVerificationEvidence(evidence: string): boolean {
   if (!match) return false;
   const checked = match[1]?.trim() ?? "";
   const result = match[2]?.trim() ?? "";
-  return checked.length >= 8 && result.length >= 8 && !/[<>]/.test(checked) && !/[<>]/.test(result);
+  return (
+    checked.length >= 8
+    && result.length >= 12
+    && !/[<>]/.test(checked)
+    && !/[<>]/.test(result)
+    && CHECKED_ARTIFACT_PATTERN.test(checked)
+    && OBSERVED_RESULT_PATTERN.test(result)
+  );
 }
 
 function containsAbsoluteUserPath(content: string): boolean {
-  return ABSOLUTE_USER_HOME_PATHS.some((pattern) => pattern.test(content));
+  return containsLocalFileUri(content) || ABSOLUTE_USER_HOME_PATHS.some((pattern) => pattern.test(content));
+}
+
+function containsLocalFileUri(content: string): boolean {
+  for (const candidate of content.match(FILE_URI_CANDIDATE) ?? []) {
+    try {
+      const url = new URL(candidate.replace(/\\/g, "/"));
+      if (url.protocol !== "file:") continue;
+      if (url.hostname && url.hostname.toLowerCase() !== "localhost") continue;
+      const path = decodeURIComponent(url.pathname).replace(/\\/g, "/");
+      if (/^\/(?:Users|home)\/[^/]+/i.test(path) || /^\/?[a-z]:\/users\/[^/]+/i.test(path)) return true;
+    } catch {
+      // Invalid file-like text is handled by the ordinary absolute-path patterns.
+    }
+  }
+  return false;
 }
 
 function unique(values: string[]): string[] {

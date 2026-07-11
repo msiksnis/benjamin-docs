@@ -31,7 +31,7 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 ## Validation And Review
 
-- `src/validate.ts` validates config (including `watch` rules), manifest, scopes, anchors, managed Markdown, links, and symlink/root safety.
+- `src/validate.ts` validates config (including `watch` rules), manifest, scopes (including single-line titles), anchors, managed Markdown, links, and symlink/root safety.
 - `src/review.ts` adds a higher-level docs-quality pass. It warns on starter-template text, thin baseline docs, missing expected docs, empty open-question docs, weak continuation proof, freshness blind spots for status-bearing docs, git churn since engineering docs last changed, missing inline-code path references, stale Memory Views, and changed source work that likely needs project-memory updates. Archived and stale docs are skipped for quality checks and changed-work watch warnings.
 - `src/git.ts` holds shared git helpers (`getChangedFiles`, `getCommittedChanges`, scalar and batched last-commit lookup, `gitCommitCountTouching`, `isReviewableSourceChange`) used by review, drift, and session commands. Filename-producing Git calls have an explicit 64 MiB buffer and return typed analysis failures; all Git child processes force `LC_ALL=C` and `LANG=C` while preserving the rest of the caller environment.
 - `src/context-budget.ts` owns the public character, token-estimate, search-result, and completion-note limits shared by session and MCP retrieval paths.

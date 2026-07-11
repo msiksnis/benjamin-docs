@@ -37,7 +37,7 @@ const customerFeatureSources: ExportPolicySource[] = [
   {
     path: "benjamin-docs/features/owner-delete/handoff.md",
     visibility: "unlisted",
-    content: "# Owner Delete Handoff\n\n## Implementation Verification\n\nImplementation verified: yes\n\nEvidence:\n- Checked: owner deletion page and delete action; Result: documented confirmation flow matched the current implementation.",
+    content: "# Owner Delete Handoff\n\n## Implementation Verification\n\nImplementation verified: yes\n\nEvidence:\n- Checked: component:owner deletion page and mutation:delete owner; Result: matched the documented confirmation flow against the current implementation.",
   },
 ];
 
@@ -165,7 +165,7 @@ describe("export publication policy", () => {
     assert.ok(result.reasons.includes("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry."));
     assert.ok(result.requiredRepairs.includes("Add a 'What It Is' section to benjamin-docs/features/owner-delete/brief.md"));
     assert.ok(result.requiredRepairs.includes("Add a 'How To Use It' section to benjamin-docs/features/owner-delete/brief.md"));
-    assert.ok(result.requiredRepairs.includes('Run: benjamin-docs export --verify owner-delete --evidence "Checked: <route, component, test, or manual workflow>; Result: <what matched, passed, failed, or was observed>."'));
+    assert.ok(result.requiredRepairs.includes('Run: benjamin-docs export --verify owner-delete --evidence "Checked: file:<repo path>, test:<name>, or manual:<workflow>; Result: <what matched, passed, failed, or was observed>."'));
   });
 
   it("rejects an implementation marker without evidence", () => {
@@ -179,7 +179,7 @@ describe("export publication policy", () => {
 
     assert.equal(result.allowed, false);
     assert.ok(result.reasons.includes("Customer-facing feature export requires an Implementation Verification section with a verified marker and at least one evidence entry."));
-    assert.ok(result.requiredRepairs.includes('Run: benjamin-docs export --verify owner-delete --evidence "Checked: <route, component, test, or manual workflow>; Result: <what matched, passed, failed, or was observed>."'));
+    assert.ok(result.requiredRepairs.includes('Run: benjamin-docs export --verify owner-delete --evidence "Checked: file:<repo path>, test:<name>, or manual:<workflow>; Result: <what matched, passed, failed, or was observed>."'));
   });
 
   it("rejects an empty implementation evidence entry", () => {
@@ -199,6 +199,19 @@ describe("export publication policy", () => {
     const sources = customerFeatureSources.map((source) =>
       source.path.endsWith("/handoff.md")
         ? { ...source, content: "# Owner Delete Handoff\n\n## Implementation Verification\n\nImplementation verified: yes\n\nEvidence:\n- x" }
+        : source,
+    );
+
+    const result = preflight(customerFeatureOperation, sources);
+
+    assert.equal(result.allowed, false);
+    assert.ok(result.reasons.includes("Customer-facing feature export requires concrete implementation evidence with both Checked and Result details."));
+  });
+
+  it("rejects generic Checked and Result placeholders without an identifiable check", () => {
+    const sources = customerFeatureSources.map((source) =>
+      source.path.endsWith("/handoff.md")
+        ? { ...source, content: "# Owner Delete Handoff\n\n## Implementation Verification\n\nImplementation verified: yes\n\nEvidence:\n- Checked: something; Result: something" }
         : source,
     );
 
@@ -331,7 +344,14 @@ describe("export publication policy", () => {
     });
   }
 
-  for (const path of ["file:///Users/alice/project", "file:///home/alice/project", "file:///C:/Users/alice/project"] as const) {
+  for (const path of [
+    "file:///Users/alice/project",
+    "file:///home/alice/project",
+    "file:///C:/Users/alice/project",
+    "file://localhost/Users/alice/project",
+    "file:/Users/alice/project",
+    "file://localhost/C:/Users/alice/project",
+  ] as const) {
     it(`blocks customer output containing the local file URI ${path}`, () => {
       const sources = customerFeatureSources.map((source, index) =>
         index === 0 ? { ...source, content: `${source.content}\n\nLocal checkout: ${path}` } : source,

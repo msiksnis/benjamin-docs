@@ -263,6 +263,10 @@ function validateScopes(root: string, realRoot: string, scopes: ScopesFile, erro
     if (seenScopeIds.has(scope.id)) errors.push(`Duplicate scope id: ${scope.id}`);
     seenScopeIds.add(scope.id);
 
+    if (!scope.title.trim() || /[\r\n]/.test(scope.title)) {
+      errors.push(`Scope ${scope.id} title must be a non-empty single-line string`);
+    }
+
     if (!KNOWN_SCOPES.includes(scope.kind)) {
       errors.push(`Scope ${scope.id} has unknown kind: ${scope.kind}`);
     }

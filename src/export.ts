@@ -361,8 +361,8 @@ function toPolicySource(source: SourceDoc | { relativePath: string; parsed: Pars
 function assertVerificationEvidence(evidence: string): void {
   if (isConcreteVerificationEvidence(evidence)) return;
   throw new Error(
-    "Evidence must use: Checked: <what was inspected>; Result: <what matched, passed, failed, or was observed>.\n"
-      + "Usage: benjamin-docs export --verify <feature> --evidence \"Checked: ...; Result: ...\"",
+    "Evidence must use: Checked: file:<repo path>, test:<name>, or manual:<workflow>; Result: <what matched, passed, failed, or was observed>.\n"
+      + "Usage: benjamin-docs export --verify <feature> --evidence \"Checked: file:src/example.ts, test:example workflow; Result: matched documented behavior.\"",
   );
 }
 
@@ -536,7 +536,7 @@ function renderCustomerFeatureExport(root: string, scope: ScopeRecord, sources: 
     profile: "customer",
     detail,
     sources,
-    extraFrontmatter: [`source_scope: ${scope.id}`, "implementation_verification_recorded: true"],
+    extraFrontmatter: { source_scope: scope.id, implementation_verification_recorded: true },
     sections,
   });
 }
@@ -554,7 +554,7 @@ function renderDeveloperFeatureExport(root: string, scope: ScopeRecord, sources:
     profile: "developer",
     detail,
     sources,
-    extraFrontmatter: [`source_scope: ${scope.id}`],
+    extraFrontmatter: { source_scope: scope.id },
     sections: detailSections(sections, detail),
   });
 }
@@ -698,25 +698,28 @@ function renderExportDocument(options: {
   detail: ExportDetail;
   sources: SourceDoc[];
   sections: Array<[string, string]>;
-  extraFrontmatter?: string[];
+  extraFrontmatter?: Record<string, string | boolean>;
 }): string {
   const git = getGitState(options.root);
   const sections = options.sections.filter((section): section is [string, string] => Boolean(section[1]?.trim()));
+  const frontmatter: Record<string, string | boolean | string[]> = {
+    title: options.title,
+    export_type: options.exportType,
+    export_profile: options.profile,
+    export_detail: options.detail,
+    source_docs: options.sources.map((source) => source.relativePath),
+    source_docs_updated: latestSourceUpdate(options.sources),
+    source_commit: git.commit,
+    source_dirty: git.dirty,
+    exported_at: new Date().toISOString(),
+    generated: true,
+    refresh: "Regenerate this file with bd export after Benjamin Docs source docs or implementation changes.",
+    ...(options.extraFrontmatter ?? {}),
+  };
 
   return [
     "---",
-    `title: ${options.title}`,
-    `export_type: ${options.exportType}`,
-    `export_profile: ${options.profile}`,
-    `export_detail: ${options.detail}`,
-    `source_docs: [${options.sources.map((source) => source.relativePath).join(", ")}]`,
-    `source_docs_updated: ${latestSourceUpdate(options.sources)}`,
-    `source_commit: ${git.commit}`,
-    `source_dirty: ${git.dirty}`,
-    `exported_at: "${new Date().toISOString()}"`,
-    "generated: true",
-    "refresh: Regenerate this file with bd export after Benjamin Docs source docs or implementation changes.",
-    ...(options.extraFrontmatter ?? []),
+    ...Object.entries(frontmatter).map(([key, value]) => `${key}: ${formatYamlScalar(value)}`),
     "---",
     "",
     `# ${options.title}`,
@@ -725,6 +728,10 @@ function renderExportDocument(options: {
     "",
     ...sections.flatMap(([heading, body]) => [`## ${heading}`, "", formatSectionBody(body, options.detail), ""]),
   ].join("\n");
+}
+
+function formatYamlScalar(value: string | boolean | string[]): string {
+  return typeof value === "boolean" ? String(value) : JSON.stringify(value);
 }
 
 function detailSections(sections: Array<[string, string | undefined]>, detail: ExportDetail): Array<[string, string]> {
