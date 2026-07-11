@@ -28,6 +28,8 @@ Removal is schema-aware: the property-level rule applies to Claude/Codex shared 
 
 Final migration-safety review also makes skill refresh path-safe and hook ownership conservative. Upgrade preflights all four skill destinations before bundle I/O and rejects symlinked or escaping targets without changing external files or the prior version stamp. Repair and uninstall own only commands that begin with the Benjamin start/stop executable form; wrappers and logging commands that merely mention it remain user-owned.
 
+Final schema-health review makes ownership location-specific as well as command-specific. Only direct Claude/Codex group or `group.hooks[]` commands in `SessionStart`/`Stop`, and direct Cursor entries in `sessionStart`/`stop`, affect health, repair, upgrade, or uninstall. Nested custom command metadata and unrelated event names remain user-owned.
+
 Audit date: 2026-07-10
 Audited version: 0.11.1 at commit 3705444
 Verdict: not ready for public positioning as a dependable standard

@@ -36,6 +36,8 @@ The cross-schema regression asserts complete Cursor arrays: flat stale start/sto
 
 The final automatic-upgrade review regressions cover two additional trust boundaries. Skill installation preflights every bundle file across all selected targets before bundle I/O, so symlinked files/directories cannot redirect writes outside the resolved home or cause partial earlier-target writes. Claude Code, Codex, and Cursor upgrade/uninstall tests prove that prefixed start and stop mentions survive structurally unchanged while real malformed or legacy Benjamin commands are repaired or removed.
 
+The final schema-health regressions cover all three target formats with nested custom start/stop command metadata. Custom-only files remain not installed until an exact executable hook is added; valid executable hooks beside that metadata remain healthy; strict doctor passes after upgrade; second upgrade is current; and uninstall ignores both nested metadata and unrelated custom events while removing real direct Benjamin entries.
+
 ## Product Invariants
 
 ### User-facing response

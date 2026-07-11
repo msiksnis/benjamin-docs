@@ -221,6 +221,110 @@ describe("upgrade", () => {
     });
   });
 
+  it("ignores nested Cursor custom command metadata during health and upgrade", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        stripBdVersion(dir);
+        const hookPath = join(dir, ".cursor/hooks.json");
+        const customStart = { custom: { command: "benjamin-docs session-start --format cursor" }, owner: "user-start" };
+        const customStop = { custom: { command: "benjamin-docs session-stop --format cursor" }, owner: "user-stop" };
+        mkdirSync(join(dir, ".cursor"), { recursive: true });
+        writeFileSync(hookPath, `${JSON.stringify({
+          version: 1,
+          hooks: { sessionStart: [customStart], stop: [customStop] },
+        }, null, 2)}\n`);
+
+        const before = runCliResult(["hooks", "status", "--target", "cursor"], dir);
+        assert.match(before.stdout, /not installed\s+Cursor/);
+
+        const first = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+        assert.equal(first.status, 0, first.stderr || first.stdout);
+        assert.match(first.stdout, /Hooks: installed for .*Cursor/);
+        const upgraded = JSON.parse(readFileSync(hookPath, "utf8")) as {
+          hooks: { sessionStart: unknown[]; stop: unknown[] };
+        };
+        assert.deepEqual(upgraded.hooks, {
+          sessionStart: [customStart, { command: "benjamin-docs session-start --format cursor" }],
+          stop: [customStop],
+        });
+
+        const healthy = runCliResult(["doctor", "--strict", "--target", "cursor"], dir, {
+          BENJAMIN_DOCS_HOME: home,
+        });
+        assert.equal(healthy.status, 0, healthy.stdout);
+        assert.match(healthy.stdout, /session hook: installed/);
+        assert.doesNotMatch(healthy.stdout, /legacy Benjamin stop hook detected/i);
+
+        const second = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+        assert.equal(second.status, 0, second.stderr || second.stdout);
+        assert.match(second.stdout, /Hooks: already current for .*Cursor/);
+        assert.deepEqual(JSON.parse(readFileSync(hookPath, "utf8")), upgraded);
+      });
+    });
+  });
+
+  for (const target of ["claude-code", "codex"] as const) {
+    it(`ignores nested ${target} custom command metadata during health and upgrade`, () => {
+      withTempDir((dir) => {
+        withTempDir((home) => {
+          runCliResult(["init", "--mode", "codebase", "--no-agent-contract", "--no-hooks"], dir, {
+            BENJAMIN_DOCS_HOME: home,
+          });
+          stripBdVersion(dir);
+          const codex = target === "codex";
+          const format = codex ? "codex" : "claude";
+          const hookPath = join(dir, codex ? ".codex/hooks.json" : ".claude/settings.json");
+          const customStart = {
+            matcher: "user-event",
+            metadata: { command: `benjamin-docs session-start --format ${format}` },
+            owner: "user-start",
+          };
+          const customStop = {
+            metadata: { command: `benjamin-docs session-stop --format ${format}` },
+            owner: "user-stop",
+          };
+          mkdirSync(join(hookPath, ".."), { recursive: true });
+          writeFileSync(hookPath, `${JSON.stringify({
+            hooks: { SessionStart: [customStart], Stop: [customStop] },
+          }, null, 2)}\n`);
+
+          const before = runCliResult(["hooks", "status", "--target", target], dir);
+          assert.match(before.stdout, new RegExp(`not installed\\s+${codex ? "Codex CLI" : "Claude Code"}`));
+          assert.doesNotMatch(before.stdout, /legacy Benjamin stop hook detected/i);
+
+          const first = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+          assert.equal(first.status, 0, first.stderr || first.stdout);
+          assert.match(first.stdout, new RegExp(`Hooks: installed for .*${codex ? "Codex CLI" : "Claude Code"}`));
+          const upgraded = JSON.parse(readFileSync(hookPath, "utf8")) as {
+            hooks: { SessionStart: unknown[]; Stop: unknown[] };
+          };
+          assert.deepEqual(upgraded.hooks, {
+            SessionStart: [customStart, {
+              matcher: "startup|resume|clear",
+              hooks: [{ type: "command", command: `benjamin-docs session-start --format ${format}` }],
+            }],
+            Stop: [customStop],
+          });
+
+          const healthy = runCliResult(["doctor", "--strict", "--target", target], dir, {
+            BENJAMIN_DOCS_HOME: home,
+          });
+          assert.equal(healthy.status, 0, healthy.stdout);
+          assert.match(healthy.stdout, /session hook: installed/);
+          assert.doesNotMatch(healthy.stdout, /legacy Benjamin stop hook detected/i);
+
+          const second = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
+          assert.equal(second.status, 0, second.stderr || second.stdout);
+          assert.match(second.stdout, new RegExp(`Hooks: already current for .*${codex ? "Codex CLI" : "Claude Code"}`));
+          assert.deepEqual(JSON.parse(readFileSync(hookPath, "utf8")), upgraded);
+        });
+      });
+    });
+  }
+
   it("removes only a top-level legacy stop command from a mixed user-owned group", () => {
     withTempDir((dir) => {
       withTempDir((home) => {

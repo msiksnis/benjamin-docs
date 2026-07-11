@@ -451,6 +451,53 @@ describe("hooks", () => {
     });
   }
 
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`uninstalls only direct ${target} commands in target schema events`, () => {
+      withTempDir((dir) => {
+        const cursor = target === "cursor";
+        const hookPath = cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
+        const format = target === "codex" ? "codex" : cursor ? "cursor" : "claude";
+        const customEvent = [{ command: `benjamin-docs session-start --format ${format}`, owner: "custom-event" }];
+        const nestedStart = { metadata: { command: `benjamin-docs session-start --format ${format}` }, owner: "nested-start" };
+        const nestedStop = { metadata: { command: `benjamin-docs session-stop --format ${format}` }, owner: "nested-stop" };
+        const content = cursor
+          ? {
+              version: 1,
+              hooks: {
+                sessionStart: [nestedStart, { command: `benjamin-docs session-start --format ${format}` }],
+                stop: [nestedStop, { command: `benjamin-docs session-stop --format ${format}` }],
+                CustomEvent: customEvent,
+              },
+            }
+          : {
+              hooks: {
+                SessionStart: [
+                  nestedStart,
+                  { matcher: "startup|resume|clear", hooks: [{ type: "command", command: `benjamin-docs session-start --format ${format}` }] },
+                ],
+                Stop: [
+                  nestedStop,
+                  { hooks: [{ type: "command", command: `benjamin-docs session-stop --format ${format}` }] },
+                ],
+                CustomEvent: customEvent,
+              },
+            };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        writeFileSync(join(dir, hookPath), `${JSON.stringify(content, null, 2)}\n`);
+
+        const result = runCliResult(["hooks", "uninstall", "--target", target], dir);
+        const updated = JSON.parse(readFileSync(join(dir, hookPath), "utf8")) as {
+          hooks: Record<string, unknown[]>;
+        };
+
+        assert.equal(result.status, 0);
+        assert.deepEqual(updated.hooks.CustomEvent, customEvent);
+        assert.deepEqual(updated.hooks[cursor ? "sessionStart" : "SessionStart"], [nestedStart]);
+        assert.deepEqual(updated.hooks[cursor ? "stop" : "Stop"], [nestedStop]);
+      });
+    });
+  }
+
   it("preserves unparseable hook files and reports them as skipped", () => {
     withTempDir((dir) => {
       mkdirSync(join(dir, ".claude"), { recursive: true });

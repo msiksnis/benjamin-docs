@@ -28,6 +28,8 @@ Final re-review also closed the adjacent legacy-stop mixed-group case: upgrade r
 
 Final automatic-upgrade review closed the remaining destination and ownership gaps. All skill targets are preflighted before bundle I/O; symlinked or escaping destinations fail without touching external victims, earlier targets, or the prior `bdVersion`. Hook repair and uninstall recognize only command-start Benjamin session commands, preserving wrapped/prefixed start and stop mentions for Claude Code, Codex, and Cursor.
 
+Final schema-health review narrowed that ownership boundary to executable locations. Claude/Codex inspect only direct group commands and direct `group.hooks[]` entries in `SessionStart`/`Stop`; Cursor inspects only direct entries in `sessionStart`/`stop`. Nested custom command metadata and unrelated custom events remain byte-for-byte user data, cannot satisfy hook health or trigger legacy-stop diagnosis, and do not prevent idempotent upgrade.
+
 The final cross-schema pass keeps that rule limited to shared Claude/Codex groups. Cursor uses flat entries, so stale Benjamin entries are removed whole; exact-array regression coverage prevents commandless remnants.
 
 Executable plan:

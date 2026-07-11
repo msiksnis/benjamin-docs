@@ -22,7 +22,7 @@ The maintainer accepted the trust-first direction. The program plan is `benjamin
 
 The current 0.12.0 migration contract is package update first, then one plain `bd upgrade` in each initialized repository. It refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and Claude Code/Codex/Cursor session-start hooks; removes legacy Benjamin stop hooks; and preserves user-owned configuration. Never require a separate hook command. Use `bd upgrade --no-hooks` only when the environment must opt out.
 
-Skill refresh preflights every bundle destination across all four targets and fails before bundle I/O on symlinked or escaping paths, preserving external files and the prior version stamp. Hook ownership is command-start anchored; wrappers, prefixes, and logging commands that only mention Benjamin start or stop survive both upgrade and uninstall.
+Skill refresh preflights every bundle destination across all four targets and fails before bundle I/O on symlinked or escaping paths, preserving external files and the prior version stamp. Hook ownership is command-start anchored and schema-local: Claude/Codex inspect direct group or `group.hooks[]` commands only in `SessionStart`/`Stop`, while Cursor inspects direct entries only in `sessionStart`/`stop`. Wrappers, prefixes, logging commands, nested custom metadata, and unrelated events survive health checks, upgrade, and uninstall.
 
 Completion evidence is fail-closed: `bdVersion` advances only after required skill refresh and hook migration succeed. Parseable hook files with incompatible user-owned container/event shapes are skipped unchanged and make upgrade fail, so version skew remains visible for repair.
 

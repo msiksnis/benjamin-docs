@@ -172,6 +172,56 @@ describe("doctor", () => {
     });
   });
 
+  for (const target of ["claude-code", "codex", "cursor"] as const) {
+    it(`keeps a valid ${target} hook healthy beside nested custom command metadata`, () => {
+      withTempDir((dir) => {
+        runCliResult(["init", "--mode", "codebase", "--no-hooks"], dir);
+        runCliResult(["install-skill", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
+        const cursor = target === "cursor";
+        const format = target === "codex" ? "codex" : cursor ? "cursor" : "claude";
+        const hookPath = join(dir, cursor ? ".cursor/hooks.json" : target === "codex" ? ".codex/hooks.json" : ".claude/settings.json");
+        const nestedStart = { metadata: { command: `benjamin-docs session-start --format ${format}` }, owner: "custom-start" };
+        const nestedStop = { metadata: { command: `benjamin-docs session-stop --format ${format}` }, owner: "custom-stop" };
+        const content = cursor
+          ? {
+              version: 1,
+              hooks: {
+                sessionStart: [nestedStart, { command: `benjamin-docs session-start --format ${format}` }],
+                stop: [nestedStop],
+              },
+            }
+          : {
+              hooks: {
+                SessionStart: [{
+                  matcher: "startup|resume|clear",
+                  hooks: [
+                    nestedStart,
+                    { type: "command", command: `benjamin-docs session-start --format ${format}` },
+                  ],
+                }],
+                Stop: [nestedStop],
+              },
+            };
+        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        writeFileSync(hookPath, `${JSON.stringify(content, null, 2)}\n`);
+
+        const status = runCliResult(["hooks", "status", "--target", target], dir);
+        assert.match(status.stdout, /installed\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.doesNotMatch(status.stdout, /legacy Benjamin stop hook detected/i);
+
+        const doctor = runCliResult(["doctor", "--strict", "--target", target], dir, {
+          BENJAMIN_DOCS_HOME: dir,
+        });
+        assert.equal(doctor.status, 0, doctor.stdout);
+        assert.match(doctor.stdout, /session hook: installed/);
+
+        const install = runCliResult(["hooks", "install", "--target", target], dir);
+        assert.match(install.stdout, /already installed\s+(Claude Code|Codex CLI|Cursor)/);
+        assert.deepEqual(JSON.parse(readFileSync(hookPath, "utf8")), content);
+      });
+    });
+  }
+
   for (const target of ["claude-code", "codex"] as const) {
     const hookPath = target === "codex" ? ".codex/hooks.json" : ".claude/settings.json";
     const format = target === "codex" ? "codex" : "claude";

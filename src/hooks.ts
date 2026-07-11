@@ -90,7 +90,7 @@ function installHooksForTarget(root: string, target: HookTarget): HookTargetResu
       note: `Existing ${target.path} has an incompatible hook structure (${incompatibleStructure}). Preserved unchanged; add the Benjamin Docs hooks manually.`,
     };
   }
-  const hadBenjaminHook = eventContainsCommand(content, isBenjaminSessionCommand);
+  const hadBenjaminHook = targetContainsCommand(content, target.id, isBenjaminSessionCommand);
   const changed = target.id === "cursor" ? addCursorHooks(content) : addSharedSchemaHooks(content, target.id);
   if (!changed) {
     return { ...target, status: "already installed" };
@@ -229,15 +229,14 @@ function isExecutableCommandEntry(entry: unknown, expectedCommand: string): bool
 
 function hasInvalidSharedSessionStartEntry(group: unknown, expectedCommand: string): boolean {
   const commandMarker = "benjamin-docs session-start";
-  if (!eventContainsCommand(group, (command) => commandStartsWithMarker(command, commandMarker))) return false;
-  if (typeof group !== "object" || group === null || Array.isArray(group)) return true;
+  if (typeof group !== "object" || group === null || Array.isArray(group)) return false;
 
   const groupObject = group as JsonObject;
   if (entryHasCommandMarker(group, commandMarker)) return true;
-  if (!Array.isArray(groupObject.hooks)) return true;
+  if (!Array.isArray(groupObject.hooks)) return false;
 
   return groupObject.hooks.some((entry) => {
-    if (!eventContainsCommand(entry, (command) => commandStartsWithMarker(command, commandMarker))) return false;
+    if (!entryHasCommandMarker(entry, commandMarker)) return false;
     return groupObject.matcher !== SHARED_SESSION_START_MATCHER
       || !isExecutableCommandEntry(entry, expectedCommand);
   });
@@ -308,7 +307,7 @@ function removeSharedSchemaHooks(content: JsonObject): boolean {
   const hookMap = hooks as JsonObject;
   let changed = false;
 
-  for (const event of Object.keys(hookMap)) {
+  for (const event of ["SessionStart", "Stop"]) {
     changed = removeBenjaminEntriesFromEvent(hookMap, event, "session-", undefined, true) || changed;
   }
 
@@ -421,7 +420,7 @@ function removeCursorHooks(content: JsonObject): boolean {
   const hookMap = hooks as JsonObject;
   let changed = false;
 
-  for (const event of Object.keys(hookMap)) {
+  for (const event of ["sessionStart", "stop"]) {
     const entries = hookMap[event];
     if (!Array.isArray(entries)) continue;
 
@@ -482,20 +481,43 @@ function inspectHookHealth(content: JsonObject, targetId: HookTargetId): { expec
 
   return {
     expectedStart: targetId === "cursor"
-      ? eventContainsCommand(hookMap[startEvent], (command) => command === expectedCommand)
+      ? directEntriesContainCommand(hookMap[startEvent], (command) => command === expectedCommand)
       : Array.isArray(hookMap[startEvent])
         && hookMap[startEvent].some((group) => isValidSharedSessionStartGroup(group, expectedCommand))
         && !hookMap[startEvent].some((group) => hasInvalidSharedSessionStartEntry(group, expectedCommand)),
-    legacyStop: eventContainsCommand(hookMap[stopEvent], (command) => commandStartsWithMarker(command, "benjamin-docs session-stop")),
+    legacyStop: targetId === "cursor"
+      ? directEntriesContainCommand(hookMap[stopEvent], (command) => commandStartsWithMarker(command, "benjamin-docs session-stop"))
+      : sharedGroupsContainCommand(hookMap[stopEvent], (command) => commandStartsWithMarker(command, "benjamin-docs session-stop")),
   };
 }
 
-function eventContainsCommand(value: unknown, predicate: (command: string) => boolean): boolean {
-  if (Array.isArray(value)) return value.some((entry) => eventContainsCommand(entry, predicate));
-  if (typeof value !== "object" || value === null) return false;
-  const object = value as JsonObject;
-  return (typeof object.command === "string" && predicate(object.command))
-    || Object.values(object).some((entry) => eventContainsCommand(entry, predicate));
+function targetContainsCommand(
+  content: JsonObject,
+  targetId: HookTargetId,
+  predicate: (command: string) => boolean,
+): boolean {
+  const hooks = content.hooks;
+  if (typeof hooks !== "object" || hooks === null || Array.isArray(hooks)) return false;
+  const hookMap = hooks as JsonObject;
+  return targetId === "cursor"
+    ? directEntriesContainCommand(hookMap.sessionStart, predicate) || directEntriesContainCommand(hookMap.stop, predicate)
+    : sharedGroupsContainCommand(hookMap.SessionStart, predicate) || sharedGroupsContainCommand(hookMap.Stop, predicate);
+}
+
+function directEntriesContainCommand(value: unknown, predicate: (command: string) => boolean): boolean {
+  return Array.isArray(value) && value.some((entry) => {
+    const command = entryCommand(entry);
+    return command !== undefined && predicate(command);
+  });
+}
+
+function sharedGroupsContainCommand(value: unknown, predicate: (command: string) => boolean): boolean {
+  return Array.isArray(value) && value.some((group) => {
+    const groupCommand = entryCommand(group);
+    if (groupCommand !== undefined && predicate(groupCommand)) return true;
+    if (typeof group !== "object" || group === null || Array.isArray(group)) return false;
+    return directEntriesContainCommand((group as JsonObject).hooks, predicate);
+  });
 }
 
 function isEmptyHookFile(content: JsonObject, targetId: HookTargetId): boolean {
