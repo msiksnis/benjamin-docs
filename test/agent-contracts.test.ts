@@ -17,17 +17,13 @@ describe("agent contracts", () => {
       assert.match(content, /<!-- benjamin-docs:start -->/);
       assert.match(content, /<!-- benjamin-docs:end -->/);
       assert.match(content, /\.benjamin-docs\/config\.json/);
-      assert.match(content, /benjamin-docs\/project\/brief\.md/);
-      assert.match(content, /After code, config, schema, test, workflow, or product behavior changes/);
-      assert.match(content, /run `benjamin-docs review --changed`/);
-      assert.match(content, /benjamin-docs ready/);
-      assert.ok(content.includes("Complete Benjamin Docs maintenance before writing the final user-facing answer."));
-      assert.ok(content.includes("Never let Benjamin Docs bookkeeping replace, delay, or materially change that answer."));
-      assert.ok(
-        content.includes(
-          "Reading memory alone needs no mention. After a durable memory update, an optional final note must be one short sentence, for example: `Benjamin Docs updated: checkout handoff.`",
-        ),
-      );
+      assert.match(content, /task-scoped retrieval/);
+      assert.match(content, /do not read the memory tree/);
+      assert.match(content, /durable fact/);
+      assert.doesNotMatch(content, /Before project or code changes, read/);
+      assert.doesNotMatch(content, /Complete Benjamin Docs maintenance before writing/);
+      assert.match(content, /at handoff, release, or explicit memory-maintenance boundaries/);
+      assert.ok(content.includes("Benjamin Docs bookkeeping must never delay or replace the substantive user-facing answer."));
       const start = content.indexOf("<!-- benjamin-docs:start -->");
       const end = content.indexOf("<!-- benjamin-docs:end -->") + "<!-- benjamin-docs:end -->".length;
       assert.ok(end > start);

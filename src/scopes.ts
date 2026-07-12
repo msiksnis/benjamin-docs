@@ -75,6 +75,14 @@ export function setScopeStatus(root: string, id: string, status: string): ScopeS
   scope.status = docStatus;
   writeGeneratedJson(root, scopesPath, scopes, METADATA_LABEL);
 
+  if (docStatus === "archived") {
+    const config = readConfig(root);
+    const label = `feature/${scope.id}`;
+    if (config.watch?.some((rule) => rule.label === label)) {
+      writeGeneratedJson(root, `${CONFIG_DIR}/${CONFIG_FILE}`, { ...config, watch: config.watch.filter((rule) => rule.label !== label) }, METADATA_LABEL);
+    }
+  }
+
   const manifest = readGeneratedJson<ManifestFile>(root, `${CONFIG_DIR}/${MANIFEST_FILE}`, METADATA_LABEL);
   const scopeDocs = manifest.docs
     .filter((docPath) => docPath === scope.path || docPath.startsWith(`${scope.path}/`))

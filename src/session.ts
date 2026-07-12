@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { CONFIG_DIR } from "./constants.js";
 import { CONTEXT_BUDGETS, truncateAtBoundary } from "./context-budget.js";
-import { detectDrift } from "./drift.js";
 import { getChangedFiles, isReviewableSourceChange } from "./git.js";
 import { rootPath } from "./fsx.js";
 import { getPackageVersion } from "./info.js";
@@ -19,8 +18,6 @@ import type { BenjaminDocsConfig } from "./types.js";
 import { beginSessionTracking, evaluateSessionStop, type SessionHookInput } from "./session-state.js";
 
 export type SessionHookFormat = "claude" | "codex" | "cursor";
-
-const DRIFT_LINE_LIMIT = 3;
 
 export function getSessionStartContext(root: string, commandPath?: string): string {
   if (!existsSync(rootPath(root, CONFIG_DIR, "config.json"))) return "";
@@ -48,15 +45,6 @@ export function getSessionStartContext(root: string, commandPath?: string): stri
   }
 
   const optionalLines: string[] = [];
-  const drift = detectDrift(root);
-  if (drift.gitAvailable && drift.drifted.length > 0) {
-    const top = drift.drifted.slice(0, DRIFT_LINE_LIMIT).map((entry) => entry.doc);
-    const more = drift.drifted.length - top.length;
-    optionalLines.push(
-      `Drift: ${drift.drifted.length} ${drift.drifted.length === 1 ? "doc is" : "docs are"} behind watched code changes: ${top.join(", ")}${more > 0 ? ` (+${more} more)` : ""}. Re-verify and update them while you work. Details: benjamin-docs drift`,
-    );
-  }
-
   const currentVersion = getPackageVersion();
   if (!config.bdVersion || compareVersions(currentVersion, config.bdVersion) > 0) {
     optionalLines.push(

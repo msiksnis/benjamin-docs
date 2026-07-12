@@ -215,24 +215,12 @@ function rootContractSection(docsRoot: string, childPaths: string[]): string {
 
 - Project memory lives in \`${docsRoot}/\`.
 - Machine metadata lives in \`.benjamin-docs/config.json\` and sibling files.
-- Before project or code changes, read the most relevant Benjamin docs first:
-  - \`${docsRoot}/project/brief.md\`
-  - \`${docsRoot}/project/roadmap.md\`
-  - \`${docsRoot}/project/open-questions.md\`
-  - \`${docsRoot}/handoff/agent-brief.md\`
-- Update Benjamin docs when durable decisions, workflows, architecture, risks, or handoff context change.
-- Use feature docs for distinct features or changes; use handoff docs for continuation context.
-- After code, config, schema, test, workflow, or product behavior changes, review docs impact before final response.
-- Complete Benjamin Docs maintenance before writing the final user-facing answer.
-- Never let Benjamin Docs bookkeeping replace, delay, or materially change that answer.
-- Reading memory alone needs no mention. After a durable memory update, an optional final note must be one short sentence, for example: \`Benjamin Docs updated: checkout handoff.\`
-- Feature docs are not enough when project-level memory becomes stale; update roadmap, architecture, code map, changelog, or handoff docs when those facts change.
-- When a feature ships or is abandoned, run \`benjamin-docs scope status <slug> archived\` so derived views stay current.
-- Prefer concrete evidence: code paths, commands, decisions, risks, and next actions.
-- Do not dump raw transcripts unless the user explicitly asks for an archive.
-- Preserve the user's intent, but call out weak assumptions, contradictions, and useful alternatives.
-- Run \`benjamin-docs drift\` to see docs whose watched code changed after the doc last changed; re-verify and update them.
-- Before claiming handoff readiness, run \`benjamin-docs review --changed\` when git history is available, then \`benjamin-docs ready\`.
+- Start with \`${docsRoot}/project/agent-context.md\` only when it is relevant; do not read the memory tree by default.
+- Use task-scoped retrieval: open only documents that answer the current task, then verify against code where possible.
+- Update memory only when a durable fact, constraint, decision, workflow, or active continuation state changed. Routine localized work needs no Benjamin edit.
+- Keep active memory current and compact. Archive completed feature scopes; remove resolved next actions and superseded status instead of preserving narration.
+- Use \`benjamin-docs review --changed\`, \`drift\`, \`views\`, or \`ready\` at handoff, release, or explicit memory-maintenance boundaries—not as routine-task ceremony.
+- Benjamin Docs bookkeeping must never delay or replace the substantive user-facing answer.
 ${childIndex}${END_MARKER}`;
 }
 

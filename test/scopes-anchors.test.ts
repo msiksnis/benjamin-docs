@@ -116,6 +116,8 @@ describe("scopes and anchors", () => {
       assert.equal(scopes.scopes.find((scope) => scope.id === "booking-capacity")?.status, "archived");
       assert.match(readFileSync(join(dir, "benjamin-docs/features/booking-capacity/brief.md"), "utf8"), /status: archived/);
       assert.match(readFileSync(join(dir, "benjamin-docs/features/booking-capacity/handoff.md"), "utf8"), /status: archived/);
+      const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { watch?: Array<{ label?: string }> };
+      assert.equal(config.watch?.some((rule) => rule.label === "feature/booking-capacity"), false);
     });
   });
 

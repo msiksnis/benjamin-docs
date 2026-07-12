@@ -168,6 +168,7 @@ export function reviewProject(root: string, options: ReviewOptions = {}): Review
   let docsChecked = 0;
   for (const doc of manifestDocs) {
     if (!doc.endsWith(".md")) continue;
+    if (doc.startsWith(`${docsRoot}/views/`)) continue;
 
     let fullPath;
     try {
@@ -304,6 +305,16 @@ function reviewFreshnessCoverage(root: string, docsRoot: string, manifestDocs: s
 }
 
 function isFreshnessSensitiveDoc(docsRoot: string, doc: string, frontmatter: ReturnType<typeof parseMarkdown>["frontmatter"]): boolean {
+  if (
+    [
+      `${docsRoot}/project/agent-context.md`,
+      `${docsRoot}/project/roadmap.md`,
+      `${docsRoot}/handoff/human-brief.md`,
+      `${docsRoot}/handoff/agent-brief.md`,
+    ].includes(doc)
+  ) {
+    return false;
+  }
   if (frontmatter.freshness === "status") return true;
   if (
     [

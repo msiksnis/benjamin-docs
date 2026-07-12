@@ -12,6 +12,10 @@ freshness: status
 
 # Project Brief
 
+## Lightweight Memory Contract (2026-07-12)
+
+Benjamin Docs stores only durable, hard-to-recover project facts. Agent startup uses one compact routing document; localized work does not require a memory update, and Git retains ordinary implementation history.
+
 ## Dependable Standard Direction
 
 The maintainer accepted the 2026-07-10 launch-audit verdict and trust-first program. Version 0.11.1 is not yet a dependable standard. The immediate target is 0.12.0, implemented through `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`.

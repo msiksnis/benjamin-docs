@@ -14,29 +14,27 @@
         "**/database.types.*"
       ],
       "docs": [
-        "benjamin-docs/project/brief.md",
-        "benjamin-docs/project/roadmap.md",
-        "benjamin-docs/handoff/human-brief.md",
-        "benjamin-docs/handoff/agent-brief.md",
         "benjamin-docs/engineering/architecture.md",
-        "benjamin-docs/engineering/code-map.md",
-        "benjamin-docs/releases/changelog.md"
+        "benjamin-docs/project/brief.md"
       ]
     },
     {
       "label": "application code",
       "paths": [
         "src/**",
-        "skills/**"
+        "app/**",
+        "apps/**",
+        "lib/**",
+        "pages/**",
+        "components/**",
+        "server/**",
+        "api/**",
+        "cmd/**",
+        "internal/**",
+        "pkg/**"
       ],
       "docs": [
-        "benjamin-docs/project/brief.md",
-        "benjamin-docs/project/roadmap.md",
-        "benjamin-docs/handoff/human-brief.md",
-        "benjamin-docs/handoff/agent-brief.md",
-        "benjamin-docs/engineering/architecture.md",
-        "benjamin-docs/engineering/code-map.md",
-        "benjamin-docs/releases/changelog.md"
+        "benjamin-docs/engineering/code-map.md"
       ]
     },
     {
@@ -54,16 +52,20 @@
       "label": "configuration/workflow",
       "paths": [
         "package.json",
+        "*.config.*",
         "tsconfig*.json",
         ".github/workflows/**",
-        "pnpm-workspace.yaml"
+        "Dockerfile",
+        "docker-compose*",
+        "pyproject.toml",
+        "Cargo.toml",
+        "go.mod",
+        "pom.xml",
+        "Gemfile",
+        "composer.json"
       ],
       "docs": [
-        "benjamin-docs/project/roadmap.md",
-        "benjamin-docs/handoff/agent-brief.md",
-        "benjamin-docs/engineering/architecture.md",
-        "benjamin-docs/engineering/code-map.md",
-        "benjamin-docs/releases/changelog.md"
+        "benjamin-docs/engineering/architecture.md"
       ]
     },
     {
@@ -77,156 +79,7 @@
         "AGENTS.md"
       ],
       "docs": [
-        "benjamin-docs/project/brief.md",
-        "benjamin-docs/project/roadmap.md",
-        "benjamin-docs/project/open-questions.md",
-        "benjamin-docs/handoff/human-brief.md",
-        "benjamin-docs/handoff/agent-brief.md",
-        "benjamin-docs/features/index.md"
-      ]
-    },
-    {
-      "label": "feature/freshness-and-lifecycle",
-      "paths": [
-        "src/**",
-        "skills/**",
-        "test/**",
-        "**/*.test.*",
-        "README.md",
-        "docs/**",
-        ".claude/**",
-        ".cursor/**"
-      ],
-      "docs": [
-        "benjamin-docs/features/freshness-and-lifecycle/brief.md",
-        "benjamin-docs/features/freshness-and-lifecycle/plan.md",
-        "benjamin-docs/features/freshness-and-lifecycle/decisions.md",
-        "benjamin-docs/features/freshness-and-lifecycle/handoff.md"
-      ]
-    },
-    {
-      "label": "feature/guided-export-workflow",
-      "paths": [
-        "src/**",
-        "app/**",
-        "apps/**",
-        "lib/**",
-        "pages/**",
-        "components/**",
-        "server/**",
-        "api/**",
-        "**/*.sql",
-        "**/migrations/**",
-        "README.md",
-        "docs/**",
-        ".claude/**",
-        ".cursor/**"
-      ],
-      "docs": [
-        "benjamin-docs/features/guided-export-workflow/brief.md",
-        "benjamin-docs/features/guided-export-workflow/plan.md",
-        "benjamin-docs/features/guided-export-workflow/decisions.md",
-        "benjamin-docs/features/guided-export-workflow/handoff.md"
-      ]
-    },
-    {
-      "label": "feature/agent-reliability",
-      "paths": [
-        "src/**",
-        "app/**",
-        "apps/**",
-        "lib/**",
-        "pages/**",
-        "components/**",
-        "server/**",
-        "api/**",
-        "**/*.sql",
-        "**/migrations/**",
-        "README.md",
-        "docs/**",
-        ".claude/**",
-        ".cursor/**"
-      ],
-      "docs": [
-        "benjamin-docs/features/agent-reliability/brief.md",
-        "benjamin-docs/features/agent-reliability/plan.md",
-        "benjamin-docs/features/agent-reliability/decisions.md",
-        "benjamin-docs/features/agent-reliability/handoff.md"
-      ]
-    },
-    {
-      "label": "feature/drift-and-session-hooks",
-      "paths": [
-        "src/**",
-        "app/**",
-        "apps/**",
-        "lib/**",
-        "pages/**",
-        "components/**",
-        "server/**",
-        "api/**",
-        "**/*.sql",
-        "**/migrations/**",
-        "README.md",
-        "docs/**",
-        ".claude/**",
-        ".cursor/**"
-      ],
-      "docs": [
-        "benjamin-docs/features/drift-and-session-hooks/brief.md",
-        "benjamin-docs/features/drift-and-session-hooks/plan.md",
-        "benjamin-docs/features/drift-and-session-hooks/decisions.md",
-        "benjamin-docs/features/drift-and-session-hooks/handoff.md"
-      ]
-    },
-    {
-      "label": "feature/mcp-memory-server",
-      "paths": [
-        "src/**",
-        "app/**",
-        "apps/**",
-        "lib/**",
-        "pages/**",
-        "components/**",
-        "server/**",
-        "api/**",
-        "**/*.sql",
-        "**/migrations/**",
-        "README.md",
-        "docs/**",
-        ".claude/**",
-        ".cursor/**"
-      ],
-      "docs": [
-        "benjamin-docs/features/mcp-memory-server/brief.md",
-        "benjamin-docs/features/mcp-memory-server/plan.md",
-        "benjamin-docs/features/mcp-memory-server/decisions.md",
-        "benjamin-docs/features/mcp-memory-server/handoff.md"
-      ]
-    },
-    {
-      "label": "feature/launch-readiness-audit",
-      "paths": [
-        "src/**",
-        "app/**",
-        "apps/**",
-        "lib/**",
-        "pages/**",
-        "components/**",
-        "server/**",
-        "api/**",
-        "**/*.sql",
-        "**/migrations/**",
-        "README.md",
-        "docs/**",
-        ".claude/**",
-        ".cursor/**"
-      ],
-      "docs": [
-        "benjamin-docs/features/launch-readiness-audit/brief.md",
-        "benjamin-docs/features/launch-readiness-audit/plan.md",
-        "benjamin-docs/features/launch-readiness-audit/decisions.md",
-        "benjamin-docs/features/launch-readiness-audit/handoff.md"
+        "benjamin-docs/project/brief.md"
       ]
     }
   ],

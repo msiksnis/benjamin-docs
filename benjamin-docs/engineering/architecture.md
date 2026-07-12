@@ -122,3 +122,7 @@ Cross-platform output uses slash-normalized project and home-relative paths even
 ## Current Architectural Bias
 
 Keep BD boring and local. The next architecture work is Release Train B, Impact Evidence: durable update/no-impact/deferred/blocker records tied to source identity. Hosted services, sync, dashboards, and plugin infrastructure remain deferred.
+
+### Lightweight Default (2026-07-12)
+
+Session startup reads only the compact `project/agent-context.md` routing source. Git drift detection, views, review, and readiness are explicit boundary operations, not startup work. Default watch mappings are intentionally narrow; archived feature scopes remove their watch rules.

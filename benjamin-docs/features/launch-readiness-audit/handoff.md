@@ -3,7 +3,7 @@ title: launch-readiness-audit Handoff
 scope: feature
 scope_id: launch-readiness-audit
 audience: [developer, agent]
-status: approved
+status: archived
 visibility: public
 updated: 2026-07-12
 source: manual

@@ -155,8 +155,8 @@ export async function main(argv: string[] = process.argv.slice(2), cwd: string =
   }
 
   if (command === "upgrade") {
-    const hooksOption = await resolveUpgradeHooksOption(argv.slice(1));
-    const result = await runUpgrade(cwd, { hooks: hooksOption });
+    const options = await parseUpgradeOptions(argv.slice(1));
+    const result = await runUpgrade(cwd, options);
     console.log(result.output);
     return result.ok ? 0 : 1;
   }
@@ -467,24 +467,29 @@ function parseReviewArgs(args: string[]): ReviewOptions {
   return options;
 }
 
-async function resolveUpgradeHooksOption(args: string[]): Promise<boolean | undefined> {
-  let hooks: boolean | undefined;
+async function parseUpgradeOptions(args: string[]): Promise<{ hooks?: boolean; dryRun?: boolean }> {
+  const options: { hooks?: boolean; dryRun?: boolean } = {};
 
   for (const arg of args) {
     if (arg === "--hooks") {
-      hooks = true;
+      options.hooks = true;
       continue;
     }
 
     if (arg === "--no-hooks") {
-      hooks = false;
+      options.hooks = false;
       continue;
     }
 
-    throw new Error("Usage: benjamin-docs upgrade [--hooks|--no-hooks]");
+    if (arg === "--dry-run") {
+      options.dryRun = true;
+      continue;
+    }
+
+    throw new Error("Usage: benjamin-docs upgrade [--hooks|--no-hooks] [--dry-run]");
   }
 
-  return hooks;
+  return options;
 }
 
 interface McpArgs {

@@ -3,8 +3,8 @@ import { CONTEXT_BUDGETS } from "./context-budget.js";
 export const SESSION_START_HEADER = "Benjamin Docs memory is active.";
 export const SESSION_START_DOCS_ROOT_PREFIX = "Docs root: ";
 export const SESSION_START_READ_FIRST_PREFIX = "Read first: ";
-export const SESSION_START_READ_FIRST_DOCS = ["handoff/agent-brief.md", "views/agent-continuation.md"] as const;
-export const SESSION_START_CLOSEOUT = "Keep durable memory current. Before handoff: bd ready.";
+export const SESSION_START_READ_FIRST_DOCS = ["project/agent-context.md"] as const;
+export const SESSION_START_CLOSEOUT = "Use task-scoped retrieval; update memory only for durable facts.";
 export const SESSION_START_OVERFLOW_SUFFIX = " Run bd status for details.";
 
 const REQUIRED_SESSION_CONTEXT_WITHOUT_DOCS_ROOT = [

@@ -59,6 +59,33 @@ function seedLegacyIntegrations(dir: string, home: string): void {
 }
 
 describe("upgrade", () => {
+  it("reports and safely applies the lightweight default migration", () => {
+    withTempDir((dir) => {
+      withTempDir((home) => {
+        runCliResult(["init", "--mode", "codebase", "--agent-contract", "--no-hooks"], dir, { BENJAMIN_DOCS_HOME: home });
+        const configPath = join(dir, ".benjamin-docs/config.json");
+        const config = JSON.parse(readFileSync(configPath, "utf8")) as { watch: Array<{ label?: string; paths: string[]; docs: string[] }> };
+        config.watch[0].docs = ["benjamin-docs/project/brief.md", "benjamin-docs/project/roadmap.md", "benjamin-docs/handoff/agent-brief.md"];
+        config.watch.push({ label: "deliberate custom", paths: ["custom/**"], docs: ["benjamin-docs/project/roadmap.md", "benjamin-docs/handoff/agent-brief.md", "benjamin-docs/project/open-questions.md"] });
+        writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
+        const context = join(dir, "benjamin-docs/project/agent-context.md");
+        writeFileSync(context, "old context\n");
+
+        const preview = runCliResult(["upgrade", "--dry-run"], dir, { BENJAMIN_DOCS_HOME: home });
+        assert.equal(preview.status, 0);
+        assert.match(preview.stdout, /would narrow 1 legacy default rule/);
+        assert.equal(readFileSync(context, "utf8"), "old context\n");
+
+        const applied = runCliResult(["upgrade", "--no-hooks"], dir, { BENJAMIN_DOCS_HOME: home });
+        assert.equal(applied.status, 0);
+        assert.match(applied.stdout, /narrowed 1 legacy default rule/);
+        const after = JSON.parse(readFileSync(configPath, "utf8")) as { watch: Array<{ label?: string; paths: string[]; docs: string[] }> };
+        assert.equal(after.watch.find((rule) => rule.label === "database/schema")?.docs.length, 2);
+        assert.equal(after.watch.find((rule) => rule.label === "deliberate custom")?.docs.length, 3);
+      });
+    });
+  });
+
   it("fails before any skill write when a skill directory is symlinked outside home", () => {
     withTempDir((dir) => {
       withTempDir((home) => {
@@ -105,7 +132,7 @@ describe("upgrade", () => {
         runCliResult(["init", "--mode", "codebase"], dir, { BENJAMIN_DOCS_HOME: home });
         stripBdVersion(dir);
         const agentsPath = join(dir, "AGENTS.md");
-        writeFileSync(agentsPath, readFileSync(agentsPath, "utf8").replace(/- Run `benjamin-docs drift`[^\n]*\n/, ""));
+        writeFileSync(agentsPath, readFileSync(agentsPath, "utf8").replace(/- Use task-scoped retrieval[^\n]*\n/, ""));
 
         const result = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
 
@@ -118,7 +145,7 @@ describe("upgrade", () => {
 
         const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { bdVersion?: string };
         assert.ok(config.bdVersion);
-        assert.match(readFileSync(agentsPath, "utf8"), /benjamin-docs drift/);
+        assert.match(readFileSync(agentsPath, "utf8"), /task-scoped retrieval/);
 
         const again = runCliResult(["upgrade"], dir, { BENJAMIN_DOCS_HOME: home });
         assert.match(again.stdout, /Project metadata already records CLI /);

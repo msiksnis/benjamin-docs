@@ -75,7 +75,7 @@ Deterministic checks do not prove semantic truth. They prove only the configured
 
 After updating the package, run `bd upgrade` once in each initialized repository. It refreshes Benjamin-owned project metadata, agent guidance, the current skill bundle, existing Memory Views, and session-start hooks for Claude Code, Codex, and Cursor. It removes legacy Benjamin stop hooks while preserving user-owned configuration. No separate hook command is required. Use `bd upgrade --no-hooks` only when the environment must opt out of hooks.
 
-`session-start` supplies a compact pointer/context packet: the memory root, read-first files, and bounded freshness hints. It does not load the whole memory tree or guarantee that the agent reads every document. Benjamin Docs never needs to alter the substantive final answer; agents maintain durable memory during normal work and answer the original request completely.
+`session-start` supplies one compact routing pointer (`project/agent-context.md`) plus bounded freshness hints. The routing document directs task-scoped retrieval; it must not become a second handoff or a mandatory memory-tree read. Benjamin Docs never needs to alter the substantive final answer; routine localized work does not require a memory edit.
 
 Advanced hook management remains available through `bd hooks install|status|uninstall`.
 
@@ -89,7 +89,7 @@ MCP-capable agents can search, read, update, record decisions, and inspect statu
 
 ## Freshness And Derived Views
 
-`bd drift` compares watched docs with committed Git history. `bd review --changed` accounts for the full working tree. `bd views` regenerates derived lenses for decisions, open questions, risks, next actions, and continuation context.
+`bd drift` compares watched docs with committed Git history. `bd review --changed` accounts for the full working tree. `bd views` regenerates optional derived lenses for decisions, open questions, risks, next actions, and continuation context; views are never startup context.
 
 ```bash
 bd drift
@@ -99,6 +99,8 @@ bd ready
 ```
 
 Views are generated from managed source docs; they are not a second source of truth.
+
+Run these checks at a handoff, release, or explicit memory-maintenance boundary—not reflexively after every code edit. Archiving a feature removes its dedicated watch rule, and `bd upgrade --dry-run` previews lightweight migration before changing guidance or default-derived watch rules.
 
 ## Safe Exports And Visibility
 

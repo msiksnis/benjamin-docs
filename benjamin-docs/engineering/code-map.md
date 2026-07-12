@@ -62,6 +62,12 @@ Use this map when changing CLI behavior, generated docs, validation, or agent-sk
 
 ## Skills And Packaging
 
+### Lightweight Context Paths (2026-07-12)
+
+- `src/session-context.ts` emits one routing pointer and never runs drift detection.
+- `src/agent-contracts.ts` emits task-scoped guidance rather than a required reading list.
+- `src/watch.ts`, `src/scopes.ts`, and `src/upgrade.ts` keep default and archived-scope fan-out bounded.
+
 - `skills/benjamin-docs/SKILL.md` is the bundled agent skill. It is the source of truth for agent behavior across Codex, Cursor, Claude Code, and Claude Desktop upload.
 - `src/install-skill.ts` installs the skill into shared and app-specific local skill folders. It preflights every selected bundle destination with the shared filesystem safety layer before bundle reads or writes, rejecting symlinked/escaping paths and non-directory ancestors; all-target upgrade therefore cannot partially write earlier targets before discovering an unsafe later one.
 - `src/package-skill.ts` creates `~/Downloads/benjamin-docs-skill.zip` for Claude Desktop / Claude.ai upload.

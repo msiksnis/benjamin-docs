@@ -1,21 +1,15 @@
 import type { BenjaminDocsConfig, WatchRule } from "./types.js";
 
 export function defaultWatchRules(docsRoot: string): WatchRule[] {
-  const projectBrief = `${docsRoot}/project/brief.md`;
-  const roadmap = `${docsRoot}/project/roadmap.md`;
-  const openQuestions = `${docsRoot}/project/open-questions.md`;
-  const humanBrief = `${docsRoot}/handoff/human-brief.md`;
   const architecture = `${docsRoot}/engineering/architecture.md`;
   const codeMap = `${docsRoot}/engineering/code-map.md`;
-  const featuresIndex = `${docsRoot}/features/index.md`;
-  const changelog = `${docsRoot}/releases/changelog.md`;
-  const agentBrief = `${docsRoot}/handoff/agent-brief.md`;
+  const projectBrief = `${docsRoot}/project/brief.md`;
 
   return [
     {
       label: "database/schema",
       paths: ["**/*.sql", "**/migrations/**", "**/*.prisma", "db/schema.rb", "**/database.types.*"],
-      docs: [projectBrief, roadmap, humanBrief, agentBrief, architecture, codeMap, changelog],
+      docs: [architecture, projectBrief],
     },
     {
       label: "application code",
@@ -32,12 +26,12 @@ export function defaultWatchRules(docsRoot: string): WatchRule[] {
         "internal/**",
         "pkg/**",
       ],
-      docs: [projectBrief, roadmap, humanBrief, agentBrief, architecture, codeMap, changelog],
+      docs: [codeMap],
     },
     {
       label: "tests",
       paths: ["test/**", "tests/**", "spec/**", "**/*.test.*", "**/*.spec.*", "**/*_test.go", "**/*_test.py"],
-      docs: [agentBrief, codeMap],
+      docs: [codeMap],
     },
     {
       label: "configuration/workflow",
@@ -55,12 +49,12 @@ export function defaultWatchRules(docsRoot: string): WatchRule[] {
         "Gemfile",
         "composer.json",
       ],
-      docs: [roadmap, agentBrief, architecture, codeMap, changelog],
+      docs: [architecture],
     },
     {
       label: "project memory/status",
       paths: ["README.md", "docs/**", "tasks/**", ".claude/**", ".cursor/**", "AGENTS.md"],
-      docs: [projectBrief, roadmap, openQuestions, humanBrief, agentBrief, featuresIndex],
+      docs: [projectBrief],
     },
   ];
 }

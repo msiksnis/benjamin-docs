@@ -49,8 +49,8 @@ describe("init", () => {
       assert.equal(existsSync(join(dir, ".benjamin-docs/scopes.json")), true);
       assert.equal(existsSync(join(dir, ".benjamin-docs/anchors.json")), true);
       assert.match(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8"), /"docsRoot": "benjamin-docs"/);
-      assert.match(readFileSync(join(dir, "benjamin-docs/handoff/agent-brief.md"), "utf8"), /## Continuation Proof/);
-      assert.match(readFileSync(join(dir, "benjamin-docs/handoff/agent-brief.md"), "utf8"), /## Commands And Checks/);
+      assert.equal(existsSync(join(dir, "benjamin-docs/project/agent-context.md")), true);
+      assert.match(readFileSync(join(dir, "benjamin-docs/project/agent-context.md"), "utf8"), /Keep this file compact/);
       assert.match(output, /Next, ask your agent:/);
       assert.match(output, /Use plain language/);
       assert.match(output, /run `benjamin-docs views`, then `benjamin-docs ready`/);
@@ -63,7 +63,7 @@ describe("init", () => {
       const result = runCliResult(["init", "--docs-root", docsRoot, "--no-agent-contract", "--no-hooks"], dir);
 
       assert.equal(result.status, 1);
-      assert.match(result.stderr, /docs root must be at most 209 characters/i);
+      assert.match(result.stderr, new RegExp(`docs root must be at most ${MAX_DOCS_ROOT_CHARACTERS} characters`, "i"));
       assert.equal(existsSync(join(dir, docsRoot)), false);
     });
   });
@@ -83,15 +83,10 @@ describe("init", () => {
       assert.ok(labels.includes("application code"));
       const watchedDocs = new Set((config.watch ?? []).flatMap((rule) => rule.docs));
       assert.ok(watchedDocs.has("benjamin-docs/project/brief.md"));
-      assert.ok(watchedDocs.has("benjamin-docs/project/roadmap.md"));
-      assert.ok(watchedDocs.has("benjamin-docs/project/open-questions.md"));
-      assert.ok(watchedDocs.has("benjamin-docs/handoff/human-brief.md"));
-      assert.ok(watchedDocs.has("benjamin-docs/handoff/agent-brief.md"));
-      assert.ok(watchedDocs.has("benjamin-docs/features/index.md"));
       assert.ok(watchedDocs.has("benjamin-docs/engineering/architecture.md"));
       assert.ok(watchedDocs.has("benjamin-docs/engineering/code-map.md"));
-      assert.ok(watchedDocs.has("benjamin-docs/releases/changelog.md"));
       assert.ok((config.watch ?? []).every((rule) => rule.paths.length > 0 && rule.docs.length > 0));
+      assert.ok((config.watch ?? []).every((rule) => rule.docs.length <= 2));
     });
   });
 

@@ -13,6 +13,14 @@ source: manual
 
 Derived from next-action and near-term work sections across managed Benjamin docs.
 
+## [Agent Brief](../handoff/agent-brief.md)
+
+Source: `benjamin-docs/handoff/agent-brief.md` (updated 2026-07-12)
+
+### Next Action
+
+Run the full check suite and an independent burden review before publishing a new version.
+
 ## [Roadmap](../project/roadmap.md)
 
 Source: `benjamin-docs/project/roadmap.md` (updated 2026-07-12)

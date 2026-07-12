@@ -58,6 +58,7 @@
     "benjamin-docs/features/launch-readiness-audit/brief.md",
     "benjamin-docs/features/launch-readiness-audit/plan.md",
     "benjamin-docs/features/launch-readiness-audit/decisions.md",
-    "benjamin-docs/features/launch-readiness-audit/handoff.md"
+    "benjamin-docs/features/launch-readiness-audit/handoff.md",
+    "benjamin-docs/project/agent-context.md"
   ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "benjamin-docs",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Persistent project memory for AI coding agents, with deterministic readiness checks and optional bounded session context.",
   "keywords": [
     "ai",
@@ -71,6 +71,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "bd": "^0.4.1",
     "zod": "^4.4.3"
   }
 }

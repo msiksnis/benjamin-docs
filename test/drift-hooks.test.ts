@@ -138,7 +138,7 @@ describe("drift", () => {
       const parsed = JSON.parse(updated.stdout) as { drifted: Array<{ doc: string }>; skipped: Array<{ doc: string; reason: string }> };
       assert.ok(!parsed.drifted.some((entry) => entry.doc === "benjamin-docs/engineering/code-map.md"));
       assert.ok(parsed.skipped.some((entry) => entry.doc === "benjamin-docs/engineering/code-map.md" && entry.reason === "doc has uncommitted updates"));
-      assert.ok(parsed.drifted.some((entry) => entry.doc === "benjamin-docs/engineering/architecture.md"));
+      assert.ok(!parsed.drifted.some((entry) => entry.doc === "benjamin-docs/engineering/architecture.md"));
     });
   });
 
@@ -154,7 +154,7 @@ describe("drift", () => {
       const parsed = JSON.parse(result.stdout) as { drifted: Array<{ doc: string }> };
 
       assert.ok(!parsed.drifted.some((entry) => entry.doc === "benjamin-docs/engineering/code-map.md"));
-      assert.ok(parsed.drifted.some((entry) => entry.doc === "benjamin-docs/engineering/architecture.md"));
+      assert.ok(!parsed.drifted.some((entry) => entry.doc === "benjamin-docs/engineering/architecture.md"));
     });
   });
 
@@ -176,7 +176,7 @@ describe("drift", () => {
       const parsed = JSON.parse(result.stdout) as { drifted: Array<{ doc: string; commitsBehind?: number }> };
 
       assert.equal(parsed.drifted.find((entry) => entry.doc === "benjamin-docs/engineering/code-map.md")?.commitsBehind, 1);
-      assert.equal(parsed.drifted.find((entry) => entry.doc === "benjamin-docs/engineering/architecture.md")?.commitsBehind, 2);
+      assert.equal(parsed.drifted.find((entry) => entry.doc === "benjamin-docs/engineering/architecture.md"), undefined);
     });
   });
 
@@ -829,7 +829,7 @@ describe("session commands", () => {
     });
   });
 
-  it("prints compact context with drift summary per format", () => {
+  it("prints compact routing context per format without startup drift work", () => {
     withTempDir((dir) => {
       setUpCommittedProject(dir);
       commitSourceChange(dir);
@@ -837,9 +837,8 @@ describe("session commands", () => {
       const plain = runCliResult(["session-start", "--format", "claude"], dir);
       assert.match(plain.stdout, /Benjamin Docs memory is active/);
       assert.match(plain.stdout, /Docs root: benjamin-docs\//);
-      assert.match(plain.stdout, /Read first: handoff\/agent-brief\.md/);
-      assert.match(plain.stdout, /Drift: \d+ docs are behind watched code changes/);
-      assert.match(plain.stdout, /bd ready/);
+      assert.match(plain.stdout, /Read first: project\/agent-context\.md/);
+      assert.doesNotMatch(plain.stdout, /Drift:/);
       const claudeContext = plain.stdout.trimEnd();
       assert.ok(claudeContext.length <= CONTEXT_BUDGETS.sessionStartCharacters);
       assert.ok(estimatedTokens(claudeContext) <= CONTEXT_BUDGETS.sessionStartEstimatedTokens);
@@ -849,7 +848,7 @@ describe("session commands", () => {
       assert.ok(Math.ceil(plainContext.length / 4) <= 100);
       assert.match(plainContext, /^Benjamin Docs memory is active\./);
       assert.match(plainContext, /^Docs root: benjamin-docs\/$/m);
-      assert.match(plainContext, /^Read first: handoff\/agent-brief\.md/m);
+      assert.match(plainContext, /^Read first: project\/agent-context\.md$/m);
       assert.doesNotMatch(plainContext, / Run bd status for details\.$/);
 
       const cursor = JSON.parse(runCliResult(["session-start", "--format", "cursor"], dir).stdout) as { additional_context: string };
@@ -863,7 +862,7 @@ describe("session commands", () => {
     });
   });
 
-  it("keeps a maximum-length custom docs root and the full overflow suffix within budget", { skip: process.platform === "win32" }, () => {
+  it("keeps a maximum-length custom docs root within the startup budget", { skip: process.platform === "win32" }, () => {
     withTempDir((dir) => {
       const docsRoot = "m".repeat(MAX_DOCS_ROOT_CHARACTERS);
       setUpCommittedProject(dir, docsRoot, true);
@@ -874,8 +873,8 @@ describe("session commands", () => {
       assert.ok(context.length <= CONTEXT_BUDGETS.sessionStartCharacters, `Expected at most 400 characters, got ${context.length}`);
       assert.ok(estimatedTokens(context) <= CONTEXT_BUDGETS.sessionStartEstimatedTokens);
       assert.match(context, new RegExp(`^Benjamin Docs memory is active\\.\\nDocs root: ${docsRoot}/$`, "m"));
-      assert.match(context, /^Read first: handoff\/agent-brief\.md, views\/agent-continuation\.md$/m);
-      assert.ok(context.endsWith(" Run bd status for details."));
+      assert.match(context, /^Read first: project\/agent-context\.md$/m);
+      assert.doesNotMatch(context, /Run bd status for details/);
       assert.equal(context.split(docsRoot).length - 1, 1);
     });
   });
