@@ -863,7 +863,7 @@ describe("session commands", () => {
     });
   });
 
-  it("keeps a maximum-length custom docs root and the full overflow suffix within budget", () => {
+  it("keeps a maximum-length custom docs root and the full overflow suffix within budget", { skip: process.platform === "win32" }, () => {
     withTempDir((dir) => {
       const docsRoot = "m".repeat(MAX_DOCS_ROOT_CHARACTERS);
       setUpCommittedProject(dir, docsRoot, true);

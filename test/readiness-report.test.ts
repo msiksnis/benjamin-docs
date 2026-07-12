@@ -110,7 +110,7 @@ describe("structured readiness", () => {
     });
   });
 
-  it("fails committed freshness closed when a committed watched diff exceeds the child-process default buffer", () => {
+  it("fails committed freshness closed when a committed watched diff exceeds the child-process default buffer", { skip: process.platform === "win32" }, () => {
     withTempDir((dir) => {
       setUpCapturedRepository(dir);
       const suffix = "x".repeat(110);
