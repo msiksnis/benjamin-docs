@@ -12,7 +12,7 @@ freshness: status
 
 # Human Brief
 
-The maintainer accepted a trust-first program on 2026-07-10. Benjamin Docs 0.11.1 is still the published release; the working branch now contains the implemented, audited 0.12.0 trust-foundation release candidate. It should not yet be described as a dependable standard.
+The maintainer accepted a trust-first program on 2026-07-10. Benjamin Docs 0.12.0 was published on 2026-07-12 with the implemented and audited trust foundation. It should not yet be described as a dependable standard.
 
 The program adds an explicit experience guarantee: BD should remain lightweight while agents use it in the background. Session context, task retrieval, skill size, and hook latency receive numerical release budgets. BD must never replace or materially change the answer an agent gives the user. Reading memory needs no mention; after a meaningful update, the agent may add one very short sentence saying what BD memory changed.
 
@@ -38,7 +38,7 @@ The last hook review tightened “one correct” to exactly one canonical start.
 
 The customer export boundary now scans the final rendered artifact before writing anything. Evidence must identify a concrete typed check and meaningful result, `file:` home paths are blocked, scope titles cannot inject multiline frontmatter, and generated metadata no longer overstates implementation verification.
 
-`benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.11.1` (session-hook turn safety) is currently published on npm. The product focuses on local files rather than SaaS.
+`benjamin-docs` is a published local-first CLI and agent skill for persistent project memory. The package is public as `benjamin-docs`; `0.12.0` (trust foundation) is currently published on npm. The product focuses on local files rather than SaaS.
 
 0.10.0 added drift checks and session hooks. `bd drift` compares watched docs with committed Git history. Session-start hooks provide compact orientation and point agents to project memory; they do not load or verify every fact automatically. The 0.12.0 candidate removes stop-hook continuations so BD maintenance cannot replace or distort the final user response. For humans, the surface stays small: `init`, `ready`, `export`, and `help`, with advanced checks handled by agents.
 
@@ -48,7 +48,7 @@ The product promise is simple: every new AI coding session should start with usa
 
 Recent work made the first-run story stronger: `ready` is the primary handoff gate, `export` is the guided local deliverable path, `commands` is an interactive advanced drawer, `bd` is the short alias, agent guidance can be installed into `AGENTS.md` without overwriting existing user-owned instructions, and `install-skill` / `package-skill` distribute the bundled skill.
 
-Version 0.11.0 introduced the MCP server that turns memory into native agent tools; 0.11.1 remains the current published release. Agents can search and read selected sections and write through structurally validated, rollback-safe updates. Register per project with `bd mcp install`. The 0.12.0 candidate bounds retrieval size, distinguishes structural checks from semantic evidence, and fails unsafe customer/public exports closed.
+Version 0.11.0 introduced the MCP server that turns memory into native agent tools. Version 0.12.0 is now the current published release; it bounds retrieval size, distinguishes structural checks from semantic evidence, and fails unsafe customer/public exports closed. Register per project with `bd mcp install`.
 
 The final 0.12.0 release gate includes Linux, macOS, and Windows on Node 22 and 24. A first Windows run exposed native path-separator and temporary child-process cleanup defects; those release blockers are fixed in the candidate and must pass the replacement matrix before npm publication.
 

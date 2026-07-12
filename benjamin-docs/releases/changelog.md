@@ -205,7 +205,7 @@ source: manual
 
 Initial public package release candidate.
 
-## 0.12.0 (unpublished)
+## 0.12.0 (2026-07-12)
 
 - Added Linux, macOS, and Windows verification on Node 22 and 24.
 - Stabilized slash-normalized CLI display paths and Windows-safe temporary fixture cleanup; retained filesystem-limit stress coverage on Unix hosts.

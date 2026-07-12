@@ -44,14 +44,14 @@ Later release trains are strictly sequenced: B, impact evidence; C, canonical st
 ## Current Package State
 
 - `benjamin-docs` is published on npm.
-- Current published release: `0.11.1` (session-hook turn safety), published 2026-07-09 with npm, git tag, and GitHub Release verified in sync.
-- Working package version: `0.12.0` release candidate; not published, tagged, or released.
+- Current published release: `0.12.0` (trust foundation), published 2026-07-12 with npm, git tag, and GitHub Release verified in sync.
+- Working package version: `0.12.0`; matches the published release.
 - The global CLI is installed from npm with npm and pnpm.
 - The bundled skill is installed in shared, Codex, Claude Code, and Cursor skill folders.
 - The Claude Desktop upload zip is generated at `~/Downloads/benjamin-docs-skill.zip`.
 - The public GitHub repo is `msiksnis/benjamin-docs`.
 - Owner direct push to `main` is allowed via admin bypass; regular contributors should use PRs.
-- GitHub Releases exist for every published version through `v0.11.1`, which is the latest release.
+- GitHub Releases exist for every published version through `v0.12.0`, which is the latest release.
 - Release guardrails now include `pnpm run release:github`, `pnpm run release:verify-public`, and a tag-push GitHub Action that creates GitHub Releases from version tags after verifying npm.
 - The 0.4.x npm artifacts were verified in fresh temp projects and dogfooded on `/Users/marty/Important/atelier-beaute` and `/Users/marty/Important/pet-software/pup-base`.
 - Local Memory Views are implemented behind the advanced `bd views` command, not promoted into the primary command path.
@@ -62,7 +62,7 @@ Later release trains are strictly sequenced: B, impact evidence; C, canonical st
 
 ## Immediate Next Work
 
-- Release Train A, the 0.12.0 trust foundation, and all ten audit reproductions are complete on the dependable-standard branch; the release candidate remains unpublished.
+- Release Train A, the 0.12.0 trust foundation, and all ten audit reproductions are complete and published.
 - The final whole-branch review fix set is complete: large-diff and locale-stable execution-failure fail-closed freshness, explicit non-Git/unborn-HEAD planning availability, case-insensitive Windows publication paths, lazy repository doctor, property-level target hook repair with exact user-data preservation and no duplicate valid entry, accurate session-context copy, current repo metadata, and the four-command human surface have focused regressions.
 - The 0.12.0 migration path is complete: after updating the package, run `bd upgrade` once in each initialized repository. It refreshes Benjamin-owned metadata, agent guidance, the current skill bundle, existing Memory Views, and Claude Code/Codex/Cursor session-start hooks; removes legacy Benjamin stop hooks; preserves user-owned configuration; and needs no separate hook command. `bd upgrade --no-hooks` is the explicit environment opt-out.
 - Release verification now requires the full Linux/macOS/Windows Node 22/24 matrix. Windows-only display-path, absolute fixture-path, and child-process cleanup failures found during the first publish gate were corrected before publication.

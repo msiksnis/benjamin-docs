@@ -18,7 +18,7 @@ An exhaustive pre-public-launch product, architecture, documentation, AI-agent, 
 
 Audit verdict: version 0.11.1 has a strong project-memory concept and a safety-conscious CLI foundation, but it is not ready to be presented as a dependable developer standard. Reproduced blockers include false-ready behavior when watched docs are behind committed code, working-tree freshness gaps, unsafe customer export paths, optional global artifacts blocking repository readiness, confidentiality ambiguity around `visibility: private`, pointer-only session loading, and contradictory self-documentation passing current checks.
 
-The maintainer accepted the trust-first direction. The program plan is `benjamin-docs/features/launch-readiness-audit/plan.md`; the executable plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`. The 0.12.0 trust foundation and final whole-branch review fixes are implemented, including locale-stable typed Git analysis in both freshness dimensions, legitimate non-Git/unborn-HEAD planning availability, mixed-case Windows path blocking, slash-normalized user-facing paths, and structural hook validation/repair for all supported targets. Shared-schema repair removes only malformed Benjamin-owned entries or properties, preserves unrelated group data and nested user hooks exactly, and does not duplicate an existing valid nested start entry. The maintainer explicitly requested the 0.12.0 release on 2026-07-12; complete the verified publish workflow, pausing only for npm 2FA.
+The maintainer accepted the trust-first direction. The program plan is `benjamin-docs/features/launch-readiness-audit/plan.md`; the executable plan is `docs/superpowers/plans/2026-07-10-dependable-standard-trust-foundation.md`. The 0.12.0 trust foundation and final whole-branch review fixes are implemented, including locale-stable typed Git analysis in both freshness dimensions, legitimate non-Git/unborn-HEAD planning availability, mixed-case Windows path blocking, slash-normalized user-facing paths, and structural hook validation/repair for all supported targets. Shared-schema repair removes only malformed Benjamin-owned entries or properties, preserves unrelated group data and nested user hooks exactly, and does not duplicate an existing valid nested start entry. Version 0.12.0 was published on 2026-07-12 after the full release gate passed.
 
 Cross-platform CI keeps functional coverage on every operating system. The maximum-path session fixture and 8,200-file cleanup stress fixture remain enforced on Linux/macOS and are skipped on Windows because they test host filesystem limits rather than separate CLI behavior.
 
@@ -50,8 +50,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.11.1` (session-hook turn safety) published on npm, released 2026-07-09.
-- Working package version: `0.12.0` release candidate; unpublished.
+- Package status: `0.12.0` (trust foundation) published on npm and released 2026-07-12.
+- Working package version: `0.12.0`; matches the published release.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 
@@ -232,7 +232,7 @@ When continuing this project:
 
 ## Likely Next Work
 
-- Keep the unpublished 0.12.0 trust-foundation release candidate intact unless the maintainer explicitly requests release actions.
+- Keep the published 0.12.0 trust-foundation release intact; begin follow-on work as a separately versioned change.
 - Write the impact-evidence plan only after structured readiness and complete Git change accounting are proven.
 - Write the canonical-state plan, including typed views, bounded continuation, and mode-specific minimal schemas, after impact evidence is stable; write the agent-interface plan only after those canonical interfaces are proven.
 - Write the protocol/conformance plan only after canonical-state behavior is stable.

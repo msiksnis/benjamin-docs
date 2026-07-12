@@ -51,7 +51,7 @@ Before every implementation handoff:
 - run views, review --changed, drift, and ready;
 - preserve the substantive user-facing response and keep any BD note to one short sentence.
 
-The 0.12.0 publish attempt exposed Windows-only failures in CI runs `29185413723` and `29185673417`. Shared path-display, absolute fixture-path, and child-process cleanup boundaries were corrected. Two Unix filesystem stress fixtures remain enforced on Linux/macOS but are skipped on Windows, where the functional readiness and session-context cases still run; publication remains blocked until the replacement commit passes the full matrix.
+The 0.12.0 publish gate exposed Windows-only failures in CI runs `29185413723` and `29185673417`. Shared path-display, absolute fixture-path, and child-process cleanup boundaries were corrected. Two Unix filesystem stress fixtures remain enforced on Linux/macOS but are skipped on Windows, where the functional readiness and session-context cases still run. Replacement CI run `29185818026` passed the complete matrix before publication on 2026-07-12.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 
@@ -67,8 +67,8 @@ The source repo is:
 - GitHub repo: `msiksnis/benjamin-docs`
 - Main branch: `main`
 - Package/CLI name: `benjamin-docs`
-- Package status: `0.11.1` (session-hook turn safety) published on npm, released 2026-07-09.
-- Working package version: `0.12.0` release candidate; unpublished.
+- Package status: `0.12.0` (trust foundation) published on npm and released 2026-07-12.
+- Working package version: `0.12.0`; matches the published release.
 
 The project has been renamed fully from the earlier working name `agent-docs`; do not reintroduce that name.
 

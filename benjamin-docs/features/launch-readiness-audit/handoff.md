@@ -136,4 +136,4 @@ Before every implementation handoff:
 - run views, review --changed, drift, and ready;
 - preserve the substantive user-facing response and keep any BD note to one short sentence.
 
-The 0.12.0 publish attempt exposed Windows-only failures in CI runs `29185413723` and `29185673417`. Shared path-display, absolute fixture-path, and child-process cleanup boundaries were corrected. Two Unix filesystem stress fixtures remain enforced on Linux/macOS but are skipped on Windows, where the functional readiness and session-context cases still run; publication remains blocked until the replacement commit passes the full matrix.
+The 0.12.0 publish gate exposed Windows-only failures in CI runs `29185413723` and `29185673417`. Shared path-display, absolute fixture-path, and child-process cleanup boundaries were corrected. Two Unix filesystem stress fixtures remain enforced on Linux/macOS but are skipped on Windows, where the functional readiness and session-context cases still run. Replacement CI run `29185818026` passed the complete matrix before publication on 2026-07-12.
