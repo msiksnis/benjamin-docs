@@ -640,7 +640,7 @@ describe("upgrade", () => {
         ]);
         assert.deepEqual(updated.hooks.Stop, [{ customGroup: "keep-stop" }]);
         const config = JSON.parse(readFileSync(join(dir, ".benjamin-docs/config.json"), "utf8")) as { bdVersion?: string };
-        assert.equal(config.bdVersion, "0.12.0");
+        assert.equal(config.bdVersion, "0.12.1");
       });
     });
   });

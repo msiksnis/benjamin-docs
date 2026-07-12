@@ -607,7 +607,7 @@ describe("status and export", () => {
       assert.match(output, /mode: planning/);
       assert.match(output, /focus: project/);
       assert.match(output, /docsRoot: benjamin-docs/);
-      assert.match(output, /docs: 9/);
+      assert.match(output, /docs: 10/);
       assert.match(output, /scopes: 4/);
     });
   });

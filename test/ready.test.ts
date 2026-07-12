@@ -148,8 +148,8 @@ describe("ready", () => {
       assert.equal(result.status, 1);
       assert.match(result.stdout, /status: not ready/);
       assert.match(result.stdout, /fail\s+review/);
-      assert.match(result.stdout, /project\/roadmap\.md: Freshness blind spot/);
-      assert.match(result.stdout, /handoff\/agent-brief\.md: Freshness blind spot/);
+      assert.match(result.stdout, /project\/brief\.md: Freshness blind spot/);
+      assert.doesNotMatch(result.stdout, /project\/roadmap\.md: Freshness blind spot/);
     });
   });
 

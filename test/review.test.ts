@@ -102,9 +102,9 @@ describe("review", () => {
 
       assert.equal(result.status, 0);
       assert.match(result.stdout, /status: passed with warnings/);
-      assert.match(result.stdout, /project\/roadmap\.md: Freshness blind spot/);
-      assert.match(result.stdout, /handoff\/human-brief\.md: Freshness blind spot/);
-      assert.match(result.stdout, /handoff\/agent-brief\.md: Freshness blind spot/);
+      assert.match(result.stdout, /project\/brief\.md: Freshness blind spot/);
+      assert.doesNotMatch(result.stdout, /project\/roadmap\.md: Freshness blind spot/);
+      assert.doesNotMatch(result.stdout, /handoff\/agent-brief\.md: Freshness blind spot/);
       assert.match(result.stdout, /can never be flagged stale/);
     });
   });
@@ -167,7 +167,7 @@ describe("review", () => {
       assert.match(result.stdout, /Source files changed, but no Benjamin Docs source files changed/);
       assert.match(result.stdout, /benjamin-docs\/engineering\/architecture\.md/);
       assert.match(result.stdout, /benjamin-docs\/engineering\/code-map\.md/);
-      assert.match(result.stdout, /benjamin-docs\/releases\/changelog\.md/);
+      assert.doesNotMatch(result.stdout, /benjamin-docs\/releases\/changelog\.md/);
     });
   });
 
