@@ -23,7 +23,7 @@ describe("info commands", () => {
         for (const claim of forbiddenClaims) assert.doesNotMatch(surface, new RegExp(claim, "i"));
       }
 
-      assert.match(readme, /session-start`? supplies a compact pointer\/context packet/i);
+      assert.match(readme, /session-start`? supplies one compact routing pointer/i);
       assert.match(readme, /agents maintain (?:the )?project memory during normal work/i);
       assert.match(readme, /deterministic checks do not prove semantic truth/i);
       assert.match(readme, /publication metadata does not change (?:the )?Git repository visibility/i);
