@@ -61,6 +61,7 @@ export function validateProject(root: string): ValidationResult {
 }
 
 function readMetadataFile<T>(root: string, realRoot: string, relativePath: string, errors: string[]): T | undefined {
+  relativePath = normalizeProjectPath(relativePath);
   const fullPath = rootPath(root, relativePath);
 
   try {

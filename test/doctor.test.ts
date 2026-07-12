@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { chmodSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { runCliResult, withTempDir } from "./helpers.js";
 
 describe("doctor", () => {
@@ -194,7 +194,7 @@ describe("doctor", () => {
                 ],
               },
             };
-        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        mkdirSync(dirname(hookPath), { recursive: true });
         writeFileSync(hookPath, `${JSON.stringify(content, null, 2)}\n`);
 
         const result = runCliResult(["doctor", "--strict", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
@@ -257,7 +257,7 @@ describe("doctor", () => {
         runCliResult(["install-skill", "--target", target], dir, { BENJAMIN_DOCS_HOME: dir });
         const hookPath = join(dir, target === "codex" ? ".codex/hooks.json" : ".claude/settings.json");
         const format = target === "codex" ? "codex" : "claude";
-        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        mkdirSync(dirname(hookPath), { recursive: true });
         writeFileSync(hookPath, `${JSON.stringify({
           hooks: {
             SessionStart: [
@@ -309,7 +309,7 @@ describe("doctor", () => {
                 Stop: [nestedStop],
               },
             };
-        mkdirSync(join(dir, hookPath, ".."), { recursive: true });
+        mkdirSync(dirname(hookPath), { recursive: true });
         writeFileSync(hookPath, `${JSON.stringify(content, null, 2)}\n`);
 
         const status = runCliResult(["hooks", "status", "--target", target], dir);

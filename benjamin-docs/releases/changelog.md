@@ -205,6 +205,11 @@ source: manual
 
 Initial public package release candidate.
 
+## 0.12.0 (unpublished)
+
+- Added Linux, macOS, and Windows verification on Node 22 and 24.
+- Stabilized slash-normalized CLI display paths and Windows-safe temporary fixture cleanup.
+
 Highlights:
 
 - Repo-local `benjamin-docs/` workspace and `.benjamin-docs/` metadata.

@@ -151,9 +151,9 @@ export function knownSkillTargets(): Array<{ id: Exclude<SkillTargetId, "all">; 
 export function formatHomePath(homeDir: string, path: string): string {
   const relativePathFromHome = relative(homeDir, path);
   if (relativePathFromHome && !relativePathFromHome.startsWith(`..${sep}`) && relativePathFromHome !== "..") {
-    return `~/${relativePathFromHome}`;
+    return `~/${relativePathFromHome.split(sep).join("/")}`;
   }
-  return path;
+  return path.split(sep).join("/");
 }
 
 function getBundledSkillPath(): string {

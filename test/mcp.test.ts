@@ -1,4 +1,4 @@
-import { after, describe, it } from "node:test";
+import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -11,6 +11,8 @@ interface TextResult {
   content: Array<{ type: string; text: string }>;
 }
 
+const openClients = new Set<Client>();
+
 async function connectClient(cwd: string): Promise<Client> {
   const transport = new StdioClientTransport({
     command: "node",
@@ -20,6 +22,7 @@ async function connectClient(cwd: string): Promise<Client> {
   });
   const client = new Client({ name: "bd-tests", version: "0.0.1" });
   await client.connect(transport);
+  openClients.add(client);
   return client;
 }
 
@@ -99,7 +102,6 @@ describe("mcp server tools", () => {
       seedManyMatchingMemorySections(dir);
 
       const client = await connectClient(dir);
-      after(() => client.close());
 
       const tools = await client.listTools();
       assert.deepEqual(
@@ -176,7 +178,6 @@ describe("mcp server tools", () => {
       const before = readFileSync(docPath, "utf8");
 
       const client = await connectClient(dir);
-      after(() => client.close());
 
       const result = await callText(client, "memory_update", {
         path: "benjamin-docs/engineering/code-map.md",
@@ -195,7 +196,6 @@ describe("mcp server tools", () => {
       runCliResult(["scope", "create", "feature", "checkout-flow"], dir);
 
       const client = await connectClient(dir);
-      after(() => client.close());
 
       const result = await callText(client, "memory_record_decision", {
         feature: "checkout-flow",
@@ -214,7 +214,6 @@ describe("mcp server tools", () => {
   it("explains initialization when the project has no memory", async () => {
     await withTempDirAsync(async (dir) => {
       const client = await connectClient(dir);
-      after(() => client.close());
 
       const result = await callText(client, "memory_status");
       assert.equal(result.isError, true);
@@ -230,7 +229,11 @@ async function withTempDirAsync(fn: (dir: string) => Promise<void>): Promise<voi
   try {
     await fn(dir);
   } finally {
-    rmSync(dir, { recursive: true, force: true });
+    await Promise.all([...openClients].map(async (client) => {
+      await client.close();
+      openClients.delete(client);
+    }));
+    rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   }
 }
 

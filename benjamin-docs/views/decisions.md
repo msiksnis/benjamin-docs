@@ -5,7 +5,7 @@ scope_id: project
 audience: [developer, agent]
 status: draft
 visibility: private
-updated: 2026-07-11
+updated: 2026-07-12
 source: manual
 ---
 
@@ -57,6 +57,7 @@ Source: `benjamin-docs/features/launch-readiness-audit/decisions.md` (updated 20
 - 2026-07-12: Require exactly one canonical target start, treat leading whitespace as direct Benjamin ownership, and fail closed on unknown Cursor versions or non-object executable-schema entries. Apply the same preflight to health and mutation, and preserve unsafe/incompatible hook paths unchanged.
 - 2026-07-12: Replace existing hook files through a flushed same-directory temporary plus atomic rename, retaining POSIX mode/owner metadata and the primary error on cleanup failure. Use the raw text read by the hook layer as a best-effort final stale-read guard without claiming cross-process compare-and-swap.
 - 2026-07-12: Run publication policy against the final rendered artifact before any write and require typed, meaningful verification evidence without claiming semantic proof.
+- 2026-07-12: Treat the Windows CI matrix as a release gate. Keep user-facing paths slash-normalized, resolve absolute hook fixtures without joining them back to the temp root, and close MCP transports before bounded-retry cleanup.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 

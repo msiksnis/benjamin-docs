@@ -903,3 +903,4 @@ That product could become a standard. Version 0.11.1 is not yet that product.
 | CLI architecture is concentrated | src/cli.ts, src/export.ts, src/review.ts, src/validate.ts | file-size and responsibility inspection |
 | package asset is stale | benjamin-docs-skill.zip and skills/benjamin-docs/SKILL.md | archive SKILL.md hash/size differs from current source |
 | contributor/security docs drift | CONTRIBUTING.md:29; SECURITY.md:32 | wrong docs path and false outside-root write claim |
+| Windows matrix initially failed | CI run 29185413723 | native separators, absolute-path fixture joins, and open MCP transports broke Windows checks |

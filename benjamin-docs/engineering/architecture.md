@@ -117,6 +117,8 @@ pnpm run release:verify-public
 
 `release:check` builds, tests, validates the BD repo, and dry-runs npm packing. After npm publish, `release:github` verifies npm, generates a temporary skill ZIP, byte-checks `SKILL.md` and all three references against package sources, then creates or reuses the tag and GitHub Release. The script never publishes npm, and the ZIP is not tracked source. `.github/workflows/release.yml` remains the tag-push backup path.
 
+Cross-platform output uses slash-normalized project and home-relative paths even when filesystem operations use native separators. Test fixtures resolve absolute hook files once and close child-process transports before removing temporary workspaces; Windows cleanup uses bounded retries for transient file locks.
+
 ## Current Architectural Bias
 
 Keep BD boring and local. The next architecture work is Release Train B, Impact Evidence: durable update/no-impact/deferred/blocker records tied to source identity. Hosted services, sync, dashboards, and plugin infrastructure remain deferred.

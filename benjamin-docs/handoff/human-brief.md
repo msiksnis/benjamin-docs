@@ -50,6 +50,8 @@ Recent work made the first-run story stronger: `ready` is the primary handoff ga
 
 Version 0.11.0 introduced the MCP server that turns memory into native agent tools; 0.11.1 remains the current published release. Agents can search and read selected sections and write through structurally validated, rollback-safe updates. Register per project with `bd mcp install`. The 0.12.0 candidate bounds retrieval size, distinguishes structural checks from semantic evidence, and fails unsafe customer/public exports closed.
 
+The final 0.12.0 release gate includes Linux, macOS, and Windows on Node 22 and 24. A first Windows run exposed native path-separator and temporary child-process cleanup defects; those release blockers are fixed in the candidate and must pass the replacement matrix before npm publication.
+
 The published 0.11.1 hotfix makes the hook behavior match that safety promise: old dirty files no longer trigger repeated warnings on read-only turns, real new changes still get one maintenance pass, and the maintenance continuation must return the complete answer the user asked for.
 
 Main product constraint: the user workflow must stay simple. The main command surface should remain `bd init`, `bd ready`, `bd export`, and `bd help`; advanced refresh/freshness guidance can point to `bd views`, `bd review --changed`, and direct export flags without making the product feel like a full workspace app.

@@ -5,7 +5,7 @@ scope_id: project
 audience: [agent]
 status: draft
 visibility: private
-updated: 2026-07-11
+updated: 2026-07-12
 source: manual
 ---
 
@@ -50,6 +50,8 @@ Before every implementation handoff:
 - update the smallest durable Benjamin source docs;
 - run views, review --changed, drift, and ready;
 - preserve the substantive user-facing response and keep any BD note to one short sentence.
+
+The 0.12.0 publish attempt exposed Windows-only failures in CI run `29185413723`. The shared path-display, absolute fixture-path, and child-process cleanup boundaries were corrected; publication remains blocked until the replacement commit passes the full Linux/macOS/Windows Node 22/24 matrix.
 
 ## [Agent Brief](../handoff/agent-brief.md)
 

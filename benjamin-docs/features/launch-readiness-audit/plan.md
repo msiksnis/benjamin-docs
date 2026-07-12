@@ -226,3 +226,4 @@ Exit gates:
 - Production dependency audit.
 - Git diff check.
 - Durable project-memory update before handoff.
+- Full Linux, macOS, and Windows Node 22/24 CI matrix green before publication.
